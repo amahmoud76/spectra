@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "spectra-document-repository",
+    "id": "dbc7e01d-3c49-4725-9011-2b31724a94f7",
+    "version": "1.6.0.2",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.18.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "Centralized document repository for AbbVie R&D strategic documents with metadata tagging, search, and role-based access control."
+      },
+      "longDescription": {
+        "default": "The Document Repository is a SharePoint Framework (SPFx) web part that provides a centralized platform for uploading, searching, viewing, and managing AbbVie R&D strategic documents. Features include structured metadata tagging with cascading dropdowns, synonym-based search, document preview in the browser, archive and replace workflow, auto-generated file naming, CSV export, and role-based access control through AD Groups (Administrator, Contributor, Viewer). All documents are stored in SharePoint Online with no external dependencies."
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "webApiPermissionRequests": [
+      {
+        "resource": "Microsoft Graph",
+        "scope": "User.Read"
+      }
+    ],
+    "features": [
+      {
+        "title": "spectra-document-repository Feature",
+        "description": "The feature that activates elements of the spectra-document-repository solution.",
+        "id": "1a93ae37-bb86-40a5-a3c0-3fc8c1dc46ad",
+        "version": "1.6.0.2"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/spectra-document-repository.sppkg"
+  }
+}

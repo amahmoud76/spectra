@@ -1,0 +1,45 @@
+﻿Title,THERAPEUTIC_AREA
+Body Contouring,Aesthetics
+Fillers,Aesthetics
+Hair,Aesthetics
+Medical Weight Loss,Aesthetics
+Other,Aesthetics
+Plastics & Regenrative Medicine,Aesthetics
+Research & Other,Aesthetics
+Skincare,Aesthetics
+Toxins,Aesthetics
+Diabetic Retinopathy,Eye Care
+Dry Eye,Eye Care
+Glaucoma,Eye Care
+Other,Eye Care
+Wet Macular Degeneration,Eye Care
+Asthma,Immunology
+Atopic Dermatitis,Immunology
+Hidradenitis Suppurativa,Immunology
+Inflammatory Bowel Disease (Crohn’s Disease & Ulcerative Colitis),Immunology
+Other,Immunology
+Psoriasis,Immunology
+Psoriatic Arthritis,Immunology
+Rheumatoid Arthritis,Immunology
+Alzheimer’s Disease,Neuroscience
+Depression,Neuroscience
+Migraine,Neuroscience
+Movement Disorders,Neuroscience
+Neuroimmunology,Neuroscience
+Other,Neuroscience
+Pain,Neuroscience
+Parkinson’s Disease,Neuroscience
+Schizophrenia,Neuroscience
+Acute Myeloid Leukemia,Oncology
+Chronic Lymphocytic Leukemia,Oncology
+Colorectal Cancer,Oncology
+Diffuse Large B-Cell Lymphoma,Oncology
+Multiple Myeloma,Oncology
+Non-Small Cell Lung Cancer,Oncology
+Other,Oncology
+Ovarian Cancer,Oncology
+Prostate Cancer,Oncology
+Small Cell Lung Cancer,Oncology
+MASH,Specialty
+Obesity,Specialty
+Other,Specialty

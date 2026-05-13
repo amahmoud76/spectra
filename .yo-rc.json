@@ -1,0 +1,21 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "18.17.1",
+    "sdksVersions": {
+      "@microsoft/microsoft-graph-client": "3.0.2",
+      "@microsoft/teams-js": "2.12.0"
+    },
+    "version": "1.18.2",
+    "libraryName": "spectra-document-repository",
+    "libraryId": "dbc7e01d-3c49-4725-9011-2b31724a94f7",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "spectra-document-repository",
+    "solutionShortDescription": "spectra-document-repository description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

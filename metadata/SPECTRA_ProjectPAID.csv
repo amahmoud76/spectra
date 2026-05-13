@@ -1,0 +1,601 @@
+﻿Title,ASSET_NUMBER,THERAPEUTIC_AREA,INDICATION
+3D adipose sponge (AGN8001/B),AGN-8001,Aesthetics,Aesthetics Indications and Procedures
+A-syn (ADARx) AzD (ADARX_NEU2/A),ADARX_NEU2,Neuroscience,Alzheimer Disease
+ABBV-011 SCLC (ABBV011/A),ABBV-011,Oncology,Small Cell Lung Cancer
+ABBV-101 1L CLL (ABBV101/B),ABBV-101,Oncology,Chronic Lymphocytic Leukemia
+ABBV-101 2L+ CLL (ABBV101/A),ABBV-101,Oncology,Chronic Lymphocytic Leukemia
+ABBV-1042 bipolar mania (ABBV1042/A),ABBV-1042,Neuroscience,Bipolar I Mania
+ABBV-1047 MDD (ABBV1047/A),ABBV-1047,Neuroscience,Major Depression
+ABBV-1088 PD (ABBV1088/A),ABBV-1088,Neuroscience,Parkinson Disease
+ABBV-112i M4 ligand (ABBV112i/A),ABBV-112i,Neuroscience,Neurological Disorders
+ABBV-113 UC (ABBV113/A),ABBV-113,Immunology,Ulcerative Colitis
+ABBV-1162 bipolar mania (ABBV1162/A),ABBV-1162,Neuroscience,Bipolar I Mania
+ABBV-1318 AD (ABBV1318/A),ABBV-1318,Immunology,Atopic Dermatitis
+ABBV-1354 BPD (ABBV1354/A),ABBV-1354,Neuroscience,Bipolar Disorder
+ABBV-1354 MDD (ABBV1354/B),ABBV-1354,Neuroscience,Major Depression
+ABBV-1354 MDD maintenance (ABBV1354/D),ABBV-1354,Neuroscience,Major Depression
+ABBV-1354 MDD pediatric (ABBV1354/C),ABBV-1354,Neuroscience,Major Depression
+ABBV-141 SSc (ABBV141/B),ABBV-141,Immunology,Systemic Sclerosis
+ABBV-142 IPF (ABBV142/A),ABBV-142,Immunology,Idiopathic Pulmonary Fibrosis
+ABBV-142 PPF (ABBV142/C),ABBV-142,Immunology,Progressive Pulmonary Fibrosis
+ABBV-1432 RA (ABBV1432/A),ABBV-1432,Immunology,Rheumatoid Arthritis
+ABBV-1451 HS (ABBV1451/A),ABBV-1451,Immunology,Hidradenitis Suppurativa
+ABBV-1466 PsA (ABBV1466/A),ABBV-1466,Immunology,Psoriatic Arthritis
+ABBV-1480 1L SQ NSCLC chemo combo non-oncogene (ABBV1480/A),ABBV-1480,Oncology,Non-Small Cell Lung Cancer
+ABBV-1484 NSQ NSCLC non-oncogene (ABBV1484/A),ABBV-1484,Oncology,Non-Small Cell Lung Cancer
+ABBV-1484 1L MSS CRC 5FU+LV combo (ABBV1484/C),ABBV-1484,Oncology,Colorectal Cancer
+ABBV-1484 2L MSS CRC 5FU+LV combo (ABBV1484/B),ABBV-1484,Oncology,Colorectal Cancer
+ABBV-154 CD (ABBV154/F),ABBV-154,Immunology,Crohn Disease
+ABBV-154 RA (ABBV154/G),ABBV-154,Immunology,Rheumatoid Arthritis
+ABBV-154 polymyalgia rheumatica (ABBV154/C),ABBV-154,Immunology,Polymyalgia Rheumatica
+ABBV-158 TIM-IR RA (ABBV158/A),ABBV-158,Immunology,Rheumatoid Arthritis
+ABBV-1606 MDD (ABBV1606/A),ABBV-1606,Neuroscience,Major Depression
+ABBV-1623 glabellar lines (ABBV1623/A),ABBV-1623,Aesthetics,Glabellar Lines
+ABBV-166 CD (ABBV166/B),ABBV-166,Immunology,Crohn Disease
+ABBV-166 PsA (ABBV166/A),ABBV-166,Immunology,Psoriatic Arthritis
+ABBV-1758 AzD (ABBV1758/A),ABBV-1758,Neuroscience,Alzheimer Disease
+ABBV-177 BPD (ABBV177/A),ABBV-177,Neuroscience,Bipolar Disorder
+ABBV-178 dry eye (ABBV178/A),ABBV-178,Eye Care,Dry Eye
+ABBV-1871 dementia-related apathy (ABBV1871/A),ABBV-1871,Neuroscience,Dementia
+ABBV-1882 HIVvc off-ART (ABBV1882/A),ABBV-1882,Specialty,HIV Infection
+ABBV-191 CF (ABBV191/A),ABBV-191,Specialty,Cystic Fibrosis
+ABBV-2001 1L TE MM (ABBV2001/C),ABBV-2001,Oncology,Multiple Myeloma
+ABBV-2001 1L TI MM (ABBV2001/B),ABBV-2001,Oncology,Multiple Myeloma
+ABBV-2001 2L+ MM (ABBV2001/A),ABBV-2001,Oncology,Multiple Myeloma
+ABBV-2001 PV (ABBV2001/D),ABBV-2001,Immunology,Pemphigus vulgaris
+ABBV-2002 migraine (ABBV2002/A),ABBV-2002,Neuroscience,Migraine
+ABBV-2002 migraine pediatric (ABBV2002/B),ABBV-2002,Neuroscience,Migraine
+ABBV-2064 RVO (ABBV2064/B),ABBV-2064,Eye Care,Retinal Vein Occlusion
+ABBV-2294 SSc (ABBV2294/A),ABBV-2294,Immunology,Systemic Sclerosis
+ABBV-2294 TIM-IR RA (ABBV2294/B),ABBV-2294,Immunology,Rheumatoid Arthritis
+ABBV-230 CD (ABBV230/B),ABBV-230,Immunology,Crohn Disease
+ABBV-230 RA (ABBV230/A),ABBV-230,Immunology,Rheumatoid Arthritis
+ABBV-230 UC (ABBV230/C),ABBV-230,Immunology,Ulcerative Colitis
+ABBV-234 IBD (ABBV234/A),ABBV-234,Immunology,Inflammatory Bowel Disease
+ABBV-243 CD (ABBV243/A),ABBV-243,Immunology,Crohn Disease
+ABBV-2466 CD (ABBV2466/A),ABBV-2466,Immunology,Crohn Disease
+ABBV-253 solid tumors (ABBV253/A),ABBV-253,Oncology,Solid Tumor
+ABBV-277 AzD (ABBV277/A),ABBV-277,Neuroscience,Alzheimer Disease
+ABBV-291 DLBCL and FL (ABBV291/A),ABBV-291,Oncology,Non-Hodgkin Lymphoma
+ABBV-2920 Coronavirus S-protein mAb (HMS) (ABBV2920/A),ABBV-2920,Specialty,COVID-19
+ABBV-295 obesity (ABBV295/A),ABBV-295,Specialty,Obesity
+ABBV-295 obesity pediatric (ABBV295/B),ABBV-295,Specialty,Obesity
+ABBV-300 1L CLL (ABBV300/A),ABBV-300,Oncology,Chronic Lymphocytic Leukemia
+ABBV-300 2L CLL (ABBV300/B),ABBV-300,Oncology,Chronic Lymphocytic Leukemia
+ABBV-303 NSCLC (ABBV303/A),ABBV-303,Oncology,Solid Tumor
+ABBV-313 AD (ABBV313/A),ABBV-313,Immunology,Atopic Dermatitis
+ABBV-319 DLBCL (ABBV319/A),ABBV-319,Oncology,Diffuse Large B-Cell Lymphoma
+ABBV-319 SLE (ABBV319/B),ABBV-319,Immunology,Systemic Lupus Erythematosus
+ABBV-324 2L HCC (ABBV324/A),ABBV-324,Oncology,Hepatocellular Carcinoma
+ABBV-332 COVID-19 (ABBV332/A),ABBV-332,Specialty,COVID-19
+ABBV-4083 Wolbachia bacteria (ABBV4083/A),ABBV-4083,Specialty,Onchocerciasis
+ABBV-438 MM (ABBV438/A),ABBV-438,Oncology,Multiple Myeloma
+ABBV-461 breast cancer (ABBV461/A),ABBV-461,Oncology,Breast Cancer
+ABBV-463 breast cancer (ABBV463/A),ABBV-463,Oncology,Breast Cancer
+ABBV-466 CD (ABBV466/A),ABBV-466,Immunology,Crohn Disease
+ABBV-466 UC (ABBV466/B),ABBV-466,Immunology,Ulcerative Colitis
+ABBV-47D11 (Harbour) COVID-19 SARS-CoV-2 mAb (ABBV47D11/A),ABBV-47D11,Specialty,COVID-19
+ABBV-5124 RA (ABBV5124/A),ABBV-5124,Immunology,Rheumatoid Arthritis
+ABBV-514 CRC (ABBV514/B),ABBV-514,Oncology,Colorectal Cancer
+ABBV-514 solid tumors (ABBV514/A),ABBV-514,Oncology,Solid Tumor
+ABBV-519 SLE (ABBV519/A),ABBV-519,Immunology,Systemic Lupus Erythematosus
+ABBV-525 heme cancers (ABBV525/A),ABBV-525,Oncology,Hematologic Cancer
+ABBV-547 PsO (ABBV547/A),ABBV-547,Immunology,Psoriasis
+ABBV-552 AzD (ABBV552/A),ABBV-552,Neuroscience,Alzheimer Disease
+ABBV-554 CLL (ABBV554/A),ABBV-554,Oncology,Hematologic Cancer
+ABBV-5859 CD (ABBV5859/B),ABBV-5859,Immunology,Crohn Disease
+ABBV-5859 UC (ABBV5859/A),ABBV-5859,Immunology,Ulcerative Colitis
+ABBV-599 SLE (ABBV599/A),ABBV-599,Immunology,Systemic Lupus Erythematosus
+ABBV-619 MS (ABBV619/G),ABBV-619,Neuroscience,Multiple Sclerosis
+ABBV-619 RA (ABBV619/B),ABBV-619,Immunology,Rheumatoid Arthritis
+ABBV-619 RA pediatric (ABBV619/E),ABBV-619,Immunology,Rheumatoid Arthritis
+ABBV-619 SLE (ABBV619/C),ABBV-619,Immunology,Systemic Lupus Erythematosus
+ABBV-619 SLE pediatric (ABBV619/F),ABBV-619,Immunology,Systemic Lupus Erythematosus
+ABBV-619 SSc (ABBV619/A),ABBV-619,Immunology,Systemic Sclerosis
+ABBV-619 SjD (ABBV619/D),ABBV-619,Immunology,Sjogren Syndrome
+ABBV-622 solid tumors (ABBV622/A),ABBV-622,Oncology,Solid Tumor
+ABBV-623 AML (ABBV623/A),ABBV-623,Oncology,Acute Myeloid Leukemia
+ABBV-637 1L NSCLC EGFR mutant osi combo (ABBV637/A),ABBV-637,Oncology,Non-Small Cell Lung Cancer
+ABBV-643 AzD (ABBV643/A),ABBV-643,Neuroscience,Alzheimer Disease
+ABBV-6628 GA IVT bolus (ABBV6628/A),ABBV-6628,Eye Care,Geographic Atrophy
+ABBV-667 CRC (ABBV667/A),ABBV-667,Oncology,Colorectal Cancer
+ABBV-668 UC (ABBV668/A),ABBV-668,Immunology,Ulcerative Colitis
+ABBV-701 CD (ABBV701/A),ABBV-701,Immunology,Crohn Disease
+ABBV-706 1L ES-SCLC atezo tarla combo (ABBV706/C),ABBV-706,Oncology,Small Cell Lung Cancer
+ABBV-706 1L SCLC (ABBV706/B),ABBV-706,Oncology,Small Cell Lung Cancer
+ABBV-706 2L+ SCLC (ABBV706/A),ABBV-706,Oncology,Small Cell Lung Cancer
+ABBV-7066 CD (ABBV7066/A),ABBV-7066,Immunology,Crohn Disease
+ABBV-7066 PsA (ABBV7066/C),ABBV-7066,Immunology,Psoriatic Arthritis
+ABBV-7066 UC (ABBV7066/B),ABBV-7066,Immunology,Ulcerative Colitis
+ABBV-711 solid tumors (ABBV711/A),ABBV-711,Oncology,Solid Tumor
+ABBV-722 IPF (ABBV722/B),ABBV-722,Immunology,Idiopathic Pulmonary Fibrosis
+ABBV-722 SSc (ABBV722/A),ABBV-722,Immunology,Systemic Sclerosis
+ABBV-744 AML (ABBV744/B),ABBV-744,Oncology,Acute Myeloid Leukemia
+ABBV-744 MF (ABBV744/A),ABBV-744,Oncology,Myelofibrosis
+ABBV-747 UC (ABBV747/A),ABBV-747,Immunology,Ulcerative Colitis
+ABBV-7828 AzD (ABBV7828/A),ABBV-7828,Neuroscience,Alzheimer Disease
+ABBV-787 AML (ABBV787/A),ABBV-787,Oncology,Acute Myeloid Leukemia
+ABBV-8026 CF 3903 dual combo (CFCombo/A),ABBV-8026,Specialty,Cystic Fibrosis
+ABBV-8026 CF triple combo 1 (CFCombo/C),ABBV-8026,Specialty,Cystic Fibrosis
+ABBV-804 AD (Combo 668+Atogepant) (ABBV804/A),ABBV-804,Immunology,Atopic Dermatitis
+ABBV-836 2L+ RRMM (ABBV836/A),ABBV-836,Oncology,Multiple Myeloma
+ABBV-847 (see AD Platform) (ABBV847/A),ABBV-847,Immunology,Atopic Dermatitis
+ABBV-848 AD (ABBV848/B),ABBV-848,Immunology,Atopic Dermatitis
+ABBV-848 RA (ABBV848/A),ABBV-848,Immunology,Rheumatoid Arthritis
+ABBV-858 CD (ABBV858/B),ABBV-858,Immunology,Crohn Disease
+ABBV-858 UC (ABBV858/A),ABBV-858,Immunology,Ulcerative Colitis
+ABBV-859 PsO (ABBV859/A),ABBV-859,Immunology,Psoriasis
+ABBV-859 UC (ABBV859/B),ABBV-859,Immunology,Ulcerative Colitis
+ABBV-860 PACAP migraine (ABBV860/A),ABBV-860,Neuroscience,Migraine
+ABBV-8736 CD (ABBV8736/C),ABBV-8736,Immunology,Crohn Disease
+ABBV-8736 RA (ABBV8736/B),ABBV-8736,Immunology,Rheumatoid Arthritis
+ABBV-8736 UC (ABBV8736/A),ABBV-8736,Immunology,Ulcerative Colitis
+ABBV-8766 CD (ABBV8766/A),ABBV-8766,Immunology,Crohn Disease
+ABBV-8766 UC (ABBV8766/B),ABBV-8766,Immunology,Ulcerative Colitis
+ABBV-884 CD (ABBV884/B),ABBV-884,Immunology,Crohn Disease
+ABBV-884 UC (ABBV884/A),ABBV-884,Immunology,Ulcerative Colitis
+ABBV-901 OC (ABBV901/A),ABBV-901,Oncology,Ovarian Cancer
+ABBV-902 OC (ABBV902/A),ABBV-902,Oncology,Ovarian Cancer
+ABBV-903 COVID-19 (ABBV903/A),ABBV-903,Specialty,COVID-19
+ABBV-916 AzD (ABBV916/A),ABBV-916,Neuroscience,Alzheimer Disease
+ABBV-927 PDAC (ABBV927/C),ABBV-927,Oncology,Pancreatic Cancer
+ABBV-927 doublet triplet combo (ABBV927/A),ABBV-927,Oncology,Solid Tumor
+ABBV-927 solid tumors (ABBV927/B),ABBV-927,Oncology,Solid Tumor
+ABBV-932 BPD (ABBV932/A),ABBV-932,Neuroscience,Bipolar Disorder
+ABBV-932 BPD pediatric (ABBV932/E),ABBV-932,Neuroscience,Bipolar Disorder
+ABBV-932 MDD (ABBV932/D),ABBV-932,Neuroscience,Major Depression
+ABBV-932 aGAD (ABBV932/C),ABBV-932,Neuroscience,Generalized Anxiety Disorder
+ABBV-950 migraine (ABBV950/A),ABBV-950,Neuroscience,Migraine
+ABBV-950 spasticity (ABBV950/B),ABBV-950,Neuroscience,Lower Limb Spasticity
+ABBV-969 1L mHSPC (ABBV969/C),ABBV-969,Oncology,Prostate Cancer
+ABBV-969 2L+ mCRPC (ABBV969/B),ABBV-969,Oncology,Prostate Cancer
+ABBV-969 3L+ mCRPC (ABBV969/A),ABBV-969,Oncology,Prostate Cancer
+ABBV-973 NSCLC (ABBV973/A),ABBV-973,Oncology,Non-Small Cell Lung Cancer
+ABBV-9832 RA (ABBV9832/A),ABBV-9832,Immunology,Rheumatoid Arthritis
+ABBV-CLS-484 solid tumors (ABBVCLS484/A),ABBV-CLS-484,Oncology,Solid Tumor
+ABBV-CLS-579 solid tumor (ABBVCLS579/A),ABBV-CLS-579,Oncology,Solid Tumor
+ABBV-CLS-616 glaucoma (ABBVCLS616/A),ABBV-CLS-616,Eye Care,Glaucoma
+ABBV-CLS-628 ADPKD (ABBVCLS628/A),ABBV-CLS-628,Specialty,Autosomal Dominant Polycystic Kidney Disease
+ABBV-JAB-3312 solid tumors (ABBVJAB3312/A),ABBV-JAB-3312,Oncology,Solid Tumor
+ABC non-allocated suite time (ABCSUITE/A),NOCOMPOUND,Specialty,
+ACPRU project management (ACPRUPM/A),ACPRU-PM,Specialty,
+AGN-151597 retinitis pigmentosa (AGN151597/A),AGN-151597,Eye Care,Retinitis Pigmentosa
+AGN-193408 glaucoma (AGN193408/A),AGN-193408,Eye Care,Glaucoma
+AGN-2064 DME (ABBV2064/A),ABBV-2064,Eye Care,Diabetic Macular Edema
+AGN-231868 Dry Eye - 1954 (AGN231868/A),AGN-231868,Eye Care,Dry Eye
+AGN-241622 Presbyopia - 2011 (AGN241622/A),AGN-241622,Eye Care,Presbyopia
+AGN-607 HTPFD (AGN151607/O),AGN-151607-DP,Neuroscience,High-Tone Pelvic Floor Dysfunction
+AGN-607 MDD (AGN151607/N),AGN-151607-DP,Neuroscience,Major Depression
+AGN-607 OAB (AGN151607/L),AGN-151607-DP,Neuroscience,Overactive Bladder
+AGN-607 atrial fibrillation (AGN151607/A),AGN-151607-DP,Neuroscience,Atrial Fibrillation
+AGN-607 cervical dystonia (AGN151607/J),AGN-151607-DP,Neuroscience,Cervical Dystonia
+AGN-607 essential tremor (AGN151607/H),AGN-151607-DP,Neuroscience,Essential Tremor
+AGN-607 migraine (AGN151607/G),AGN-151607-DP,Neuroscience,Migraine
+AGN-607 spasticity (AGN151607/K),AGN-151607-DP,Neuroscience,Spasticity
+AGN-607 ventral hernia repair (AGN151607/F),AGN-151607-DP,Neuroscience,Ventral Hernia Repair
+AbbVie research collaborative (LooP) (ARCLOOP/A),NOCOMPOUND,Specialty,Migraine
+Adipose injectable regenerative matrix (AGN8001/A),AGN-8001,Aesthetics,Hand Corrections
+Aesthetics digital science development (AGNMAPD/F),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+Alliances other (PMBJMB/BD),NOCOMPOUND,Specialty,Acute Exacerbations of Chronic Bronchitis
+AlloDerm breast reconstruction pre-pec (AGN8022/C),AGN-8022,Aesthetics,Breast Reconstruction - Prepectoral
+AlloDerm sub-pec breast reconstruction (AGN8022/B),AGN-8022,Aesthetics,Breast Reconstruction - Subpectoral
+Alphagan P Time Reporting and PAA (AGNALPHAGAN/A),AGN-ALPHAGAN,Eye Care,
+Anterior Mid Face Scale Validation (AGN8016/I),AGN-8016,Aesthetics,Mid Face Volume Deficit
+Armour Thyroid hypothyroidism (AGN282176/A),AGN-282176,Specialty,Hypothyroidism
+Artia Life Cycle Management (AGN8003/C),AGN-8003,Aesthetics,Breast Reconstruction
+Artia breast reconstruction (AGN8003/A),AGN-8003,Aesthetics,Breast Reconstruction - Prepectoral
+Avycaz HABP VABP - 3100 (AGN241774/B),AGN-241774,Specialty,Bacterial Pneumonia
+Avycaz PMR Ped safety (AGN241774/C),AGN-241774,Specialty,Polymyalgia Rheumatica
+Avycaz cUTI cIAI (AGN241774/A),AGN-241774,Specialty,Complicated Urinary Tract Infection
+Biohybrid MIS Mesh (AGN8025/B),AGN-8025,Aesthetics,Laparoscopic Hernia Repair
+Biohybrid ventral hernia repair (AGN8025/A),AGN-8025,Aesthetics,Ventral Hernia Repair
+BoNTA2 migraine (ABBV789/A),ABBV-789,Neuroscience,Migraine
+Botox IC BPS (AGN191622/L),AGN-191622,Neuroscience,Bladder Pain Syndrome
+Botox OAB - 1572 (AGN191622/C),AGN-191622,Neuroscience,Overactive Bladder
+Botox Spasticity (AGN191622/AG),AGN-191622,Neuroscience,Spasticity
+Botox UL essential tremor (AGN191622/S),AGN-191622,Neuroscience,Essential Tremor
+Botox UL spasticity pediatric (AGN191622/A),AGN-191622,Neuroscience,Upper Limb Spasticity
+Botox Vycross ph 4 (AGN8013/C),AGN-8013,Aesthetics,Facial Corrections
+Botox episodic migraine (AGN191622/P),AGN-191622,Neuroscience,Episodic Migraine
+Botox facial contouring HARMONY ph 4 (AGN191622/AM),AGN-191622,Aesthetics,Facial Contouring
+Botox forehead lines China (AGN191622/AC),AGN-191622,Aesthetics,Forehead Lines
+Botox forehead lines Japan (AGN191622/AJ),AGN-191622,Aesthetics,Forehead Lines
+Botox jawline and neck (AGN191622/AO),AGN-191622,Aesthetics,Platysma Prominence
+Botox long term treatment Be BOLD ph 4 (AGN191622/AI),AGN-191622,Aesthetics,Upper Facial Lines
+Botox masseter muscle prominence China (AGN191622/AP),AGN-191622,Aesthetics,Masseter Prominence
+Botox masseter prominence (AGN191622/H),AGN-191622,Aesthetics,Masseter Prominence
+Botox masseter prominence Japan (AGN191622/AA),AGN-191622,Aesthetics,Masseter Prominence
+Botox platysma prominence (AGN191622/I),AGN-191622,Aesthetics,Platysma Prominence
+Botox pre-filled syringe (AGN191622/K),AGN-191622,Aesthetics,Upper Facial Lines
+Botox upper facial lines BOND ph 4 (AGN191622/AF),AGN-191622,Aesthetics,Upper Facial Lines
+Bretisilocin PTSD (ABBV2505/C),ABBV-2505,Neuroscience,Post-traumatic Stress Disorder
+Bretisilocin acute treatment MDD (ABBV2505/A),ABBV-2505,Neuroscience,Major Depression
+Bretisilocin recurrent MDD (ABBV2505/B),ABBV-2505,Neuroscience,Major Depression
+Budigalimab cancers (ABBV181/A),ABBV-181,Oncology,Solid Tumor
+Buy-up opportunities (BUYUP/X),NOCOMPOUND,Specialty,
+CD platform (ABBV766/A),ABBV-766,Immunology,Crohn Disease
+CVC Collab Study (AGN224024/B),AGN-224024,Specialty,Stroke
+CaHA body arms skin quality deficit (ABBV2082/A),ABBV-2082,Aesthetics,Skin Quality Deficit
+Cedirogant PsO (ABBV157/A),ABBV-157,Immunology,Psoriasis
+Cofe-P NSCLC (ABBV647/A),ABBV-647,Oncology,Non-Small Cell Lung Cancer
+ConcertAI-Caris collaboration (ABBVCONCERTAI/A),ABBV-CONCERTAI,Oncology,Solid Tumor
+Consumer eye care innovation (CENINNO/A),NOCOMPOUND,Eye Care,Dry Eye
+CoolSculpting COM3 (AGN8004/C),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+CoolSculpting COM3 China (AGN8004/F),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+CoolSculpting advanced development (AGN8004/B),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+CoolSculpting cryo RF (AGN8004/E),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+CoolSculpting peridoxical hyperplasia risk factor ph 4 (AGN8004/I),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+CoolSculpting product development (AGN8004/D),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+CoolSculpting v3 plus applicators (AGN8004/G),AGN-8004,Aesthetics,Non-Surgical Fat Reduction
+Creon ALT RMF (Creon/P),ABT-SLV245,Specialty,Exocrine Pancreatic Insufficiency
+Creon PEI Cork API alternative source (Creon/L),ABT-SLV245,Specialty,Exocrine Pancreatic Insufficiency
+Creon PEI SPL (Creon/O),ABT-SLV245,Specialty,Exocrine Pancreatic Insufficiency
+Creon PEI acute necrotizing pancreatitis (GMA) (Creon/N),ABT-SLV245,Specialty,Exocrine Pancreatic Insufficiency
+Creon PEI pancreatic cancer (GMA) (Creon/M),ABT-SLV245,Specialty,Pancreatic Cancer
+DSS-CDSO allocation pool (DSSALLOC/X),DSS-CDSO-ALLOC,Specialty,
+Dalvance ABSSSI (AGN241713/A),AGN-241713,Specialty,Acute Bacterial Skin and Skin Structure Infection
+Darigabat FE (ABBV1865/B),ABBV-1865,Neuroscience,Epilepsy
+Darigabat panic (ABBV1865/A),ABBV-1865,Neuroscience,Panic Disorder
+Dermal Injectable RM (Silk) - 2024 (AGN8002/A),AGN-8002,Aesthetics,Aesthetics Indications and Procedures
+Dev sci operations costs (DEVSCIOPS/A),NOCOMPOUND,Specialty,
+Duodopa PD device bridging study designs (Duodopa/K),ABT-SLV187,Neuroscience,Parkinson Disease
+Duodopa PD label enhancements (Duodopa/H),ABT-SLV187,Neuroscience,Parkinson Disease
+Duodopa advanced PD new formulation (Duodopa/D),ABT-SLV187,Neuroscience,Parkinson Disease
+Duodopa advanced PD new system development (Duodopa/C),ABT-SLV187,Neuroscience,Parkinson Disease
+Durysta glaucoma (AGN192024/B),AGN-192024,Eye Care,Glaucoma
+Eftoza cancers (ABBV621/C),ABBV-621,Oncology,Cancers
+Elahere 1L HRD+ (Elahere/G),IMGN853,Oncology,Ovarian Cancer
+Elahere 1L HRP (Elahere/F),IMGN853,Oncology,Ovarian Cancer
+Elahere 1L NACT (Elahere/H),IMGN853,Oncology,Ovarian Cancer
+Elahere 2L+ PROC (Elahere/B),IMGN853,Oncology,Ovarian Cancer
+Elahere 2L+ PSOC FRa high bev combo maint (Elahere/E),IMGN853,Oncology,Ovarian Cancer
+Elahere 2L+ PSOC FRa high carbo combo (Elahere/D),IMGN853,Oncology,Ovarian Cancer
+Elahere 3L+ PSOC (Elahere/C),IMGN853,Oncology,Ovarian Cancer
+Elahere PROC on market (Elahere/A),IMGN853,Oncology,Ovarian Cancer
+Elezanumab SCI (ABT555/A),ABT-555,Neuroscience,Spinal Cord Injury
+Elezanumab stroke (ABT555/C),ABT-555,Neuroscience,Stroke
+Emblaveo gram negative infection (AGN241717/A),AGN-241717,Specialty,Bacterial Pneumonia
+Empliciti RRMM (Elotuzumab/A),ABT-081,Oncology,Multiple Myeloma
+Emraclidine AD psychosis (ABBV1231/C),ABBV-1231,Neuroscience,Psychosis
+Emraclidine DLB (ABBV1231/J),ABBV-1231,Neuroscience,Lewy Body Dementia
+Emraclidine DLB EU & US-JP maintenance (ABBV1231/K),ABBV-1231,Neuroscience,Lewy Body Dementia
+Emraclidine PD EU & US-JP maintenance (ABBV1231/G),ABBV-1231,Neuroscience,Psychosis
+Emraclidine PD psychosis (ABBV1231/D),ABBV-1231,Neuroscience,Psychosis
+Emraclidine SCZ (ABBV1231/A),ABBV-1231,Neuroscience,Schizophrenia
+Emraclidine SCZ LAI (ABBV1231/B),ABBV-1231,Neuroscience,Schizophrenia
+Emraclidine SCZ pediatric (ABBV1231/F),ABBV-1231,Neuroscience,Schizophrenia
+Emraclidine aSCZ (ABBV1231/E),ABBV-1231,Neuroscience,Schizophrenia
+Emrelis 1L NSCLC MET amplified (ABBV399/F),ABBV-399,Oncology,Non-Small Cell Lung Cancer
+Emrelis NSCLC (ABBV399/A),ABBV-399,Oncology,Non-Small Cell Lung Cancer
+Emrelis NSCLC 2-3L MT EGFR MET+ osi combo (ABBV399/H),ABBV-399,Oncology,Non-Small Cell Lung Cancer
+Epkinly 1L DLBCL (ABBVGMAB3013/A),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly 1L DLBCL HR (ABBVGMAB3013/D),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly 1L DLBCL elderly (R)- with mini-CHOP combo (ABBVGMAB3013/F),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly 1L FL chemo-free len combo (ABBVGMAB3013/H),ABBV-GMAB-3013,Oncology,Follicular Lymphoma
+Epkinly 2L DLBCL ASCT (ABBVGMAB3013/S),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly 2L DLBCL len combo vs (R)-GemOx (ABBVGMAB3013/E),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly 2L FL ORR (ABBVGMAB3013/V),ABBV-GMAB-3013,Oncology,Follicular Lymphoma
+Epkinly 2L FL R2 combo (ABBVGMAB3013/B),ABBV-GMAB-3013,Oncology,Follicular Lymphoma
+Epkinly 2L+ CLL ven combo (ABBVGMAB3013/L),ABBV-GMAB-3013,Oncology,Chronic Lymphocytic Leukemia
+Epkinly CLL Richters (ABBVGMAB3013/K),ABBV-GMAB-3013,Oncology,Chronic Lymphocytic Leukemia
+Epkinly DLBCL ASCT salvage CIT (ABBVGMAB3013/R),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly DLBCL retreatment (ABBVGMAB3013/T),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly FL 1L - Epco + (R) Revlimid Maintenance (ABBVGMAB3013/G),ABBV-GMAB-3013,Oncology,Follicular Lymphoma
+Epkinly NHL PIP (ABBVGMAB3013/C),ABBV-GMAB-3013,Oncology,Non-Hodgkin Lymphoma
+Epkinly PMR pediatric monotherapy (ABBVGMAB3013/J),ABBV-GMAB-3013,Oncology,Polymyalgia Rheumatica
+Epkinly RR 2L DLBCL (ABBVGMAB3013/U),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly RR DLBCL (ABBVGMAB3013/P),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly RR MCL (ABBVGMAB3013/N),ABBV-GMAB-3013,Oncology,Mantle Cell Lymphoma
+Epkinly heme basket (ABBVGMAB3013/I),ABBV-GMAB-3013,Oncology,Non-Hodgkin Lymphoma
+Epkinly post-Car-T DLBCL (ABBVGMAB3013/Q),ABBV-GMAB-3013,Oncology,Diffuse Large B-Cell Lymphoma
+Epkinly pre-filled syringe (ABBVGMAB3013/M),ABBV-GMAB-3013,Oncology,Hematologic Cancer
+Etentamig 1L MM TE len combo maint (ABBVTNB383/D),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 1L MM iber combo (ABBVTNB383/H),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 1L TI MM DRd combo (ABBVTNB383/K),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 1L TI MM elderly dara combo (ABBVTNB383/O),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 1L amyloidosis (ABBVTNB383/R),ABBV-383,Oncology,Amyloidosis
+Etentamig 2L+ MM iber combo (ABBVTNB383/I),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 2L+ MM pom dex combo (ABBVTNB383/C),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 2L+ RRMM Kd combo (ABBVTNB383/M),ABBV-383,Oncology,Multiple Myeloma
+Etentamig 3L+ MM (ABBVTNB383/A),ABBV-383,Oncology,Multiple Myeloma
+Etentamig RR amyloidosis (ABBVTNB383/E),ABBV-383,Oncology,Amyloidosis
+Etentamig SLE (ABBVTNB383/Q),ABBV-383,Immunology,Systemic Lupus Erythematosus
+Etentamig rarly relapse MM livmo combo (ABBVTNB383/N),ABBV-383,Oncology,Multiple Myeloma
+Eye care pre-development (AGNPMBEYE/A),AGN-PMBEYE,Eye Care,
+Fillers performance (AGNMALCM/A),AGN-MALCM,Aesthetics,Aesthetics Indications and Procedures
+Fillers pre-concept (AGNMAPD/A),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+Fosigotifator ALS (ABBVCLS7262/B),ABBV-CLS-7262,Neuroscience,Amyotrophic Lateral Sclerosis
+Fosigotifator MDD (ABBVCLS7262/C),ABBV-CLS-7262,Neuroscience,Major Depression
+Fosigotifator VWM (ABBVCLS7262/A),ABBV-CLS-7262,Neuroscience,Vanishing White Matter Leukodystrophy
+Frontier collaboration (FRONTIER/A),ABBV-FRONTIER,Oncology,
+GemiBotA Pericarditis (AGN151607/D),AGN-151607-DP,Neuroscience,Pericarditis
+GemiBotA Vascular Neuromodulation (AGN151607/C),AGN-151607-DP,Neuroscience,Vascular Neuromodulation
+Go to GLP tox pool (PMBJMB/X),NOCOMPOUND,Specialty,
+Gubra-Risa-Luti Combo Placeholder (GUBIMMUNO/A),GUB-IMMUNO,Immunology,
+HA collagen deep wrinkles (AGN8010/A),AGN-8010,Aesthetics,Nasolabial Folds
+HA collagen volumize (AGN8010/B),AGN-8010,Aesthetics,Facial Volume Deficit
+HArmonyCA Vycross Botox skin quality deficit (ABBV2072/D),ABBV-2072,Aesthetics,Skin Quality Deficit
+HArmonyCa mid-face volume deficit (ABBV2072/A),ABBV-2072,Aesthetics,Mid Face Volume Deficit
+Hair growth research (AGNMAPD/C),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+Humira CD pediatric (HUMIRA/D),ABT-D2E7,Immunology,Crohn Disease
+Humira RA core (HUMIRA/A),ABT-D2E7,Immunology,Rheumatoid Arthritis
+Humira RA pJIA China PMOS (HUMIRA/GK),ABT-D2E7,Immunology,Rheumatoid Arthritis
+Humira UC core (HUMIRA/W),ABT-D2E7,Immunology,Ulcerative Colitis
+Humira uveitis China (HUMIRA/GN),ABT-D2E7,Immunology,Uveitis
+IMGN151 1L HRD+ (IMGN151/C),IMGN151,Oncology,Ovarian Cancer
+IMGN151 1L HRP (IMGN151/B),IMGN151,Oncology,Ovarian Cancer
+IMGN151 2L PSOC (IMGN151/E),IMGN151,Oncology,Ovarian Cancer
+IMGN151 2L+ PROC-PSOC (IMGN151/A),IMGN151,Oncology,Ovarian Cancer
+IMGN151 2L+ PSOC (IMGN151/D),IMGN151,Oncology,Ovarian Cancer
+Imbruvica CLL (Imbruvica/A),PCI-32765,Oncology,Chronic Lymphocytic Leukemia
+Imbruvica FL & MZL (Non-1L) (Imbruvica/E),PCI-32765,Oncology,Follicular Lymphoma
+Imbruvica FL and 1L MZL (Imbruvica/F),PCI-32765,Oncology,Follicular Lymphoma
+Imbruvica GvHD pediatric (Imbruvica/I),PCI-32765,Oncology,Chronic Graft Versus Host Disease
+Immuno translational science - IBD patient selection (IMMUNO/TS),NOCOMPOUND,Immunology,Autoimmune Disease
+Immunology Studies (NDIS/A),NOCOMPOUND,Immunology,Rheumatoid Arthritis
+Juvéderm Ultra XC Hylacross nasolabial folds China (AGN8023/A),AGN-8023,Aesthetics,Aesthetics Indications and Procedures
+Juvéderm Volbella tear trough (AGN8013/A),AGN-8013,Aesthetics,Infraorbital Hollowing
+Juvéderm Volite neck (AGN8015/B),AGN-8015,Aesthetics,Skin Wrinkling
+Juvéderm Volite perioral cheek (AGN8015/A),AGN-8015,Aesthetics,Skin Quality Deficit
+Juvéderm Volite skin quality deficit (AGN8015/C),AGN-8015,Aesthetics,Skin Quality Deficit
+Juvéderm Voluma mid face volume deficit GLP-1 ph 4 (AGN8016/K),AGN-8016,Aesthetics,Mid Face Volume Deficit
+Juvéderm Voluma temple (AGN8016/D),AGN-8016,Aesthetics,Temple Volume Deficit
+Juvéderm Volux chin China (AGN8017/A),AGN-8017,Aesthetics,Facial Volume Deficit
+LBE Placeholder (LBEPLACEHOLDER/X),BPC-PLACEHOLDER,Specialty,
+Large volume autoinjector (DEVICE/D),ABBV-DEVICE-LVAI,Immunology,Autoimmune Disease
+Latisse OTC (AGNLATISSE/A),AGN-LATISSE,Aesthetics,Aesthetics Indications and Procedures
+Lemzo 2L MDS (ABBVIMABTJC4/A),ABBV-IMAB-TJC4,Oncology,Myelodysplastic Syndrome
+Lemzo RRMM (ABBVIMABTJC4/E),ABBV-IMAB-TJC4,Oncology,Multiple Myeloma
+Lemzo solid tumors (ABBVIMABTJC4/G),ABBV-IMAB-TJC4,Oncology,Solid Tumor
+Linzess IBS-C CIC (AGN241711/A),AGN-282139,Specialty,Chronic Idiopathic Constipation
+Livmo 1L HCC (ABBV151/G),ABBV-151,Oncology,Hepatocellular Carcinoma
+Livmo 1L NSCLC (ABBV151/D),ABBV-151,Oncology,Non-Small Cell Lung Cancer
+Livmo 2L HCC (ABBV151/I),ABBV-151,Oncology,Hepatocellular Carcinoma
+Livmo CRC (ABBV151/B),ABBV-151,Oncology,Colorectal Cancer
+Livmo FIH (ABBV151/A),ABBV-151,Oncology,Solid Tumor
+Livmo UCC (ABBV151/C),ABBV-151,Oncology,Urothelial Carcinoma
+Long-acting toxin formulations research (AGNMAPD/H),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+Lupron CPP 6m dosing regimen depot (Lupron/L),ABT-818,Specialty,Central Precocious Puberty
+Lupron Prostate Cancer 3M Depot SQ Formulation (Lupron/M),ABT-818,Specialty,Prostate Cancer
+Luti AD (ABT981/G),ABT-981,Immunology,Atopic Dermatitis
+Luti HS (ABT981/D),ABT-981,Immunology,Hidradenitis Suppurativa
+Luti RA (ABT981/H),ABT-981,Immunology,Rheumatoid Arthritis
+Luti UC (ABT981/B),ABT-981,Immunology,Ulcerative Colitis
+MINIject (iStar) glaucoma (MINIJECT/A),MINIject,Eye Care,Glaucoma
+Maviret HCV pangenotypic regimen (HCVCombo/F),ABBV-HCV2,Specialty,Hepatitis C
+Maviret acute HCV GT 1-6 (HCVCombo/AN),ABBV-HCV2,Specialty,Hepatitis C
+Mirzo-C solid tumors (ABBV155/A),ABBV-155,Oncology,Solid Tumor
+NOA hydration pan facial corrections (AGN8021/A),AGN-8021,Aesthetics,Facial Corrections
+NOA lift nasolabial folds (AGN8019/A),AGN-8019,Aesthetics,Nasolabial Folds
+NOA smile lip enhancement (ABBV8029/A),ABBV-8029,Aesthetics,Lip Enhancement
+NOA volume mid-face deficit (AGN8018/A),AGN-8018,Aesthetics,Mid Face Volume Deficit
+Natrelle Inspira Breast Reconstruction RWE Patient Outcomes (AGN8007/C),AGN-8007,Aesthetics,Breast Reconstruction
+Natrelle Life Cycle Management (AGN8008/E),AGN-8008,Aesthetics,Breast Reconstruction
+Natrelle MRC tissue expander (AGN8008/G),AGN-8008,Aesthetics,Breast Reconstruction
+Natrelle premium tissue expander (AGN8008/C),AGN-8008,Aesthetics,Breast Reconstruction
+Navitoclax MF (ABT263/S),ABT-263,Oncology,Myelofibrosis
+Neone PHL-PIP (ABBV899/A),ABBV-899,Specialty,Exocrine Pancreatic Insufficiency
+Neuro foundational research AzD (NSFR/X),NOCOMPOUND,Neuroscience,Alzheimer Disease
+Neuroscience biomarker initiative (ABBVNEURO/A),ABBV-NEURO,Neuroscience,
+Neuroscience unlearn project (ABBVNEURO/D),ABBV-NEURO,Neuroscience,
+Neurotoxin preclinical research (AGNMAPD/D),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+No WBS (NOWBS/A),ABBV-NOWBS,Specialty,
+OED miscellaneous (Oncology/OED),NOCOMPOUND,Oncology,Cancers
+ONCORE heme (ONCORE/A),ABBV-ONCORE,Oncology,Hematologic Cancer
+ONCORE solid tumor (ONCORE/B),ABBV-ONCORE,Oncology,Solid Tumor
+On-body injector (ABBVDEVICEOBI/A),ABBV-DEVICE-OBI,Immunology,Autoimmune Disease
+OnabotA X upper facial lines (AGNONABOTAX/A),AGN-ONABOTAX,Aesthetics,Upper Facial Lines
+Oncology biomarker initiative (ABBVONCBIO/A),ABBV-ONCBIO,Oncology,Cancers
+Oncology collaboration platform (ABBVONCCOLLAB/A),ABBV-ONCCOLLAB,Oncology,Glioblastoma
+Oriahnn fibroids (ABT620/B),ABBV-171,Specialty,Uterine Fibroids
+Orilissa endometriosis (ABT620/A),ABT-620,Specialty,Endometriosis
+Orilissa endometriosis combined oral contraceptives (ABT620/O),ABT-620,Specialty,Endometriosis
+Oxybutynin OAB (AGN191110/A),AGN-191110,Specialty,Overactive Bladder
+Ozurdex ME RVO-DME (AGN206207/A),AGN-206207,Eye Care,Diabetic Macular Edema
+PRM Injectable Muscle Porcine Acellular Muscle Matrix (pAMM) (ABBV8028/A),ABBV-8028,Aesthetics,Muscle graft
+PSM Savings (PSMSAVE/X),BPC-PLACEHOLDER,Specialty,
+PVEK 1L BPDCN (PIVEK/A),IMGN632,Oncology,Blastic Plasmacytoid Dendritic Cell Neoplasm
+PVEK AML (PIVEK/B),IMGN632,Oncology,Acute Myeloid Leukemia
+Plastics performance (AGNMALCM/B),AGN-MALCM,Aesthetics,Aesthetics Indications and Procedures
+Plastics pre-concept (AGNMAPD/B),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+Qulipta CM (AGN241689/I),AGN-241689,Neuroscience,Chronic Migraine
+Qulipta EM CM H2H (AGN241689/C),AGN-241689,Neuroscience,Episodic Migraine
+Qulipta EM Japan (AGN241689/B),AGN-241689,Neuroscience,Episodic Migraine
+Qulipta PMRs (AGN241689/E),AGN-241689,Neuroscience,Migraine Prophylaxis
+Qulipta acute migraine (AGN241689/J),AGN-241689,Neuroscience,Acute Migraine
+Qulipta menstrual migraine (AGN241689/M),AGN-241689,Neuroscience,Migraine
+Qulipta migraine prevention (AGN241689/A),AGN-241689,Neuroscience,Migraine Prophylaxis
+Qulipta migraine prevention pediatric (AGN241689/G),AGN-241689,Neuroscience,Migraine Prophylaxis
+Qulipta migraine prophylaxis (AGN241689/O),AGN-241689,Neuroscience,Migraine Prophylaxis
+ROSS Closeout (ROSSCLOSEOUT/X),BPC-PLACEHOLDER,Specialty,
+RPTOR (ADARx) AzD (ADARX_NEU3/A),ADARX_NEU3,Neuroscience,Alzheimer Disease
+Ravagalimab UC (ABBV323/D),ABBV-323,Immunology,Ulcerative Colitis
+Ravagalimab combo drug supply (ABBV323/B),ABBV-323,Immunology,Rheumatoid Arthritis
+Refresh Digital MDPF (ABBV573/A),ABBV-573,Eye Care,Dry Eye
+Refresh MEGA 3 MDPF (AGN1699/A),AGN-1699,Eye Care,Dry Eye
+Refresh Relieva PF Xtra dry eye (ABBV444/A),ABBV-444,Eye Care,Dry Eye
+Refresh Tears MDPF (AGN9001/D),AGN-9001,Eye Care,Dry Eye
+Refresh gel drops MDPF (ABBV571/A),ABBV-571,Eye Care,Dry Eye
+Regenerative medicine performance (AGNMALCM/C),AGN-MALCM,Aesthetics,Aesthetics Indications and Procedures
+Regenerative medicine pre-concept (AGN8009/A),AGN-8009,Aesthetics,Aesthetics Indications and Procedures
+Resonic long-life cartridge (ABBV8027/B),ABBV-8027,Aesthetics,Cellulite
+Resonic v3.0 cellulite (ABBV8027/A),ABBV-8027,Aesthetics,Cellulite
+Revolve ENVI 600 adipose tissue autologous fat grafting (AGN8011/A),AGN-8011,Aesthetics,Autologous Fat Grafting
+Rinvoq AA Japan (ABT494/BG),ABT-494,Immunology,Alopecia Areata
+Rinvoq AA pediatric (ABT494/BL),ABT-494,Immunology,Alopecia Areata
+Rinvoq AD (ABT494/J),ABT-494,Immunology,Atopic Dermatitis
+Rinvoq AD SWITCH UP (ABT494/BH),ABT-494,Immunology,Atopic Dermatitis
+Rinvoq AD flexibility (ABT494/AO),ABT-494,Immunology,Atopic Dermatitis
+Rinvoq AD pediatric and PMRs (ABT494/AG),ABT-494,Immunology,Atopic Dermatitis
+Rinvoq AD ph 4 level up (ABT494/AY),ABT-494,Immunology,Atopic Dermatitis
+Rinvoq AD sleep (ABT494/BI),ABT-494,Immunology,Atopic Dermatitis
+Rinvoq AS (ABT494/AE),ABT-494,Immunology,Ankylosing Spondylitis
+Rinvoq AS PMRs (ABT494/AT),ABT-494,Immunology,Ankylosing Spondylitis
+Rinvoq AXSPA (ABT494/L),ABT-494,Immunology,Axial Spondyloarthritis
+Rinvoq CD (ABT494/D),ABT-494,Immunology,Crohn Disease
+Rinvoq CD fistulizing disease (ABT494/BJ),ABT-494,Immunology,Crohn Disease
+Rinvoq CD pediatric (ABT494/BF),ABT-494,Immunology,Crohn Disease
+Rinvoq HS (ABT494/AC),ABT-494,Immunology,Hidradenitis Suppurativa
+Rinvoq HS (ADA-IR) 1L (ABT494/BA),ABT-494,Immunology,Hidradenitis Suppurativa
+Rinvoq PsA (ABT494/H),ABT-494,Immunology,Psoriatic Arthritis
+Rinvoq RA (ABT494/A),ABT-494,Immunology,Rheumatoid Arthritis
+Rinvoq RA SELECT-SWITCH (ABT494/BC),ABT-494,Immunology,Rheumatoid Arthritis
+Rinvoq RA ph 3 studies and registry (JAK1/A),JAK1,Immunology,Rheumatoid Arthritis
+Rinvoq SLE (ABT494/BB),ABT-494,Immunology,Systemic Lupus Erythematosus
+Rinvoq SLE pediatric (ABT494/BK),ABT-494,Immunology,Systemic Lupus Erythematosus
+Rinvoq Takayasu (ABT494/S),ABT-494,Immunology,Takayasu Arteritis
+Rinvoq UC (ABT494/E),ABT-494,Immunology,Ulcerative Colitis
+Rinvoq UC PMRs (ABT494/BD),ABT-494,Immunology,Ulcerative Colitis
+Rinvoq UC pediatric (ABT494/AX),ABT-494,Immunology,Ulcerative Colitis
+Rinvoq alopecia areata (ABT494/BE),ABT-494,Immunology,Alopecia Areata
+Rinvoq axSpA juvenile (ABT494/BO),ABT-494,Immunology,Axial Spondyloarthritis
+Rinvoq giant cell arteritis (ABT494/M),ABT-494,Immunology,Giant Cell Arteritis
+Rinvoq pcJIA (ABT494/AW),ABT-494,Immunology,Polyarticular Juvenile Idiopathic Arthritis
+Rinvoq sJIA (ABT494/AV),ABT-494,Immunology,Juvenile Idiopathic Arthritis
+Rinvoq vitiligo (ABT494/Q),ABT-494,Immunology,Vitiligo
+Rinvoq vitiligo pediatric (ABT494/BM),ABT-494,Immunology,Vitiligo
+Savella fibromyalgia (AGN226643/A),AGN-226643,Neuroscience,Fibromyalgia
+Ser-T head and neck cancer (ABBV321/A),ABBV-321,Oncology,Head and Neck Cancer
+Shuttled MAPT (ADARx) AzD (ADARX_NEU1/A),ADARX_NEU1,Neuroscience,Alzheimer Disease
+Skin quality endpoint development (ABBVAASQ/C),ABBV-AASQ,Aesthetics,Aesthetics Indications and Procedures
+Skin quality endpoint validation (ABBVAASQ/A),ABBV-AASQ,Aesthetics,Aesthetics Indications and Procedures
+Skin quality pre-concept (ABBVAASQ/B),ABBV-AASQ,Aesthetics,Aesthetics Indications and Procedures
+Skin quality scale validation (AGNMAPD/E),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+SkinMedica DG HA5 skin quality deficit (SKINHA5/B),SKIN-HA5,Aesthetics,Skin Quality Deficit
+SkinMedica DiamondGlow SP5 dermabrasion (AGNSKIN/C),AGN-SKIN,Aesthetics,Dermabrasion
+SkinMedica HA5 upgrade skin quality deficit (SKINHA5/A),SKIN-HA5,Aesthetics,Skin Quality Deficit
+SkinMedica Peels pre-cleanse skin quality deficit (SKINPEELS/A),SKIN-PEELS,Aesthetics,Skin Quality Deficit
+SkinMedica SPF skin quality deficit (SKINSPF/A),SKIN-SPF,Aesthetics,Skin Quality Deficit
+SkinMedica TNS exosomes skin quality deficit (SKINTNS/A),SKIN-TNS,Aesthetics,Skin Quality Deficit
+Skincare (AGNSKIN/A),AGN-SKIN,Aesthetics,Aesthetics Indications and Procedures
+Skincare ENVY - 2043 (AGNSKIN/B),AGN-SKIN,Aesthetics,Aesthetics Indications and Procedures
+Skyrizi AD (ABBV066/F),ABBV-066,Immunology,Atopic Dermatitis
+Skyrizi CD (ABBV066/B),ABBV-066,Immunology,Crohn Disease
+Skyrizi CD PMOS Japan (ABBV066/AM),ABBV-066,Immunology,Crohn Disease
+Skyrizi CD PMOS Korea (ABBV066/AK),ABBV-066,Immunology,Crohn Disease
+Skyrizi CD PMRs (ABBV066/AX),ABBV-066,Immunology,Crohn Disease
+Skyrizi CD SC induction (ABBV066/AW),ABBV-066,Immunology,Crohn Disease
+Skyrizi CD pediatric (ABBV066/AP),ABBV-066,Immunology,Crohn Disease
+Skyrizi H2H vs deucra (ABBV066/BA),ABBV-066,Immunology,Psoriasis
+Skyrizi LV OBI (ABBV066/BF),ABBV-066,Immunology,Ulcerative Colitis
+Skyrizi PPP (ABBV066/K),ABBV-066,Immunology,Palmoplantar Pustulosis
+Skyrizi PsA (ABBV066/C),ABBV-066,Immunology,Psoriatic Arthritis
+Skyrizi PsA PASS Mexico (ABBV066/AO),ABBV-066,Immunology,Psoriatic Arthritis
+Skyrizi PsA PMOS Korea (ABBV066/AN),ABBV-066,Immunology,Psoriatic Arthritis
+Skyrizi PsA pediatric (ABBV066/AQ),ABBV-066,Immunology,Psoriatic Arthritis
+Skyrizi PsO (ABBV066/A),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO Device Development (ABBV066/E),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO H2H vs ICO (ABBV066/BE),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO Korea PMOS (ABBV066/AD),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO Mexico PASS (ABBV066/AE),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO PsA prevention (ABBV066/BG),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO adolescent (ABBV066/O),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO genital and scalp (ABBV066/AS),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO pediatric (6-18 yo) (ABBV066/AF),ABBV-066,Immunology,Psoriasis
+Skyrizi PsO registry (ABBV066/J),ABBV-066,Immunology,Psoriasis
+Skyrizi UC (ABBV066/D),ABBV-066,Immunology,Ulcerative Colitis
+Skyrizi UC H2H vs vedo (ABBV066/BC),ABBV-066,Immunology,Ulcerative Colitis
+Skyrizi UC pediatric (ABBV066/BD),ABBV-066,Immunology,Ulcerative Colitis
+Skyrizi moderate PsO vs active comparator (ABBV066/T),ABBV-066,Immunology,Psoriasis
+Study startup non-ROSS expense (XTATAL/A),NOCOMPOUND,Specialty,
+Sura-vec DME SCS (ABBV314/E),ABBV-RGX-314,Eye Care,Diabetic Macular Edema
+Sura-vec DR SCS (ABBV314/C),ABBV-RGX-314,Eye Care,Diabetic Retinopathy
+Sura-vec wAMD H2H (ABBV314/D),ABBV-RGX-314,Eye Care,Wet Macular Degeneration
+Sura-vec wAMD SCS (ABBV314/B),ABBV-RGX-314,Eye Care,Wet Macular Degeneration
+Sura-vec wAMD SR (ABBV314/A),ABBV-RGX-314,Eye Care,Wet Macular Degeneration
+Surzetoclax 2L MM Dd combo (ABBV453/A),ABBV-453,Oncology,Multiple Myeloma
+Surzetoclax 2L RRMM (ABBV453/C),ABBV-453,Oncology,Multiple Myeloma
+Surzetoclax 2L+ RRMM etentamig combo (ABBV453/D),ABBV-453,Oncology,Multiple Myeloma
+Surzetoclax CLL (ABBV453/B),ABBV-453,Oncology,Chronic Lymphocytic Leukemia
+Sustained release toxin formulations research (AGNMAPD/I),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+TEMI The Experimental Medicine Initiative (ABBVTEMI/A),ABBV-TEMI,Oncology,Solid Tumor
+TTX-030 (Trishula) solid tumors (TTX030/A),ABBV-0030,Oncology,Solid Tumor
+Tavapadon PD (ABBV1751/A),ABBV-1751,Neuroscience,Parkinson Disease
+Temab-A 1L CRC 5FU+LV+EGFR combo (ABBV400/S),ABBV-400,Oncology,Colorectal Cancer
+Temab-A 1L CRC 5FU+LV+bev combo (ABBV400/R),ABBV-400,Oncology,Colorectal Cancer
+Temab-A 1L CRC FOLFOX+LV+bev combo (ABBV400/E),ABBV-400,Oncology,Colorectal Cancer
+Temab-A 1L GEA 5FU+LV+PD-1 combo (ABBV400/K),ABBV-400,Oncology,Gastroesophageal Junction Adenocarcinoma
+Temab-A 1L HNSCC pembro combo (ABBV400/V),ABBV-400,Oncology,Head and Neck Squamous Cell Cancer
+Temab-A 1L HRP OC bev combo (ABBV400/Z),ABBV-400,Oncology,Ovarian Cancer
+Temab-A 1L NSCLC NSQ EGFR mut osi combo (ABBV400/N),ABBV-400,Oncology,Non-Small Cell Lung Cancer
+Temab-A 1L NSCLC NSQ non-AGA PD-1 combo (ABBV400/G),ABBV-400,Oncology,Non-Small Cell Lung Cancer
+Temab-A 1L PDAC FOLFOX combo (ABBV400/O),ABBV-400,Oncology,Pancreatic Ductal Adenocarcinoma
+Temab-A 1L PDAC gem combo (ABBV400/W),ABBV-400,Oncology,Pancreatic Ductal Adenocarcinoma
+Temab-A 2L CRC bev 5FU+LV chemo combo (ABBV400/C),ABBV-400,Oncology,Colorectal Cancer
+Temab-A 2L NSCLC NSQ EGFR WT (ABBV400/Y),ABBV-400,Oncology,Non-Small Cell Lung Cancer
+Temab-A 2L NSCLC NSQ EGFR mut (ABBV400/Q),ABBV-400,Oncology,Non-Small Cell Lung Cancer
+Temab-A 2L+ GEA ramu combo (ABBV400/H),ABBV-400,Oncology,Gastroesophageal Junction Adenocarcinoma
+Temab-A 2L+ solid tumor tissue agnostic MET-amp (ABBV400/L),ABBV-400,Oncology,Solid Tumor
+Temab-A 3L CRC bev combo c-MET all-comers (ABBV400/J),ABBV-400,Oncology,Colorectal Cancer
+Temab-A 3L CRC c-MET selected (ABBV400/B),ABBV-400,Oncology,Colorectal Cancer
+Temab-A CRC + GI China (ABBV400/I),ABBV-400,Oncology,Colorectal Cancer
+Temab-A basket tumors (ABBV400/D),ABBV-400,Oncology,Solid Tumor
+Temab-A post-adjuvant CRC (ABBV400/F),ABBV-400,Oncology,Colorectal Cancer
+Temab-A solid tumors (ABBV400/A),ABBV-400,Oncology,Solid Tumor
+Therapeutics Affordability (AFFORD/X),BPC-PLACEHOLDER,Specialty,
+Tox-FIH pool (PMBJMB/B),NOCOMPOUND,Specialty,
+Toxin co-form co-recon research (AGNMAPD/J),AGN-MAPD,Aesthetics,Aesthetics Indications and Procedures
+TrenibotE + AGN-607 development (AGN151607/M),AGN-151607-DP,Neuroscience,Leg Spasticity
+TrenibotE + OnabotA glabellar lines (ABBV1624/A),ABBV-1624,Aesthetics,Glabellar Lines
+TrenibotE glabellar lines (AGN151586/A),AGN-151586,Aesthetics,Glabellar Lines
+TrenibotE upper facial lines (AGN151586/D),AGN-151586,Aesthetics,Upper Facial Lines
+Tropoelastin acne scars (AGN8006/A),AGN-8006,Aesthetics,Acne Scars
+Tropoelastin skin quality (AGN8006/B),AGN-8006,Aesthetics,Skin Quality Deficit
+Tropoelastin stretch marks (AGN8006/C),AGN-8006,Aesthetics,Stretch Marks
+Ubrelvy acute migraine (AGN241688/A),AGN-241688,Neuroscience,Acute Migraine
+Ubrelvy acute migraine ODT (AGN241688/F),AGN-241688,Neuroscience,Acute Migraine
+Ubrelvy acute migraine pediatric (AGN241688/H),AGN-241688,Neuroscience,Acute Migraine
+Ubrelvy menstrual migraine (AGN241688/D),AGN-241688,Neuroscience,Menstrual Migraine
+Ubrelvy menstrual migraine pediatric (AGN241688/I),AGN-241688,Neuroscience,Migraine
+Veliparib 1-3L BRCA (ABT888/H1),ABT-888,Oncology,BRCA-Mutated Breast Cancer
+Veliparib OC GOG (ABT888/S),ABT-888,Oncology,Ovarian Cancer
+Venclexta 1L AML induction consolidation (ABT199/BG),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta 1L CLL (ABT199/E),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta 1L CLL China PMR (ABT199/BJ),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta 1L CLL Japan (ABT199/BA),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta 1L CLL acala combo + or - obi (ABT199/BQ),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta 1L DLBCL (ABT199/C),ABT-199,Oncology,Diffuse Large B-Cell Lymphoma
+Venclexta 3L MM (ABT199/D),ABT-199,Oncology,Multiple Myeloma
+Venclexta AML (ABT199/L),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta AML ASP2215 (ABT199/AF),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta AML India (ABT199/BL),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta AML pediatric (ABT199/AM),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta AML post-transplant maintenance (ABT199/BF),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta AML trilaciclib aza combo (ABT199/BI),ABT-199,Oncology,Acute Myeloid Leukemia
+Venclexta CLL 13 fit (ABT199/N),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta CLL TLS (ABT199/BM),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta CLL foundation (ABT199/H),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta CLL medical affairs activities (ABT199/Q),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta CLL pooled retreatment (ABT199/BC),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Venclexta MCL (ABT199/AH),ABT-199,Oncology,Mantle Cell Lymphoma
+Venclexta MDS (ABT199/O),ABT-199,Oncology,Myelodysplastic Syndrome
+Venclexta WM Japan (ABT199/BO),ABT-199,Oncology,Waldenstrom Macroglobulinemia
+Venclexta high drug load formulations (ABT199/BK),ABT-199,Oncology,Hematologic Cancer
+Venclexta zanu combo data generation (ABT199/BP),ABT-199,Oncology,Chronic Lymphocytic Leukemia
+Viberzi IBS-D (AGN241783/A),AGN-282124,Specialty,Irritable Bowel Syndrome
+Vraylar BPD (AGN241780/D),AGN-241780,Neuroscience,Bipolar Disorder
+Vraylar BPD LAI + MedinCell (AGN241780/N),AGN-241780,Neuroscience,Bipolar Disorder
+Vraylar SCZ Japan (AGN241780/I),AGN-241780,Neuroscience,Schizophrenia
+Vraylar SCZ LAI + MedinCell (AGN241780/M),AGN-241780,Neuroscience,Schizophrenia
+Vraylar SCZ and acute bipolar mania (AGN241780/B),AGN-241780,Neuroscience,Schizophrenia
+Vraylar autism spectrum disorder (AGN241780/A),AGN-241780,Neuroscience,Autism Spectrum Disorder
+Vuity (Presbysol) Presbyopia - 1883 (AGN190584/A),AGN-190584,Eye Care,Presbyopia
+Vyalev Japan PMOS PMR (ABBV951/I),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev PD ancillary devices (ABBV951/C),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev PD device LCM (ABBV951/H),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev PD dyskinesia (ABBV951/N),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev PD mini pro device (ABBV951/L),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev PD pre-filled syringe (ABBV951/M),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev PD pump (ABBV951/B),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev advanced PD (ABBV951/A),ABBV-951,Neuroscience,Parkinson Disease
+Vyalev real world evidence (ABBV951/G),ABBV-951,Neuroscience,Parkinson Disease
+XEN pre-concept (AGN9003/C),AGN-9003,Eye Care,Glaucoma
+XEN45 ACG (AGN9003/B),AGN-9003,Eye Care,Glaucoma
+XEN45 OAG ab-ex (AGN9003/A),AGN-9003,Eye Care,Open Angle Glaucoma
+XEN45 OAG ab-in (AGN9003/F),AGN-9003,Eye Care,Open Angle Glaucoma
+XEN63 OAG (AGN9003/D),AGN-9003,Eye Care,Open Angle Glaucoma
+ZG006 (Zelgen) 1L ES-SCLC atezo 706 combo (706COMBO/A),706COMBO,Oncology,Small Cell Lung Cancer
+ZG006 (Zelgen) NEC PD1 706 combo (706COMBO/B),706COMBO,Oncology,Neuroendocrine Carcinoma
+Zemplar pediatric PMRs (Zemplar/S),ABT-358,Specialty,Secondary Hyperparathyroidism
+siRNA (ADARx) MM (ADARX_ONC1/A),ADARX_ONC1,Oncology,Multiple Myeloma
+siRNA (ADARx) RA (ADARX_IMM1/A),ADARX_IMM1,Immunology,Rheumatoid Arthritis

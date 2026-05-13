@@ -1,0 +1,26 @@
+﻿THERAPEUTIC_AREA,Title,Abbreviation
+Specialty,Anti-Infective,SPEC
+Aesthetics,Body Contouring,AEST
+Eye Care,Consumer Eye Care,EC
+Immunology,Dermatology,IMMU
+Specialty,Dyslipidemia,SPEC
+Aesthetics,Fillers,AEST
+Immunology,Gastroenterology,IMMU
+Oncology,Hematology,ONC
+Specialty,Hormones,SPEC
+Specialty,Metabolics,SPEC
+Neuroscience,Migraine,NEURO
+Neuroscience,Neuroscience,NEURO
+Neuroscience,Neurotoxin,NEURO
+Aesthetics,Neurotoxin,AEST
+Immunology,Non-TA Specific,IMMU
+Specialty,Non-TA Specific,SPEC
+Aesthetics,PRM,AEST
+Aesthetics,Research,AEST
+Specialty,Respiratory,SPEC
+Immunology,Rheumatology,IMMU
+Aesthetics,Skincare,AEST
+Oncology,Solid Tumors,ONC
+Specialty,Specific medicine,SPEC
+Specialty,Virology,SPEC
+Specialty,Women's Health,SPEC
