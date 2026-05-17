@@ -61,10 +61,13 @@ const levenshteinDistance = (a: string, b: string): number => {
   return matrix[a.length][b.length];
 };
 
+/** Short codes (TPC, TPP, AES) — token-only fuzzy, at most one edit, similar length. */
+const SHORT_FUZZY_TERM_MAX_LENGTH = 4;
+
 const maxAllowedEditDistance = (length: number): number => {
-  if (length <= 3) return 1;
-  if (length <= 6) return 2;
-  if (length <= 12) return 3;
+  if (length <= 4) return 1;
+  if (length <= 8) return 2;
+  if (length <= 14) return 3;
   return 4;
 };
 
@@ -73,7 +76,6 @@ const termHasDigits = (term: string): boolean => /\d/.test(term);
 const isWithinFuzzyEditDistance = (a: string, b: string): boolean => {
   if (!a || !b) return false;
   if (a === b) return true;
-  if (a.includes(b) || b.includes(a)) return true;
 
   const shorter = a.length <= b.length ? a : b;
   const longer = a.length <= b.length ? b : a;
@@ -82,19 +84,24 @@ const isWithinFuzzyEditDistance = (a: string, b: string): boolean => {
     return false;
   }
 
-  const distance = levenshteinDistance(shorter, longer);
-  const maxDistance = maxAllowedEditDistance(shorter.length);
+  // Short query tokens: one typo only, similar-length counterpart (e.g. TPP ↔ TPC, not IEP or ABT).
+  if (shorter.length <= SHORT_FUZZY_TERM_MAX_LENGTH) {
+    if (longer.length - shorter.length > 1) {
+      return false;
+    }
+    return levenshteinDistance(shorter, longer) <= 1;
+  }
 
-  if (distance <= maxDistance) {
+  if (a.includes(b) || b.includes(a)) {
     return true;
   }
 
-  // Allow matching when the longer string is only slightly longer (e.g. oncolgy vs oncology).
-  if (longer.length - shorter.length <= 2) {
-    return levenshteinDistance(shorter, longer) <= maxDistance + 1;
+  if (longer.length - shorter.length > 2) {
+    return false;
   }
 
-  return false;
+  const distance = levenshteinDistance(shorter, longer);
+  return distance <= maxAllowedEditDistance(shorter.length);
 };
 
 const matchesTokenFuzzy = (term: string, candidateToken: string): boolean => {
@@ -131,7 +138,9 @@ const matchesTokenFuzzy = (term: string, candidateToken: string): boolean => {
 };
 
 /**
- * Fuzzy-match a query term against one corpus field (tokens + whole normalized value).
+ * Fuzzy-match a query term against one corpus field.
+ * Short codes match delimited tokens only (no sliding windows inside long filenames).
+ * Longer terms may also match the full normalized field value (e.g. disease names).
  */
 const matchesTermFuzzyInValue = (term: string, rawValue: string): boolean => {
   if (!term || !rawValue) return false;
@@ -148,24 +157,15 @@ const matchesTermFuzzyInValue = (term: string, rawValue: string): boolean => {
   }
 
   const normalizedTerm = toAlphanumeric(term);
-  const normalizedValue = toAlphanumeric(value);
 
-  if (normalizedTerm.length >= 3 && normalizedValue.length >= 3) {
-    if (isWithinFuzzyEditDistance(normalizedTerm, normalizedValue)) {
+  // Whole-field fuzzy only for longer words (typos in titles/descriptions), not 3-letter codes.
+  if (normalizedTerm.length > SHORT_FUZZY_TERM_MAX_LENGTH) {
+    const normalizedValue = toAlphanumeric(value);
+    if (
+      normalizedValue.length >= normalizedTerm.length &&
+      isWithinFuzzyEditDistance(normalizedTerm, normalizedValue)
+    ) {
       return true;
-    }
-
-    // Sliding window over longer values (filenames, multi-word metadata).
-    const windowMin = Math.max(3, normalizedTerm.length - 1);
-    const windowMax = Math.min(normalizedValue.length, normalizedTerm.length + 2);
-
-    for (let size = windowMin; size <= windowMax; size++) {
-      for (let start = 0; start + size <= normalizedValue.length; start++) {
-        const segment = normalizedValue.slice(start, start + size);
-        if (isWithinFuzzyEditDistance(normalizedTerm, segment)) {
-          return true;
-        }
-      }
     }
   }
 
