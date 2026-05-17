@@ -62,12 +62,40 @@ const levenshteinDistance = (a: string, b: string): number => {
 };
 
 const maxAllowedEditDistance = (length: number): number => {
-  if (length <= 4) return 1;
-  if (length <= 10) return 2;
-  return 3;
+  if (length <= 3) return 1;
+  if (length <= 6) return 2;
+  if (length <= 12) return 3;
+  return 4;
 };
 
 const termHasDigits = (term: string): boolean => /\d/.test(term);
+
+const isWithinFuzzyEditDistance = (a: string, b: string): boolean => {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.includes(b) || b.includes(a)) return true;
+
+  const shorter = a.length <= b.length ? a : b;
+  const longer = a.length <= b.length ? b : a;
+
+  if (shorter.length < 3) {
+    return false;
+  }
+
+  const distance = levenshteinDistance(shorter, longer);
+  const maxDistance = maxAllowedEditDistance(shorter.length);
+
+  if (distance <= maxDistance) {
+    return true;
+  }
+
+  // Allow matching when the longer string is only slightly longer (e.g. oncolgy vs oncology).
+  if (longer.length - shorter.length <= 2) {
+    return levenshteinDistance(shorter, longer) <= maxDistance + 1;
+  }
+
+  return false;
+};
 
 const matchesTokenFuzzy = (term: string, candidateToken: string): boolean => {
   const normalizedTerm = toAlphanumeric(term);
@@ -91,20 +119,57 @@ const matchesTokenFuzzy = (term: string, candidateToken: string): boolean => {
     }
 
     if (
-      digitsFromTerm.length >= 3 &&
-      digitsFromCandidate.length >= 3 &&
+      digitsFromTerm.length >= 2 &&
+      digitsFromCandidate.length >= 2 &&
       levenshteinDistance(digitsFromTerm, digitsFromCandidate) <= 1
     ) {
       return true;
     }
   }
 
-  if (normalizedTerm.length < 4 || normalizedCandidate.length < 4) {
-    return false;
+  return isWithinFuzzyEditDistance(normalizedTerm, normalizedCandidate);
+};
+
+/**
+ * Fuzzy-match a query term against one corpus field (tokens + whole normalized value).
+ */
+const matchesTermFuzzyInValue = (term: string, rawValue: string): boolean => {
+  if (!term || !rawValue) return false;
+
+  const value = rawValue.toLowerCase();
+
+  if (term.length < 2) {
+    return value.includes(term);
   }
 
-  const distance = levenshteinDistance(normalizedTerm, normalizedCandidate);
-  return distance <= maxAllowedEditDistance(normalizedTerm.length);
+  const tokens = tokenizeAlphanumeric(value);
+  if (tokens.some((token) => matchesTokenFuzzy(term, token))) {
+    return true;
+  }
+
+  const normalizedTerm = toAlphanumeric(term);
+  const normalizedValue = toAlphanumeric(value);
+
+  if (normalizedTerm.length >= 3 && normalizedValue.length >= 3) {
+    if (isWithinFuzzyEditDistance(normalizedTerm, normalizedValue)) {
+      return true;
+    }
+
+    // Sliding window over longer values (filenames, multi-word metadata).
+    const windowMin = Math.max(3, normalizedTerm.length - 1);
+    const windowMax = Math.min(normalizedValue.length, normalizedTerm.length + 2);
+
+    for (let size = windowMin; size <= windowMax; size++) {
+      for (let start = 0; start + size <= normalizedValue.length; start++) {
+        const segment = normalizedValue.slice(start, start + size);
+        if (isWithinFuzzyEditDistance(normalizedTerm, segment)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 };
 
 const matchesSearchTermsStrict = (
@@ -121,16 +186,9 @@ const matchesSearchTermsFuzzy = (
   queryTerms: string[],
 ): boolean =>
   queryTerms.length === 0 ||
-  queryTerms.every((term) => {
-    if (term.length < 2) {
-      return searchCorpus.some((value) => value.includes(term));
-    }
-
-    return searchCorpus.some((value) => {
-      const tokens = tokenizeAlphanumeric(value);
-      return tokens.some((token) => matchesTokenFuzzy(term, token));
-    });
-  });
+  queryTerms.every((term) =>
+    searchCorpus.some((value) => matchesTermFuzzyInValue(term, value)),
+  );
 
 const buildDocumentSearchCorpus = (doc: IDocument): string[] => {
   const scalarValues: string[] = [
