@@ -1,5 +1,6 @@
 import { IDocument } from "../interfaces/IDocument";
 import { IFilterState } from "../interfaces/IFilterState";
+import { DOCUMENT_TYPES } from "../config/config";
 import { parseISO, isValid, isWithinInterval } from "date-fns";
 
 export type SearchMatchKind = "exact" | "close";
@@ -64,6 +65,19 @@ const levenshteinDistance = (a: string, b: string): number => {
 /** Short codes (TPC, TPP, AES) — token-only fuzzy, at most one edit, similar length. */
 const SHORT_FUZZY_TERM_MAX_LENGTH = 4;
 
+/** Known document-type tokens used for short-code search (filename prefix / type column). */
+const DOCUMENT_TYPE_TOKEN_CODES = new Set(
+  DOCUMENT_TYPES.map((type) => toAlphanumeric(type)).filter(
+    (code) => code.length >= 2 && code.length <= 4,
+  ),
+);
+
+/** 2–4 char alphanumeric terms (TPC, TPP, PDS) — not full-word disease searches. */
+const isShortMetadataCodeTerm = (term: string): boolean =>
+  term.length >= 2 &&
+  term.length <= SHORT_FUZZY_TERM_MAX_LENGTH &&
+  /^[a-z0-9]+$/.test(term);
+
 const maxAllowedEditDistance = (length: number): number => {
   if (length <= 4) return 1;
   if (length <= 8) return 2;
@@ -104,11 +118,41 @@ const isWithinFuzzyEditDistance = (a: string, b: string): boolean => {
   return distance <= maxAllowedEditDistance(shorter.length);
 };
 
+const matchesShortCodeTokenFuzzy = (
+  term: string,
+  candidateToken: string,
+): boolean => {
+  const normalizedTerm = toAlphanumeric(term);
+  const normalizedCandidate = toAlphanumeric(candidateToken);
+
+  if (!normalizedTerm || !normalizedCandidate) return false;
+  if (normalizedTerm === normalizedCandidate) return true;
+
+  if (Math.abs(normalizedTerm.length - normalizedCandidate.length) > 1) {
+    return false;
+  }
+
+  if (levenshteinDistance(normalizedTerm, normalizedCandidate) > 1) {
+    return false;
+  }
+
+  // Only suggest typos among known doc-type codes (e.g. TPP when user typed TPC).
+  return (
+    DOCUMENT_TYPE_TOKEN_CODES.has(normalizedTerm) ||
+    DOCUMENT_TYPE_TOKEN_CODES.has(normalizedCandidate)
+  );
+};
+
 const matchesTokenFuzzy = (term: string, candidateToken: string): boolean => {
   const normalizedTerm = toAlphanumeric(term);
   const normalizedCandidate = toAlphanumeric(candidateToken);
 
   if (!normalizedTerm || !normalizedCandidate) return false;
+
+  if (isShortMetadataCodeTerm(normalizedTerm)) {
+    return matchesShortCodeTokenFuzzy(term, candidateToken);
+  }
+
   if (normalizedCandidate.includes(normalizedTerm)) return true;
 
   const digitsFromTerm = normalizedTerm.replace(/\D/g, "");
@@ -172,23 +216,52 @@ const matchesTermFuzzyInValue = (term: string, rawValue: string): boolean => {
   return false;
 };
 
-const matchesSearchTermsStrict = (
-  searchCorpus: string[],
-  queryTerms: string[],
-): boolean =>
-  queryTerms.length === 0 ||
-  queryTerms.every((term) =>
-    searchCorpus.some((value) => value.includes(term)),
-  );
+const matchesTermStrict = (searchCorpus: string[], term: string): boolean => {
+  if (isShortMetadataCodeTerm(term)) {
+    return searchCorpus.some((value) =>
+      tokenizeAlphanumeric(value).some((token) => token === term),
+    );
+  }
 
-const matchesSearchTermsFuzzy = (
-  searchCorpus: string[],
+  return searchCorpus.some((value) => value.includes(term));
+};
+
+const matchesSearchTermsStrictForDoc = (
+  doc: IDocument,
   queryTerms: string[],
 ): boolean =>
   queryTerms.length === 0 ||
-  queryTerms.every((term) =>
-    searchCorpus.some((value) => matchesTermFuzzyInValue(term, value)),
+  queryTerms.every((term) => {
+    const corpus = isShortMetadataCodeTerm(term)
+      ? buildShortCodeSearchCorpus(doc)
+      : buildDocumentSearchCorpus(doc);
+    return matchesTermStrict(corpus, term);
+  });
+
+const matchesSearchTermsFuzzyForDoc = (
+  doc: IDocument,
+  queryTerms: string[],
+): boolean =>
+  queryTerms.length === 0 ||
+  queryTerms.every((term) => {
+    const corpus = isShortMetadataCodeTerm(term)
+      ? buildShortCodeSearchCorpus(doc)
+      : buildDocumentSearchCorpus(doc);
+    return corpus.some((value) => matchesTermFuzzyInValue(term, value));
+  });
+
+/** Filename / type fields only — avoids URL paths and synonym tokens matching short codes. */
+const buildShortCodeSearchCorpus = (doc: IDocument): string[] => {
+  const values = [doc.fileName, doc.documentType, doc.immutableFileName];
+
+  return Array.from(
+    new Set(
+      values
+        .map((value) => value?.toString().trim().toLowerCase())
+        .filter(Boolean),
+    ),
   );
+};
 
 const buildDocumentSearchCorpus = (doc: IDocument): string[] => {
   const scalarValues: string[] = [
@@ -351,16 +424,13 @@ export const applyFiltersWithMeta = (
 
   const queryTerms = tokenizeSearchText(filters.searchText);
   const strictMatches = baseFiltered.filter((doc) =>
-    matchesSearchTermsStrict(buildDocumentSearchCorpus(doc), queryTerms),
+    matchesSearchTermsStrictForDoc(doc, queryTerms),
   );
   const strictIds = new Set(strictMatches.map((doc) => doc.id));
 
   const closeOnlyMatches = baseFiltered.filter((doc) => {
     if (strictIds.has(doc.id)) return false;
-    return matchesSearchTermsFuzzy(
-      buildDocumentSearchCorpus(doc),
-      queryTerms,
-    );
+    return matchesSearchTermsFuzzyForDoc(doc, queryTerms);
   });
 
   const rankedDocuments = [...strictMatches, ...closeOnlyMatches];
