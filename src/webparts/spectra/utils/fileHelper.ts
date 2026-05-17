@@ -53,7 +53,11 @@ export const formatFileSize = (bytes: number): string => {
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
-export const FILE_NAME_DISPLAY_MAX_LENGTH = 50;
+/** Table display without a search match badge (E/C). */
+export const FILE_NAME_DISPLAY_MAX_LENGTH = 42;
+
+/** Shorter limit when an E/C badge sits beside the name in the same cell. */
+export const FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE = 32;
 
 /**
  * Shorten a file name for table display; full name should be shown in a tooltip.

@@ -1215,8 +1215,8 @@
 
 /* Column min-widths — table scrolls horizontally when needed */
 .colFileName {
-  min-width: 280px;
-  max-width: 380px;
+  min-width: 300px;
+  max-width: 420px;
   overflow: hidden;
 }
 
@@ -2642,6 +2642,14 @@
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
+}
+
+.fileNameTextHost {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: block;
 }
 
 .fileNameCell .fileNameLink {

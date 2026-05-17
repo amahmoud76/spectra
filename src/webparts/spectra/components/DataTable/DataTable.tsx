@@ -3,7 +3,11 @@ import { IDocument } from "../../interfaces/IDocument";
 import { EffectiveRole } from "../../interfaces/IAuthResponse";
 import { ISortState, SortField } from "../../interfaces/ISortState";
 import { SearchMatchKind } from "../../utils/filterHelper";
-import { truncateFileNameForDisplay } from "../../utils/fileHelper";
+import {
+  FILE_NAME_DISPLAY_MAX_LENGTH,
+  FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE,
+  truncateFileNameForDisplay,
+} from "../../utils/fileHelper";
 import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
@@ -196,7 +200,10 @@ export const DataTable: React.FC<IDataTableProps> = ({
     return (
       <div className={styles.fileNameCell}>
         {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
-        <TooltipHost content={doc.fileName}>
+        <TooltipHost
+          content={doc.fileName}
+          className={styles.fileNameTextHost}
+        >
           <span
             className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
             onClick={() => onDocumentClick(doc)}
@@ -207,7 +214,12 @@ export const DataTable: React.FC<IDataTableProps> = ({
             role="link"
             aria-label={`Open ${doc.fileName}`}
           >
-            {truncateFileNameForDisplay(doc.fileName)}
+            {truncateFileNameForDisplay(
+              doc.fileName,
+              matchKind
+                ? FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE
+                : FILE_NAME_DISPLAY_MAX_LENGTH,
+            )}
           </span>
         </TooltipHost>
       </div>
