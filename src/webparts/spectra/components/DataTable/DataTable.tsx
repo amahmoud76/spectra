@@ -249,7 +249,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
     );
   }
 
-  return (
+  const tableJsx = (
     <div className={`${styles.dataTableScroll}${useEnhancedStyle ? ` ${styles.dataTableScrollEnhanced}` : ""}`}>
       <table
         className={styles.dataTable}
@@ -446,5 +446,9 @@ export const DataTable: React.FC<IDataTableProps> = ({
       </table>
     </div>
   );
+
+  return useEnhancedStyle ? (
+    <div className={styles.dataTableEnhancedOuter}>{tableJsx}</div>
+  ) : tableJsx;
 };
 
