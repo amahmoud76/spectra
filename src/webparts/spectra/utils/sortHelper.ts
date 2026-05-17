@@ -43,6 +43,14 @@ export const sortDocuments = (
         aVal = parseISO(a.uploadDate).getTime() || 0;
         bVal = parseISO(b.uploadDate).getTime() || 0;
         break;
+      case "createdBy":
+        aVal = a.createdBy.toLowerCase();
+        bVal = b.createdBy.toLowerCase();
+        break;
+      case "modifiedBy":
+        aVal = a.modifiedBy.toLowerCase();
+        bVal = b.modifiedBy.toLowerCase();
+        break;
       case "lineOfTherapy":
         aVal = a.lineOfTherapy.join("; ").toLowerCase();
         bVal = b.lineOfTherapy.join("; ").toLowerCase();

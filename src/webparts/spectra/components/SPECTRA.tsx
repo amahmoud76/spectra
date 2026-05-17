@@ -55,6 +55,8 @@ import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 
 // Components — Pages
 import { DocumentViewingPage } from "../components/DocumentViewingPage/DocumentViewingPage";
+import { ShowArchivedToggle } from "./ShowArchivedToggle/ShowArchivedToggle";
+import { ViewFullLibraryButton } from "./ViewFullLibraryButton/ViewFullLibraryButton";
 // Styles
 import styles from "./SPECTRA.module.scss";
 
@@ -93,6 +95,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const [searchText, setSearchText] = React.useState("");
   const [showArchivedDocuments, setShowArchivedDocuments] =
     React.useState(false);
+  const [isFullLibraryView, setIsFullLibraryView] = React.useState(false);
   const [hasResultsContext, setHasResultsContext] = React.useState(false);
   const [viewingDocument, setViewingDocument] =
     React.useState<IDocument | null>(null);
@@ -240,9 +243,35 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     filters.filters,
   );
   const filteredDocuments = filteredResult.documents;
-  const showFuzzySearchHint =
-    filteredResult.usedFuzzySearch && hasActiveSearchText(filters.filters);
-  const sortedDocuments = sorting.sortDocs(filteredDocuments);
+
+  const sortedDocuments = React.useMemo(() => {
+    const sorted = sorting.sortDocs(filteredDocuments);
+    if (!hasActiveSearchText(filters.filters)) {
+      return sorted;
+    }
+
+    const exact: IDocument[] = [];
+    const close: IDocument[] = [];
+    sorted.forEach((doc) => {
+      if (filteredResult.matchKindByDocumentId.get(doc.id) === "close") {
+        close.push(doc);
+      } else {
+        exact.push(doc);
+      }
+    });
+    return [...exact, ...close];
+  }, [
+    filteredDocuments,
+    sorting.sortState,
+    filters.filters,
+    filteredResult.matchKindByDocumentId,
+  ]);
+
+  const showSearchMatchSummary =
+    hasActiveSearchText(filters.filters) &&
+    !documents.isLoading &&
+    sortedDocuments.length > 0 &&
+    filteredResult.usedFuzzySearch;
   const pagination = usePagination(sortedDocuments, pageSize);
 
   // const noResults = !documents.isLoading && sortedDocuments.length === 0;
@@ -267,7 +296,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     page === "results" &&
     hasResultsContext &&
     !hasSearchApplied &&
-    !hasPanelFilters;
+    !hasPanelFilters &&
+    !isFullLibraryView;
 
   const siteUrl = context.pageContext.web.absoluteUrl;
   const userDisplayName = context.pageContext.user.displayName;
@@ -353,6 +383,25 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     headerConfig.isLoading,
     enableVerboseStartupStatus,
   ]);
+
+  const handleViewFullLibrary = React.useCallback(() => {
+    setShowArchivedDocuments(true);
+    setIsFullLibraryView(true);
+    setHasResultsContext(true);
+    setPage("results");
+    documents.refetch();
+  }, [documents]);
+
+  const handleArchiveToggleChange = React.useCallback(
+    (next: boolean) => {
+      setShowArchivedDocuments(next);
+      if (!next) {
+        setIsFullLibraryView(false);
+      }
+      documents.refetch();
+    },
+    [documents],
+  );
 
   // ── Search handler ──────────────────────────────────────────
   const handleSearch = React.useCallback(() => {
@@ -476,6 +525,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     setViewingDocument(null);
     setPage("landing");
     setHasResultsContext(false);
+    setIsFullLibraryView(false);
+    setShowArchivedDocuments(false);
     setSearchText("");
     filters.clearAllFilters();
   }, [filters]);
@@ -678,15 +729,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     }
   }, [duplicateConfirmation, upload, notification, documents, page]);
 
-  const handleDuplicateConfirmView = React.useCallback(() => {
+  const handleDuplicateConfirmView = React.useCallback(async () => {
     notification.clearNotification();
-    const doc = documents.documents.find(
-      (d) => d.id === duplicateConfirmation.existingDocId,
-    );
-    if (doc) {
-      setViewingDocument(doc);
-      setPage("viewing");
-    }
+    const existingDocId = duplicateConfirmation.existingDocId;
+
     setDuplicateConfirmation({
       isOpen: false,
       existingDocId: "",
@@ -695,7 +741,33 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       isReplace: false,
     });
     setUploadPanelOpen(false);
-  }, [duplicateConfirmation, documents.documents, notification, page]);
+
+    if (!existingDocId) {
+      return;
+    }
+
+    let doc =
+      documents.documents.find((d) => d.id === existingDocId) ?? null;
+
+    if (!doc) {
+      const service = new DocumentService(context, documentLibrary, useMock);
+      doc = await service.getDocumentById(existingDocId);
+    }
+
+    if (doc) {
+      setViewingDocument(doc);
+      setPage("viewing");
+    } else {
+      notification.showError(GENERIC_ERROR_MESSAGE);
+    }
+  }, [
+    duplicateConfirmation.existingDocId,
+    documents.documents,
+    context,
+    documentLibrary,
+    useMock,
+    notification,
+  ]);
 
   const handleDuplicateConfirmCancel = React.useCallback(() => {
     notification.clearNotification();
@@ -766,15 +838,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     });
   }, [notification]);
 
-  const handleEditDuplicateConfirmView = React.useCallback(() => {
+  const handleEditDuplicateConfirmView = React.useCallback(async () => {
     notification.clearNotification();
-    const doc = documents.documents.find(
-      (d) => d.id === editDuplicateConfirmation.existingDocId,
-    );
-    if (doc) {
-      setViewingDocument(doc);
-      setPage("viewing");
-    }
+    const existingDocId = editDuplicateConfirmation.existingDocId;
+
     setEditDuplicateConfirmation({
       isOpen: false,
       editingDocId: "",
@@ -783,7 +850,34 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       pendingUpdates: null,
     });
     setEditPanelOpen(false);
-  }, [editDuplicateConfirmation, documents.documents, notification, page]);
+
+    if (!existingDocId) {
+      return;
+    }
+
+    let doc =
+      documents.documents.find((d) => d.id === existingDocId) ?? null;
+
+    if (!doc) {
+      const service = new DocumentService(context, documentLibrary, useMock);
+      doc = await service.getDocumentById(existingDocId);
+    }
+
+    if (doc) {
+      setEditTarget(null);
+      setViewingDocument(doc);
+      setPage("viewing");
+    } else {
+      notification.showError(GENERIC_ERROR_MESSAGE);
+    }
+  }, [
+    editDuplicateConfirmation.existingDocId,
+    documents.documents,
+    context,
+    documentLibrary,
+    useMock,
+    notification,
+  ]);
   // ── Archive & Replace: confirm step ─────────────────────────
   const handleArchiveReplaceConfirm = React.useCallback(async () => {
     const success = await archiveReplace.confirmArchive();
@@ -993,6 +1087,18 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 onClear={handleClearSearch}
                 isError={noResults && !!searchText}
               />
+              {auth.effectiveRole === "admin" && (
+                <div className={styles.adminSearchControls}>
+                  <ViewFullLibraryButton
+                    onClick={handleViewFullLibrary}
+                    isActive={isFullLibraryView}
+                  />
+                  <ShowArchivedToggle
+                    checked={showArchivedDocuments}
+                    onChange={handleArchiveToggleChange}
+                  />
+                </div>
+              )}
             </div>
 
             <div className={styles.landingWelcome}>
@@ -1113,40 +1219,15 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               />
 
               {auth.effectiveRole === "admin" && (
-                <div className={styles.archiveToggle}>
-                  <button
-                    className={styles.archiveToggleButton}
-                    type="button"
-                    role="switch"
-                    aria-checked={showArchivedDocuments}
-                    aria-label="Show Archived Documents"
-                    onClick={() => {
-                      setShowArchivedDocuments((previous) => {
-                        const next = !previous;
-                        documents.refetch();
-                        return next;
-                      });
-                    }}
-                  >
-                    <span
-                      className={`${styles.archiveToggleTrack} ${showArchivedDocuments ? styles.archiveToggleTrackChecked : ""}`.trim()}
-                      aria-hidden="true"
-                    >
-                      <span className={styles.archiveToggleThumb}>
-                        {showArchivedDocuments && (
-                          <img
-                            src={require("../assets/icons/check-blue.svg")}
-                            alt=""
-                            className={styles.archiveToggleCheck}
-                            aria-hidden="true"
-                          />
-                        )}
-                      </span>
-                    </span>
-                    <span className={styles.archiveToggleLabel}>
-                      Show Archived Documents
-                    </span>
-                  </button>
+                <div className={styles.adminSearchControls}>
+                  <ViewFullLibraryButton
+                    onClick={handleViewFullLibrary}
+                    isActive={isFullLibraryView}
+                  />
+                  <ShowArchivedToggle
+                    checked={showArchivedDocuments}
+                    onChange={handleArchiveToggleChange}
+                  />
                 </div>
               )}
 
@@ -1161,24 +1242,39 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               />
             </div>
 
-            {showFuzzySearchHint && (
+            {showSearchMatchSummary && (
+              <div
+                className={styles.searchMatchSummary}
+                role="status"
+                aria-live="polite"
+              >
+                <span className={styles.searchMatchLegend}>
+                  <span
+                    className={`${styles.searchMatchBadge} ${styles.searchMatchBadgeExact}`}
+                  >
+                    Exact match
+                  </span>
+                  <span
+                    className={`${styles.searchMatchBadge} ${styles.searchMatchBadgeClose}`}
+                  >
+                    Close match
+                  </span>
+                </span>
+                <span className={styles.searchMatchSummaryText}>
+                  {filteredResult.hasMixedSearchResults
+                    ? `${filteredResult.exactMatchCount} exact and ${filteredResult.closeMatchCount} close matches for "${filters.filters.searchText.trim()}".`
+                    : `Showing ${filteredResult.closeMatchCount} close match${filteredResult.closeMatchCount === 1 ? "" : "es"} for "${filters.filters.searchText.trim()}".`}
+                </span>
+              </div>
+            )}
+
+            {isFullLibraryView && (
               <div
                 className={styles.noResultsHint}
                 role="status"
                 aria-live="polite"
               >
-                <img
-                  src={require("../assets/icons/circle-exclamation.svg")}
-                  alt=""
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    display: "inline-block",
-                    marginRight: "6px",
-                  }}
-                  aria-hidden="true"
-                />
-                Showing close matches for "{filters.filters.searchText.trim()}".
+                Showing full document library including archived documents.
               </div>
             )}
 
@@ -1241,6 +1337,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   sortState={sorting.sortState}
                   onSort={sorting.toggleSort}
                   onDocumentClick={handleDocumentClick}
+                  searchMatchKindByDocumentId={
+                    filteredResult.matchKindByDocumentId
+                  }
                   onEditClick={(doc) => {
                     setEditTarget(doc);
                     setEditPanelOpen(true);

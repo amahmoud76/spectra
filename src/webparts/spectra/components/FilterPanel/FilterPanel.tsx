@@ -8,7 +8,6 @@ import {
   getAllPaids,
   getDiseaseAreaStrategiesForTherapeuticArea,
 } from "../../utils/cascadingFilterHelper";
-import { Dropdown, IDropdownOption } from "@fluentui/react/lib/Dropdown";
 import { DatePicker } from "@fluentui/react/lib/DatePicker";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
@@ -39,9 +38,6 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
   onReset,
 }) => {
   if (!isOpen) return null;
-
-  const toDropdownOptions = (values: string[]): IDropdownOption[] =>
-    values.map((v) => ({ key: v, text: v }));
 
   // ── Calendar day styles for blue selected/today state ────
   const calendarDayStyles = {
@@ -89,14 +85,13 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
     ).sort((a, b) => a.localeCompare(b));
   }, [options.indications, options.projectPaidRelationships]);
 
-  const selectedTherapeuticArea = filters.therapeuticArea[0];
   const diseaseAreaStrategies = React.useMemo(
     () =>
       getDiseaseAreaStrategiesForTherapeuticArea(
         options.diseaseAreaStrategyRelationships,
-        selectedTherapeuticArea,
+        filters.therapeuticArea,
       ),
-    [options.diseaseAreaStrategyRelationships, selectedTherapeuticArea],
+    [options.diseaseAreaStrategyRelationships, filters.therapeuticArea],
   );
 
   const effectiveDateValue = filters.effectiveDateFrom || undefined;
@@ -104,9 +99,11 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
   React.useEffect(() => {
     if (filters.diseaseArea.length === 0) return;
 
-    const selectedDas = filters.diseaseArea[0];
-    if (!diseaseAreaStrategies.includes(selectedDas)) {
-      onFilterChange("diseaseArea", []);
+    const validDiseaseAreas = filters.diseaseArea.filter((das) =>
+      diseaseAreaStrategies.includes(das),
+    );
+    if (validDiseaseAreas.length !== filters.diseaseArea.length) {
+      onFilterChange("diseaseArea", validDiseaseAreas);
     }
   }, [diseaseAreaStrategies, filters.diseaseArea, onFilterChange]);
 
@@ -162,42 +159,27 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
 
           {/* Document Type */}
           <div className={styles.formGroup}>
-            <Dropdown
+            <SearchableDropdown
               label="Document Type"
-              options={toDropdownOptions(
-                toValueArray(options.documentTypes),
-              )}
-              selectedKey={
-                filters.documentType.length > 0
-                  ? filters.documentType[0]
-                  : undefined
-              }
-              onChange={(_, item) =>
-                onFilterChange("documentType", item ? [item.key as string] : [])
-              }
-              placeholder="Select document type"
+              options={toValueArray(options.documentTypes)}
+              selectedKeys={filters.documentType}
+              onChange={(selected) => onFilterChange("documentType", selected)}
+              placeholder="Type to search document type..."
+              multiSelect={true}
             />
           </div>
 
           {/* Therapeutic Area */}
           <div className={styles.formGroup}>
-            <Dropdown
+            <SearchableDropdown
               label="Therapeutic Area"
-              options={toDropdownOptions(
-                toValueArray(options.therapeuticAreas),
-              )}
-              selectedKey={
-                filters.therapeuticArea.length > 0
-                  ? filters.therapeuticArea[0]
-                  : undefined
+              options={toValueArray(options.therapeuticAreas)}
+              selectedKeys={filters.therapeuticArea}
+              onChange={(selected) =>
+                onFilterChange("therapeuticArea", selected)
               }
-              onChange={(_, item) =>
-                onFilterChange(
-                  "therapeuticArea",
-                  item ? [item.key as string] : [],
-                )
-              }
-              placeholder="Select therapeutic area"
+              placeholder="Type to search therapeutic area..."
+              multiSelect={true}
             />
           </div>
 

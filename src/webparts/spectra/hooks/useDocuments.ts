@@ -16,10 +16,11 @@ interface IUseDocumentsResult {
 /**
  * Fetch documents from the document library.
  *
- * - Admin sees all documents (Current + Archive)
- * - Contributor and Viewer see Current only
+ * - Contributor and Viewer always fetch Current documents only
+ * - Admin fetches Current only by default; fetches Current + Archive when
+ *   includeArchivedForAdmin is true (archive toggle or View Full Library)
  * - Documents are NOT fetched on initial load (search-first home page)
- * - Call refetch() after a search or filter is applied
+ * - Call refetch() after search, filter apply, or admin library actions
  */
 export const useDocuments = (
   context: WebPartContext,

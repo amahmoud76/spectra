@@ -7,6 +7,8 @@ export type SortField =
   | "documentType"
   | "effectiveDate"
   | "uploadDate"
+  | "createdBy"
+  | "modifiedBy"
   | "lineOfTherapy"
   | "diseaseArea"
   | "status";

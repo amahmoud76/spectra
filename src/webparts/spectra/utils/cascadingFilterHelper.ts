@@ -102,19 +102,26 @@ export const getAllPaids = (
  */
 export const getDiseaseAreaStrategiesForTherapeuticArea = (
   relationships: IDiseaseAreaStrategyRelationship[],
-  selectedTA?: string,
+  selectedTA?: string | string[],
 ): string[] => {
-  const normalizedTa = selectedTA?.trim().toLowerCase();
+  const selectedTAs = Array.isArray(selectedTA)
+    ? selectedTA
+    : selectedTA
+      ? [selectedTA]
+      : [];
 
-  if (!normalizedTa) {
+  if (selectedTAs.length === 0) {
     return unique(relationships.map((relationship) => relationship.value));
   }
 
+  const normalizedTas = new Set(
+    selectedTAs.map((ta) => ta.trim().toLowerCase()).filter(Boolean),
+  );
+
   return unique(
     relationships
-      .filter(
-        (relationship) =>
-          relationship.therapeuticArea.trim().toLowerCase() === normalizedTa,
+      .filter((relationship) =>
+        normalizedTas.has(relationship.therapeuticArea.trim().toLowerCase()),
       )
       .map((relationship) => relationship.value),
   );

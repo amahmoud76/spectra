@@ -10,15 +10,20 @@ const MULTI_VALUE_FILENAME_DELIMITER = "__";
 /**
  * Generate a standardized filename from metadata tags (BRD Appendix H).
  *
- * Format:
- *   Base order: DocType-TA-Asset-Indication[-SubTA][-LineOfTherapy].ext
+ * Format (non-DAS):
+ *   DocType-TA-Asset-Indication[-SubTA][-LineOfTherapy].ext
+ *
+ * Format (DAS):
+ *   DAS-TA[-SubTA]-DiseaseArea.ext
+ *   Disease Area is required for DAS and included in the filename.
+ *   Optional/hidden fields (Asset, Indication, LOT, PAID) are excluded.
  *
  * Rules:
  *   - Multiple values concatenated with '__' in alphabetical order
- *   - Asset is placed before Indication
+ *   - Asset is placed before Indication (non-DAS only)
  *   - Sub-TA included for therapeutic areas listed in TA_INCLUDES_SUB_TA
- *   - Line of Therapy included if it exists
- *   - Optional fields PAID and Disease Area are excluded
+ *   - Line of Therapy included if it exists (non-DAS only)
+ *   - Disease Area included for DAS only; optional on other types and excluded
  *   - Spaces replaced with hyphens in each segment
  */
 export const generateFileName = (payload: IUploadPayload): string => {
@@ -49,6 +54,22 @@ export const generateFileName = (payload: IUploadPayload): string => {
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
       : "";
+
+  const diseaseArea =
+    payload.diseaseArea.length > 0
+      ? payload.diseaseArea
+          .map(sanitize)
+          .sort()
+          .join(MULTI_VALUE_FILENAME_DELIMITER)
+      : "";
+
+  if (payload.documentType === "DAS") {
+    const segments: string[] = [docType];
+    if (ta) segments.push(ta);
+    if (subTA) segments.push(subTA);
+    if (diseaseArea) segments.push(diseaseArea);
+    return `${segments.join("-")}.${ext}`;
+  }
 
   // Indication
   const indication =

@@ -2,9 +2,18 @@ import { IDocument } from "../interfaces/IDocument";
 import { IFilterState } from "../interfaces/IFilterState";
 import { parseISO, isValid, isWithinInterval } from "date-fns";
 
+export type SearchMatchKind = "exact" | "close";
+
 export interface IApplyFiltersResult {
   documents: IDocument[];
+  /** Per-document match quality when search text is active. */
+  matchKindByDocumentId: Map<string, SearchMatchKind>;
+  exactMatchCount: number;
+  closeMatchCount: number;
+  /** True when any close (fuzzy) matches are included in results. */
   usedFuzzySearch: boolean;
+  /** True when both exact and close matches are present. */
+  hasMixedSearchResults: boolean;
 }
 
 const tokenizeSearchText = (rawText: string): string[] =>
@@ -274,7 +283,11 @@ export const applyFiltersWithMeta = (
   if (!filters.searchText.trim()) {
     return {
       documents: baseFiltered,
+      matchKindByDocumentId: new Map(),
+      exactMatchCount: 0,
+      closeMatchCount: 0,
       usedFuzzySearch: false,
+      hasMixedSearchResults: false,
     };
   }
 
@@ -282,22 +295,33 @@ export const applyFiltersWithMeta = (
   const strictMatches = baseFiltered.filter((doc) =>
     matchesSearchTermsStrict(buildDocumentSearchCorpus(doc), queryTerms),
   );
+  const strictIds = new Set(strictMatches.map((doc) => doc.id));
 
-  if (strictMatches.length > 0) {
-    return {
-      documents: strictMatches,
-      usedFuzzySearch: false,
-    };
-  }
+  const closeOnlyMatches = baseFiltered.filter((doc) => {
+    if (strictIds.has(doc.id)) return false;
+    return matchesSearchTermsFuzzy(
+      buildDocumentSearchCorpus(doc),
+      queryTerms,
+    );
+  });
 
-  // Fuzzy fallback only when strict AND match yields no results.
-  const fuzzyMatches = baseFiltered.filter((doc) =>
-    matchesSearchTermsFuzzy(buildDocumentSearchCorpus(doc), queryTerms),
+  const rankedDocuments = [...strictMatches, ...closeOnlyMatches];
+  const matchKindByDocumentId = new Map<string, SearchMatchKind>();
+  strictMatches.forEach((doc) =>
+    matchKindByDocumentId.set(doc.id, "exact"),
+  );
+  closeOnlyMatches.forEach((doc) =>
+    matchKindByDocumentId.set(doc.id, "close"),
   );
 
   return {
-    documents: fuzzyMatches,
-    usedFuzzySearch: fuzzyMatches.length > 0,
+    documents: rankedDocuments,
+    matchKindByDocumentId,
+    exactMatchCount: strictMatches.length,
+    closeMatchCount: closeOnlyMatches.length,
+    usedFuzzySearch: closeOnlyMatches.length > 0,
+    hasMixedSearchResults:
+      strictMatches.length > 0 && closeOnlyMatches.length > 0,
   };
 };
 

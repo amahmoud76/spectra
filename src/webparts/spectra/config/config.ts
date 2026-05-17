@@ -188,6 +188,7 @@ export const isFirewalledAsset = (
 //   - Line of Therapy included if it exists
 //   - Spaces replaced with hyphens in each segment
 //   - Effective Date excluded from filename (Release 1); stored as metadata only
+//   - DAS: DocType-TA[-SubTA]-DiseaseArea only (Disease Area required, not optional)
 // ─────────────────────────────────────────────────────────────────
 
 // Abbreviation maps for file naming

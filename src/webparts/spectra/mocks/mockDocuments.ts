@@ -24,9 +24,9 @@ export const mockDocuments: IDocument[] = [
   // DAS - Oncology (no Sub-TA, single disease area)
   {
     id: "doc-das-onc-001",
-    fileName: "DAS-ONC-2026-01-10.pdf",
+    fileName: "DAS-ONC-Hematologic-Malignancies.pdf",
     fileExtension: "pdf",
-    fileUrl: "/sites/SPECTRA/Documents/DAS-ONC-2026-01-10.pdf",
+    fileUrl: "/sites/SPECTRA/Documents/DAS-ONC-Hematologic-Malignancies.pdf",
     fileSize: 1843200,
     createdBy: "Johnson, Sarah",
     createdByEmail: "sarah.johnson@abbvie.com",
@@ -54,9 +54,9 @@ export const mockDocuments: IDocument[] = [
   // DAS - Aesthetics (with Sub-TA, single disease area)
   {
     id: "doc-das-aes-001",
-    fileName: "DAS-AES-Neurotoxin-2026-01-20.pptx",
+    fileName: "DAS-AES-Neurotoxin-Aesthetic-Dermatology.pptx",
     fileExtension: "pptx",
-    fileUrl: "/sites/SPECTRA/Documents/DAS-AES-Neurotoxin-2026-01-20.pptx",
+    fileUrl: "/sites/SPECTRA/Documents/DAS-AES-Neurotoxin-Aesthetic-Dermatology.pptx",
     fileSize: 3145728,
     createdBy: "Chen, Lisa",
     createdByEmail: "lisa.chen@abbvie.com",
@@ -84,9 +84,9 @@ export const mockDocuments: IDocument[] = [
   // DAS - Immunology (no Sub-TA, MULTI disease area - demonstrates multi-select)
   {
     id: "doc-das-immu-001",
-    fileName: "DAS-IMMU-2026-02-01.docx",
+    fileName: "DAS-IMM-Autoimmune-Disorders__Inflammatory-Bowel-Disease.docx",
     fileExtension: "docx",
-    fileUrl: "/sites/SPECTRA/Documents/DAS-IMMU-2026-02-01.docx",
+    fileUrl: "/sites/SPECTRA/Documents/DAS-IMM-Autoimmune-Disorders__Inflammatory-Bowel-Disease.docx",
     fileSize: 1310720,
     createdBy: "Williams, Mark",
     createdByEmail: "mark.williams@abbvie.com",
@@ -636,9 +636,9 @@ export const mockDocuments: IDocument[] = [
   // Archived DAS - superseded by doc-das-immu-001
   {
     id: "doc-archived-das-001",
-    fileName: "DAS-IMMU-2025-06-15.docx",
+    fileName: "DAS-IMM-Autoimmune-Disorders.docx",
     fileExtension: "docx",
-    fileUrl: "/sites/SPECTRA/Documents/DAS-IMMU-2025-06-15.docx",
+    fileUrl: "/sites/SPECTRA/Documents/DAS-IMM-Autoimmune-Disorders.docx",
     fileSize: 1310720,
     createdBy: "Johnson, Sarah",
     createdByEmail: "sarah.johnson@abbvie.com",

@@ -2,6 +2,7 @@ import * as React from "react";
 import { IDocument } from "../../interfaces/IDocument";
 import { EffectiveRole } from "../../interfaces/IAuthResponse";
 import { ISortState, SortField } from "../../interfaces/ISortState";
+import { SearchMatchKind } from "../../utils/filterHelper";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
 import styles from "../SPECTRA.module.scss";
@@ -21,6 +22,7 @@ export interface IDataTableProps {
   ) => void;
   onReActivateClick?: (doc: IDocument) => void;
   isLoading: boolean;
+  searchMatchKindByDocumentId?: Map<string, SearchMatchKind>;
 }
 
 interface IColumnDef {
@@ -37,6 +39,22 @@ const formatDate = (iso: string): string => {
   const date = parseISO(iso);
   if (!isValid(date)) return iso;
   return format(date, "MMM/dd/yyyy");
+};
+
+const COLUMN_CLASS_BY_KEY: Record<string, string> = {
+  fileName: "colFileName",
+  asset: "colAsset",
+  type: "colType",
+  ta: "colTa",
+  indication: "colIndication",
+  paid: "colPaid",
+  diseaseArea: "colDiseaseArea",
+  date: "colDate",
+  uploadDate: "colUploadDate",
+  createdBy: "colCreatedBy",
+  modifiedBy: "colModifiedBy",
+  comments: "colComments",
+  status: "colStatus",
 };
 
 const COLUMNS: IColumnDef[] = [
@@ -81,6 +99,22 @@ const COLUMNS: IColumnDef[] = [
     adminOnly: true,
   },
   {
+    key: "createdBy",
+    label: "Created By",
+    sortField: "createdBy",
+    getValue: (d) => d.createdBy,
+    truncate: true,
+    adminOnly: true,
+  },
+  {
+    key: "modifiedBy",
+    label: "Last Modified By",
+    sortField: "modifiedBy",
+    getValue: (d) => d.modifiedBy,
+    truncate: true,
+    adminOnly: true,
+  },
+  {
     key: "comments",
     label: "Comments",
     sortField: "comments",
@@ -107,6 +141,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
   onArchiveReplaceClick,
   onReActivateClick,
   isLoading,
+  searchMatchKindByDocumentId,
 }) => {
   const getAnchorPosition = React.useCallback(
     (event: React.MouseEvent<HTMLElement>): { top: number; left: number } => {
@@ -123,6 +158,13 @@ export const DataTable: React.FC<IDataTableProps> = ({
     if (col.adminOnly && role !== "admin") return false;
     return true;
   });
+
+  const styleClassMap = styles as unknown as Record<string, string>;
+
+  const getColumnClassName = (key: string): string => {
+    const classKey = COLUMN_CLASS_BY_KEY[key];
+    return classKey ? styleClassMap[classKey] || "" : "";
+  };
 
   const renderSortIcon = (field?: SortField): React.ReactNode => {
     if (!field) return null;
@@ -172,7 +214,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
             {visibleColumns.map((col) => (
               <th
                 key={col.key}
-                className={`${col.sortField ? styles.sortable : ""} ${col.key === "fileName" ? styles.fileNameHeader : ""} ${col.key === "comments" ? styles.commentHeader : ""}`.trim()}
+                className={`${getColumnClassName(col.key)} ${col.sortField ? styles.sortable : ""}`.trim()}
                 onClick={() => col.sortField && onSort(col.sortField)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && col.sortField) onSort(col.sortField);
@@ -296,26 +338,43 @@ export const DataTable: React.FC<IDataTableProps> = ({
               {visibleColumns.map((col) => (
                 <td
                   key={col.key}
-                  className={
-                    `${col.key === "fileName" ? styles.fileNameData : ""} ${col.key === "comments" ? styles.commentCell : ""}`.trim() ||
-                    undefined
-                  }
+                  className={`${getColumnClassName(col.key)} ${col.key === "comments" ? styles.commentCell : ""}`.trim()}
                 >
                   {col.key === "fileName" ? (
-                    <TooltipHost content={doc.fileName}>
-                      <span
-                        className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
-                        onClick={() => onDocumentClick(doc)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") onDocumentClick(doc);
-                        }}
-                        tabIndex={0}
-                        role="link"
-                        aria-label={`Open ${doc.fileName}`}
-                      >
-                        {doc.fileName}
-                      </span>
-                    </TooltipHost>
+                    <div className={styles.fileNameCell}>
+                      <TooltipHost content={doc.fileName}>
+                        <span
+                          className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
+                          onClick={() => onDocumentClick(doc)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") onDocumentClick(doc);
+                          }}
+                          tabIndex={0}
+                          role="link"
+                          aria-label={`Open ${doc.fileName}`}
+                        >
+                          {doc.fileName}
+                        </span>
+                      </TooltipHost>
+                      {searchMatchKindByDocumentId?.get(doc.id) && (
+                        <span
+                          className={`${styles.searchMatchBadge} ${
+                            searchMatchKindByDocumentId.get(doc.id) === "exact"
+                              ? styles.searchMatchBadgeExact
+                              : styles.searchMatchBadgeClose
+                          }`}
+                          aria-label={
+                            searchMatchKindByDocumentId.get(doc.id) === "exact"
+                              ? "Exact search match"
+                              : "Close search match"
+                          }
+                        >
+                          {searchMatchKindByDocumentId.get(doc.id) === "exact"
+                            ? "Exact"
+                            : "Close"}
+                        </span>
+                      )}
+                    </div>
                   ) : col.key === "status" ? (
                     <span
                       className={
