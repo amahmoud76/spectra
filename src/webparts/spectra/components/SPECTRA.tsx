@@ -57,6 +57,7 @@ import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 import { DocumentViewingPage } from "../components/DocumentViewingPage/DocumentViewingPage";
 import { ShowArchivedToggle } from "./ShowArchivedToggle/ShowArchivedToggle";
 import { ViewFullLibraryButton } from "./ViewFullLibraryButton/ViewFullLibraryButton";
+import { SearchMatchBadge } from "./SearchMatchBadge/SearchMatchBadge";
 // Styles
 import styles from "./SPECTRA.module.scss";
 
@@ -267,18 +268,35 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     filteredResult.matchKindByDocumentId,
   ]);
 
+  const hasSearchApplied = hasActiveSearchText(filters.filters);
+
   const showSearchMatchSummary =
-    hasActiveSearchText(filters.filters) &&
+    hasSearchApplied &&
     !documents.isLoading &&
     sortedDocuments.length > 0 &&
-    filteredResult.usedFuzzySearch;
+    filteredResult.matchKindByDocumentId.size > 0;
+
+  const searchMatchSummaryText = React.useMemo(() => {
+    const query = filters.filters.searchText.trim();
+    if (filteredResult.hasMixedSearchResults) {
+      return `${filteredResult.exactMatchCount} exact and ${filteredResult.closeMatchCount} close matches for "${query}".`;
+    }
+    if (filteredResult.usedFuzzySearch) {
+      return `${filteredResult.closeMatchCount} close match${filteredResult.closeMatchCount === 1 ? "" : "es"} for "${query}".`;
+    }
+    return `${filteredResult.exactMatchCount} result${filteredResult.exactMatchCount === 1 ? "" : "es"} for "${query}".`;
+  }, [
+    filters.filters.searchText,
+    filteredResult.hasMixedSearchResults,
+    filteredResult.exactMatchCount,
+    filteredResult.closeMatchCount,
+    filteredResult.usedFuzzySearch,
+  ]);
+
   const pagination = usePagination(sortedDocuments, pageSize);
 
   // const noResults = !documents.isLoading && sortedDocuments.length === 0;
   const noResults = !documents.isLoading && sortedDocuments.length === 0;
-
-  // const hasSearchApplied = hasActiveSearchText(filters.filters);
-  const hasSearchApplied = hasActiveSearchText(filters.filters);
 
   // const hasPanelFilters = filters.activeFilterCount > 0;
   const hasPanelFilters = filters.activeFilterCount > 0;
@@ -1250,21 +1268,23 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 aria-live="polite"
               >
                 <span className={styles.searchMatchLegend}>
-                  <span
-                    className={`${styles.searchMatchBadge} ${styles.searchMatchBadgeExact}`}
-                  >
-                    Exact match
+                  <span className={styles.searchMatchLegendEntry}>
+                    <SearchMatchBadge kind="exact" />
+                    <span className={styles.searchMatchLegendLabel}>
+                      = Exact match
+                    </span>
                   </span>
-                  <span
-                    className={`${styles.searchMatchBadge} ${styles.searchMatchBadgeClose}`}
-                  >
-                    Close match
-                  </span>
+                  {filteredResult.usedFuzzySearch && (
+                    <span className={styles.searchMatchLegendEntry}>
+                      <SearchMatchBadge kind="close" />
+                      <span className={styles.searchMatchLegendLabel}>
+                        = Close match
+                      </span>
+                    </span>
+                  )}
                 </span>
                 <span className={styles.searchMatchSummaryText}>
-                  {filteredResult.hasMixedSearchResults
-                    ? `${filteredResult.exactMatchCount} exact and ${filteredResult.closeMatchCount} close matches for "${filters.filters.searchText.trim()}".`
-                    : `Showing ${filteredResult.closeMatchCount} close match${filteredResult.closeMatchCount === 1 ? "" : "es"} for "${filters.filters.searchText.trim()}".`}
+                  {searchMatchSummaryText}
                 </span>
               </div>
             )}

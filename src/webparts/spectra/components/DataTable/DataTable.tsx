@@ -4,6 +4,7 @@ import { EffectiveRole } from "../../interfaces/IAuthResponse";
 import { ISortState, SortField } from "../../interfaces/ISortState";
 import { SearchMatchKind } from "../../utils/filterHelper";
 import { truncateFileNameForDisplay } from "../../utils/fileHelper";
+import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
 import styles from "../SPECTRA.module.scss";
@@ -343,6 +344,11 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 >
                   {col.key === "fileName" ? (
                     <div className={styles.fileNameCell}>
+                      {searchMatchKindByDocumentId?.get(doc.id) ? (
+                        <SearchMatchBadge
+                          kind={searchMatchKindByDocumentId.get(doc.id)}
+                        />
+                      ) : null}
                       <TooltipHost content={doc.fileName}>
                         <span
                           className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
@@ -357,24 +363,6 @@ export const DataTable: React.FC<IDataTableProps> = ({
                           {truncateFileNameForDisplay(doc.fileName)}
                         </span>
                       </TooltipHost>
-                      {searchMatchKindByDocumentId?.get(doc.id) && (
-                        <span
-                          className={`${styles.searchMatchBadge} ${
-                            searchMatchKindByDocumentId.get(doc.id) === "exact"
-                              ? styles.searchMatchBadgeExact
-                              : styles.searchMatchBadgeClose
-                          }`}
-                          aria-label={
-                            searchMatchKindByDocumentId.get(doc.id) === "exact"
-                              ? "Exact search match"
-                              : "Close search match"
-                          }
-                        >
-                          {searchMatchKindByDocumentId.get(doc.id) === "exact"
-                            ? "Exact"
-                            : "Close"}
-                        </span>
-                      )}
                     </div>
                   ) : col.key === "status" ? (
                     <span
