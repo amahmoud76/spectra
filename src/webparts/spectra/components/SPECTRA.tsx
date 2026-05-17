@@ -90,6 +90,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   enableStartupSplash,
   enableVerboseStartupStatus,
   startupSplashCompletionDelayMs,
+  enableEnhancedTableStyle,
 }) => {
   // ── Page state ──────────────────────────────────────────────
   const [page, setPage] = React.useState<PageState>("landing");
@@ -269,6 +270,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   ]);
 
   const hasSearchApplied = hasActiveSearchText(filters.filters);
+
+  const useEnhancedStyle =
+    enableEnhancedTableStyle && auth.effectiveRole === "admin";
 
   const showSearchMatchSummary =
     hasSearchApplied &&
@@ -1312,6 +1316,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   archiveReplace.initiateArchiveReplace(doc, anchorPosition)
                 }
                 isLoading={true}
+                useEnhancedStyle={useEnhancedStyle}
               />
             ) : showResultsIdleEmptyState ? (
               <EmptyState type="results-idle" />
@@ -1350,6 +1355,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   }
                   onReActivateClick={(doc) => setReActivateTarget(doc)}
                   isLoading={false}
+                  useEnhancedStyle={useEnhancedStyle}
                 />
               </>
             ) : (
@@ -1374,6 +1380,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   }
                   onReActivateClick={(doc) => setReActivateTarget(doc)}
                   isLoading={false}
+                  useEnhancedStyle={useEnhancedStyle}
                 />
                 <Pagination
                   currentPage={pagination.currentPage}

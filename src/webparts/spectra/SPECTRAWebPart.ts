@@ -36,6 +36,7 @@ export interface IPeaksWebPartProps {
   startupSplashCompletionDelayMs: number;
   helpEmail: string;
   helpGuideUrl: string;
+  enableEnhancedTableStyle: boolean;
 }
 
 export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartProps> {
@@ -63,6 +64,7 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
         this.properties.startupSplashCompletionDelayMs ?? 700,
       helpEmail: this.properties.helpEmail || HELP_EMAIL,
       helpGuideUrl: this.properties.helpGuideUrl || HELP_GUIDE_URL,
+      enableEnhancedTableStyle: this.properties.enableEnhancedTableStyle ?? false,
     };
 
     ReactDom.render(React.createElement(SPECTRA, props), this.domElement);
@@ -170,6 +172,12 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
                 PropertyPaneTextField("helpGuideUrl", {
                   label: "Help guide URL",
                   value: HELP_GUIDE_URL,
+                }),
+                PropertyPaneToggle("enableEnhancedTableStyle", {
+                  label: "Enhanced table style (admins only)",
+                  onText: "On",
+                  offText: "Off",
+                  checked: false,
                 }),
               ],
             },

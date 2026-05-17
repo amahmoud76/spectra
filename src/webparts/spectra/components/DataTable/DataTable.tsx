@@ -29,7 +29,19 @@ export interface IDataTableProps {
   onReActivateClick?: (doc: IDocument) => void;
   isLoading: boolean;
   searchMatchKindByDocumentId?: Map<string, SearchMatchKind>;
+  useEnhancedStyle?: boolean;
 }
+
+const TYPE_CHIP_COLORS: Record<string, { bg: string; color: string }> = {
+  DAS:  { bg: "#7C3AED", color: "#fff" },
+  TPP:  { bg: "#0891B2", color: "#fff" },
+  TPC:  { bg: "#2563EB", color: "#fff" },
+  IEP:  { bg: "#16A34A", color: "#fff" },
+  EBP:  { bg: "#EA580C", color: "#fff" },
+  EIVP: { bg: "#BE185D", color: "#fff" },
+  IAS:  { bg: "#374151", color: "#fff" },
+};
+const TYPE_CHIP_DEFAULT = { bg: "#6B7280", color: "#fff" };
 
 interface IColumnDef {
   key: string;
@@ -148,6 +160,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
   onReActivateClick,
   isLoading,
   searchMatchKindByDocumentId,
+  useEnhancedStyle = false,
 }) => {
   const getAnchorPosition = React.useCallback(
     (event: React.MouseEvent<HTMLElement>): { top: number; left: number } => {
@@ -237,7 +250,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
   }
 
   return (
-    <div className={styles.dataTableScroll}>
+    <div className={`${styles.dataTableScroll}${useEnhancedStyle ? ` ${styles.dataTableScrollEnhanced}` : ""}`}>
       <table
         className={styles.dataTable}
         role="grid"
@@ -380,7 +393,20 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 >
                   {col.key === "fileName"
                     ? renderFileNameCell(doc)
-                    : col.key === "status" ? (
+                    : col.key === "type" && useEnhancedStyle ? (
+                    (() => {
+                      const val = col.getValue(doc);
+                      const chip = TYPE_CHIP_COLORS[val] ?? TYPE_CHIP_DEFAULT;
+                      return (
+                        <span
+                          className={styles.typeChip}
+                          style={{ backgroundColor: chip.bg, color: chip.color }}
+                        >
+                          {val}
+                        </span>
+                      );
+                    })()
+                  ) : col.key === "status" ? (
                     <span
                       className={
                         doc.status === "Current"
