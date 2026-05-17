@@ -1217,6 +1217,7 @@
 .colFileName {
   min-width: 280px;
   max-width: 380px;
+  overflow: hidden;
 }
 
 .colAsset {
@@ -2619,11 +2620,15 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .fileNameCell .fileNameLink {
   flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .resultsHeader {

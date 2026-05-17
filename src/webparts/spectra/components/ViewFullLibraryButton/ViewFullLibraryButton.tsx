@@ -12,7 +12,7 @@ export const ViewFullLibraryButton: React.FC<IViewFullLibraryButtonProps> = ({
   isActive = false,
 }) => {
   return (
-    <TooltipHost content="View all documents in the library, including archived">
+    <TooltipHost content="Browse all active documents in the library. Turn on Show Archived Documents to include archived items.">
       <button
         type="button"
         className={`${styles.btnSecondary} ${styles.viewFullLibraryBtn} ${isActive ? styles.viewFullLibraryBtnActive : ""}`.trim()}

@@ -3,6 +3,7 @@ import { IDocument } from "../../interfaces/IDocument";
 import { EffectiveRole } from "../../interfaces/IAuthResponse";
 import { ISortState, SortField } from "../../interfaces/ISortState";
 import { SearchMatchKind } from "../../utils/filterHelper";
+import { truncateFileNameForDisplay } from "../../utils/fileHelper";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
 import styles from "../SPECTRA.module.scss";
@@ -353,7 +354,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
                           role="link"
                           aria-label={`Open ${doc.fileName}`}
                         >
-                          {doc.fileName}
+                          {truncateFileNameForDisplay(doc.fileName)}
                         </span>
                       </TooltipHost>
                       {searchMatchKindByDocumentId?.get(doc.id) && (

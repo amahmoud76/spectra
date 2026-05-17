@@ -52,3 +52,19 @@ export const formatFileSize = (bytes: number): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 };
+
+export const FILE_NAME_DISPLAY_MAX_LENGTH = 50;
+
+/**
+ * Shorten a file name for table display; full name should be shown in a tooltip.
+ */
+export const truncateFileNameForDisplay = (
+  fileName: string,
+  maxLength: number = FILE_NAME_DISPLAY_MAX_LENGTH,
+): string => {
+  if (fileName.length <= maxLength) {
+    return fileName;
+  }
+
+  return `${fileName.slice(0, maxLength)}...`;
+};

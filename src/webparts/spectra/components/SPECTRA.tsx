@@ -385,7 +385,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   ]);
 
   const handleViewFullLibrary = React.useCallback(() => {
-    setShowArchivedDocuments(true);
+    setShowArchivedDocuments(false);
     setIsFullLibraryView(true);
     setHasResultsContext(true);
     setPage("results");
@@ -395,12 +395,13 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const handleArchiveToggleChange = React.useCallback(
     (next: boolean) => {
       setShowArchivedDocuments(next);
-      if (!next) {
-        setIsFullLibraryView(false);
+      if (isFullLibraryView) {
+        setHasResultsContext(true);
+        setPage("results");
       }
       documents.refetch();
     },
-    [documents],
+    [documents, isFullLibraryView],
   );
 
   // ── Search handler ──────────────────────────────────────────
@@ -1274,7 +1275,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 role="status"
                 aria-live="polite"
               >
-                Showing full document library including archived documents.
+                {showArchivedDocuments
+                  ? "Showing full document library including archived documents."
+                  : "Showing full document library (active documents only). Use the archive toggle to include archived documents."}
               </div>
             )}
 

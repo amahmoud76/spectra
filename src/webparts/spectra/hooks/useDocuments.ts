@@ -18,7 +18,7 @@ interface IUseDocumentsResult {
  *
  * - Contributor and Viewer always fetch Current documents only
  * - Admin fetches Current only by default; fetches Current + Archive when
- *   includeArchivedForAdmin is true (archive toggle or View Full Library)
+ *   includeArchivedForAdmin is true (Show Archived Documents toggle)
  * - Documents are NOT fetched on initial load (search-first home page)
  * - Call refetch() after search, filter apply, or admin library actions
  */
