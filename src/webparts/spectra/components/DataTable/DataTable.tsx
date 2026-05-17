@@ -190,6 +190,30 @@ export const DataTable: React.FC<IDataTableProps> = ({
     );
   };
 
+  const renderFileNameCell = (doc: IDocument): React.ReactNode => {
+    const matchKind = searchMatchKindByDocumentId?.get(doc.id);
+
+    return (
+      <div className={styles.fileNameCell}>
+        {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+        <TooltipHost content={doc.fileName}>
+          <span
+            className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
+            onClick={() => onDocumentClick(doc)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onDocumentClick(doc);
+            }}
+            tabIndex={0}
+            role="link"
+            aria-label={`Open ${doc.fileName}`}
+          >
+            {truncateFileNameForDisplay(doc.fileName)}
+          </span>
+        </TooltipHost>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div>
@@ -342,29 +366,9 @@ export const DataTable: React.FC<IDataTableProps> = ({
                   key={col.key}
                   className={`${getColumnClassName(col.key)} ${col.key === "comments" ? styles.commentCell : ""}`.trim()}
                 >
-                  {col.key === "fileName" ? (
-                    <div className={styles.fileNameCell}>
-                      {searchMatchKindByDocumentId?.get(doc.id) ? (
-                        <SearchMatchBadge
-                          kind={searchMatchKindByDocumentId.get(doc.id)}
-                        />
-                      ) : null}
-                      <TooltipHost content={doc.fileName}>
-                        <span
-                          className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
-                          onClick={() => onDocumentClick(doc)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") onDocumentClick(doc);
-                          }}
-                          tabIndex={0}
-                          role="link"
-                          aria-label={`Open ${doc.fileName}`}
-                        >
-                          {truncateFileNameForDisplay(doc.fileName)}
-                        </span>
-                      </TooltipHost>
-                    </div>
-                  ) : col.key === "status" ? (
+                  {col.key === "fileName"
+                    ? renderFileNameCell(doc)
+                    : col.key === "status" ? (
                     <span
                       className={
                         doc.status === "Current"
