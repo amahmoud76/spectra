@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developer.microsoft.com)",
+      "WebFetch(domain:uifabricicons.azurewebsites.net)"
+    ]
+  }
+}

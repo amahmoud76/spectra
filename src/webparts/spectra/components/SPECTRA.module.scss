@@ -2742,13 +2742,19 @@
   text-overflow: ellipsis;
 }
 
+/* Fluent UI FontIcon file-type icons (enhanced style only) */
 .fileTypeIcon {
+  font-size: 20px;
   width: 20px;
-  height: 20px;
   flex-shrink: 0;
-  display: block;
-  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
 }
+
+.fileIconPdf   { color: #E83629; }
+.fileIconWord  { color: #2B579A; }
+.fileIconPpt   { color: #C43E1C; }
+.fileIconExcel { color: #217346; }
 
 .resultsHeader {
   display: flex;

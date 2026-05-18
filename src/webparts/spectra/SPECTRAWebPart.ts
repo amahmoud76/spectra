@@ -8,6 +8,7 @@ import {
   PropertyPaneToggle,
 } from "@microsoft/sp-property-pane";
 import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
+import { initializeIcons } from "@fluentui/react/lib/Icons";
 import { SPECTRA } from "./components/SPECTRA";
 import { IWebPartProps } from "./interfaces/IWebPartProps";
 import {
@@ -40,16 +41,21 @@ export interface IPeaksWebPartProps {
 }
 
 export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartProps> {
+  protected onInit(): Promise<void> {
+    initializeIcons();
+    return super.onInit();
+  }
+
   public render(): void {
     const urlParams = new URLSearchParams(window.location.search);
-    const enableDevRoleSwitch = urlParams.get("peaksDevRoleSwitch") === "1";
+    const isSpectraDev = urlParams.get("spectraDev") === "1";
 
     const props: IWebPartProps = {
       context: this.context,
       pageSize: this.properties.pageSize || PAGE_SIZE_DEFAULT,
       title: this.properties.title || "SPECTRA Document Repository",
       userEmail: this.context.pageContext.user.email,
-      enableDevRoleSwitch,
+      enableDevRoleSwitch: isSpectraDev,
       documentLibrary: this.properties.documentLibrary || SP_DOCUMENT_LIBRARY,
       inactivityTimeoutMinutes:
         this.properties.inactivityTimeoutMinutes ||
@@ -64,7 +70,7 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
         this.properties.startupSplashCompletionDelayMs ?? 700,
       helpEmail: this.properties.helpEmail || HELP_EMAIL,
       helpGuideUrl: this.properties.helpGuideUrl || HELP_GUIDE_URL,
-      enableEnhancedTableStyle: this.properties.enableEnhancedTableStyle ?? false,
+      enableEnhancedTableStyle: (this.properties.enableEnhancedTableStyle ?? false) || isSpectraDev,
     };
 
     ReactDom.render(React.createElement(SPECTRA, props), this.domElement);

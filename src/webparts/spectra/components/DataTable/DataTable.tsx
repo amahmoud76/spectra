@@ -10,23 +10,7 @@ import {
   FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE,
   truncateFileNameForDisplay,
 } from "../../utils/fileHelper";
-
-const FILE_TYPE_ICONS: Record<string, string> = {
-  pdf:  require('../../assets/icons/file-pdf.svg'),
-  docx: require('../../assets/icons/file-word.svg'),
-  pptx: require('../../assets/icons/file-pptx.svg'),
-  xlsx: require('../../assets/icons/file-xlsx.svg'),
-};
-
-const getFileExtension = (fileName: string): string => {
-  const dot = fileName.lastIndexOf('.');
-  return dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : '';
-};
-
-const stripExtension = (fileName: string): string => {
-  const dot = fileName.lastIndexOf('.');
-  return dot >= 0 ? fileName.substring(0, dot) : fileName;
-};
+import { FontIcon } from "@fluentui/react/lib/Icon";
 import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
@@ -61,6 +45,24 @@ const TYPE_CHIP_COLORS: Record<string, { bg: string; color: string }> = {
   IAS:  { bg: "#374151", color: "#fff" },
 };
 const TYPE_CHIP_DEFAULT = { bg: "#6B7280", color: "#fff" };
+
+interface IFileTypeConfig { iconName: string; colorClass: string; }
+const FILE_TYPE_CONFIG: Record<string, IFileTypeConfig> = {
+  pdf:  { iconName: "PDF",                colorClass: styles.fileIconPdf },
+  docx: { iconName: "WordDocument",       colorClass: styles.fileIconWord },
+  pptx: { iconName: "PowerPointDocument", colorClass: styles.fileIconPpt },
+  xlsx: { iconName: "ExcelDocument",      colorClass: styles.fileIconExcel },
+};
+
+const getFileExtension = (fileName: string): string => {
+  const dot = fileName.lastIndexOf(".");
+  return dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : "";
+};
+
+const stripExtension = (fileName: string): string => {
+  const dot = fileName.lastIndexOf(".");
+  return dot >= 0 ? fileName.substring(0, dot) : fileName;
+};
 
 interface IColumnDef {
   key: string;
@@ -231,7 +233,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
 
     if (useEnhancedStyle) {
       const ext = getFileExtension(doc.fileName);
-      const iconSrc = FILE_TYPE_ICONS[ext];
+      const iconConfig = FILE_TYPE_CONFIG[ext];
       const displayName = stripExtension(doc.fileName);
       const maxLen = matchKind
         ? FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE
@@ -239,15 +241,14 @@ export const DataTable: React.FC<IDataTableProps> = ({
 
       return (
         <div className={styles.fileNameCell}>
-          {iconSrc && (
-            <img
-              src={iconSrc}
-              alt={ext.toUpperCase()}
-              className={styles.fileTypeIcon}
-              aria-hidden="true"
+          {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+          {iconConfig && (
+            <FontIcon
+              iconName={iconConfig.iconName}
+              className={`${styles.fileTypeIcon} ${iconConfig.colorClass}`}
+              aria-label={ext.toUpperCase()}
             />
           )}
-          {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
           <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
             <span
               className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
