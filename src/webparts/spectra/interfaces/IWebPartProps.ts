@@ -17,4 +17,5 @@ export interface IWebPartProps {
   helpEmail: string; // Support email value configurable from property pane
   helpGuideUrl: string; // Support guide URL configurable from property pane
   enableEnhancedTableStyle: boolean; // When true, admins see the polished table style (border, rounded corners, type chips)
+  isDevMode: boolean;               // When true (?spectraDev=1), bypasses admin role gate for enhanced style and enables role switching
 }

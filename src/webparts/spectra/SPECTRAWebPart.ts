@@ -71,6 +71,7 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
       helpEmail: this.properties.helpEmail || HELP_EMAIL,
       helpGuideUrl: this.properties.helpGuideUrl || HELP_GUIDE_URL,
       enableEnhancedTableStyle: (this.properties.enableEnhancedTableStyle ?? false) || isSpectraDev,
+      isDevMode: isSpectraDev,
     };
 
     ReactDom.render(React.createElement(SPECTRA, props), this.domElement);
