@@ -46,6 +46,7 @@ export const FIELD_NAMES = {
 type FieldConfigMap = Record<string, FieldRequirement>;
 
 const TA_DRIVEN_SUB_TA_DOC_TYPES = new Set([
+  "DAS",
   "TPP",
   "TPC",
   "IEP",
