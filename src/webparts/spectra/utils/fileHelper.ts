@@ -59,6 +59,12 @@ export const FILE_NAME_DISPLAY_MAX_LENGTH = 42;
 /** Shorter limit when an E/C badge sits beside the name in the same cell. */
 export const FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE = 32;
 
+/** Enhanced style: file type icon occupies some horizontal space. */
+export const FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED = 38;
+
+/** Enhanced style: file type icon + E/C badge both present. */
+export const FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE = 28;
+
 /**
  * Shorten a file name for table display; full name should be shown in a tooltip.
  */

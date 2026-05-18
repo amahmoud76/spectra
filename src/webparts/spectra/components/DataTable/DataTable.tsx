@@ -6,8 +6,27 @@ import { SearchMatchKind } from "../../utils/filterHelper";
 import {
   FILE_NAME_DISPLAY_MAX_LENGTH,
   FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE,
+  FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED,
+  FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE,
   truncateFileNameForDisplay,
 } from "../../utils/fileHelper";
+
+const FILE_TYPE_ICONS: Record<string, string> = {
+  pdf:  require('../../assets/icons/file-pdf.svg'),
+  docx: require('../../assets/icons/file-word.svg'),
+  pptx: require('../../assets/icons/file-pptx.svg'),
+  xlsx: require('../../assets/icons/file-xlsx.svg'),
+};
+
+const getFileExtension = (fileName: string): string => {
+  const dot = fileName.lastIndexOf('.');
+  return dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : '';
+};
+
+const stripExtension = (fileName: string): string => {
+  const dot = fileName.lastIndexOf('.');
+  return dot >= 0 ? fileName.substring(0, dot) : fileName;
+};
 import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
@@ -209,6 +228,41 @@ export const DataTable: React.FC<IDataTableProps> = ({
 
   const renderFileNameCell = (doc: IDocument): React.ReactNode => {
     const matchKind = searchMatchKindByDocumentId?.get(doc.id);
+
+    if (useEnhancedStyle) {
+      const ext = getFileExtension(doc.fileName);
+      const iconSrc = FILE_TYPE_ICONS[ext];
+      const displayName = stripExtension(doc.fileName);
+      const maxLen = matchKind
+        ? FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE
+        : FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED;
+
+      return (
+        <div className={styles.fileNameCell}>
+          {iconSrc && (
+            <img
+              src={iconSrc}
+              alt={ext.toUpperCase()}
+              className={styles.fileTypeIcon}
+              aria-hidden="true"
+            />
+          )}
+          {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+          <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
+            <span
+              className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
+              onClick={() => onDocumentClick(doc)}
+              onKeyDown={(e) => { if (e.key === "Enter") onDocumentClick(doc); }}
+              tabIndex={0}
+              role="link"
+              aria-label={`Open ${doc.fileName}`}
+            >
+              {truncateFileNameForDisplay(displayName, maxLen)}
+            </span>
+          </TooltipHost>
+        </div>
+      );
+    }
 
     return (
       <div className={styles.fileNameCell}>
