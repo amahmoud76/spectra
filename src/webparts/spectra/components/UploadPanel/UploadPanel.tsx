@@ -123,11 +123,14 @@ export interface IUploadPanelProps {
   isUploading: boolean;
   uploadProgress?:
     | "Preparing"
-    | "Uploading"
+    | "UploadingFile"
+    | "SavingMetadata"
     | "Finalizing"
     | "Completed"
     | "Failed"
     | "";
+  uploadPercent?: number;
+  cancelUpload?: () => void;
   panelNotice?: string;
   onSubmit: (payload: IUploadPayload) => void;
   onCancel: () => void;
@@ -136,6 +139,12 @@ export interface IUploadPanelProps {
   archiveTargetDocument?: IDocument;
 }
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export const UploadPanel: React.FC<IUploadPanelProps> = ({
   isOpen,
   options,
@@ -143,6 +152,8 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   isContributor = false,
   isUploading,
   uploadProgress = "",
+  uploadPercent = 0,
+  cancelUpload,
   panelNotice,
   onSubmit,
   onCancel,
@@ -1262,7 +1273,12 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
 
           {file && (
             <div className={styles.dropZoneFile}>
-              <span>{file.name}</span>
+              <span>
+                {file.name}
+                <span style={{ color: "var(--spectra-text-secondary)", marginLeft: 6, fontWeight: 400 }}>
+                  ({formatFileSize(file.size)})
+                </span>
+              </span>
               <TooltipHost content="Remove file">
                 <button
                   className={styles.dropZoneFileRemove}
@@ -1642,42 +1658,36 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                       src={require("../../assets/icons/check.svg")}
                       alt=""
                       aria-hidden="true"
-                      style={{
-                        width: "14px",
-                        height: "14px",
-                        display: "inline-block",
-                      }}
+                      style={{ width: "14px", height: "14px", display: "inline-block" }}
                     />{" "}
                     Upload complete
                   </>
                 ) : uploadProgress === "Failed" ? (
                   <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      aria-hidden="true"
-                      style={{ display: "inline-block", flexShrink: 0 }}
-                    >
-                      <circle
-                        cx="7"
-                        cy="7"
-                        r="6"
-                        stroke="#dc2626"
-                        strokeWidth="1.5"
-                      />
-                      <path
-                        d="M4.5 4.5L9.5 9.5M9.5 4.5L4.5 9.5"
-                        stroke="#dc2626"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+                      style={{ display: "inline-block", flexShrink: 0 }}>
+                      <circle cx="7" cy="7" r="6" stroke="#dc2626" strokeWidth="1.5" />
+                      <path d="M4.5 4.5L9.5 9.5M9.5 4.5L4.5 9.5" stroke="#dc2626"
+                        strokeWidth="1.5" strokeLinecap="round" />
                     </svg>{" "}
                     Upload failed
                   </>
+                ) : uploadProgress === "UploadingFile" ? (
+                  <span>
+                    Uploading file
+                    {file && (
+                      <span style={{ color: "var(--spectra-text-secondary)", fontWeight: 400 }}>
+                        {" "}— {formatFileSize(Math.round(file.size * uploadPercent / 100))} of {formatFileSize(file.size)}
+                      </span>
+                    )}
+                    <span style={{ marginLeft: 6 }}>{uploadPercent}%</span>
+                  </span>
+                ) : uploadProgress === "SavingMetadata" ? (
+                  "Saving metadata..."
+                ) : uploadProgress === "Preparing" ? (
+                  "Preparing..."
                 ) : (
-                  uploadProgress
+                  "Finalizing..."
                 )}
               </div>
               <div
@@ -1700,13 +1710,15 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                           : "#0f67e8",
                     width:
                       uploadProgress === "Preparing"
-                        ? "33%"
-                        : uploadProgress === "Uploading"
-                          ? "66%"
-                          : uploadProgress === "Finalizing"
+                        ? "5%"
+                        : uploadProgress === "UploadingFile"
+                          ? `${5 + Math.round(uploadPercent * 0.82)}%`
+                          : uploadProgress === "SavingMetadata"
                             ? "90%"
-                            : "100%",
-                    transition: "width 0.3s ease",
+                            : uploadProgress === "Finalizing"
+                              ? "95%"
+                              : "100%",
+                    transition: uploadProgress === "UploadingFile" ? "width 0.1s linear" : "width 0.3s ease",
                   }}
                 />
               </div>
@@ -1720,9 +1732,19 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
               width: "100%",
             }}
           >
-            <button className={styles.btnSecondary} onClick={onCancel}>
-              Cancel
-            </button>
+            {isUploading ? (
+              <button
+                className={styles.btnSecondary}
+                onClick={() => { cancelUpload?.(); }}
+                aria-label="Cancel upload"
+              >
+                Cancel Upload
+              </button>
+            ) : (
+              <button className={styles.btnSecondary} onClick={onCancel}>
+                Cancel
+              </button>
+            )}
             <button
               className={styles.btnPrimary}
               onClick={handleSubmit}
@@ -1730,19 +1752,19 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
             >
               {isUploading ? (
                 <>
-                  <span className={styles.spinner} /> Uploading...
+                  <span className={styles.spinner} />{" "}
+                  {uploadProgress === "SavingMetadata"
+                    ? "Saving..."
+                    : uploadProgress === "Finalizing"
+                      ? "Finalizing..."
+                      : "Uploading..."}
                 </>
               ) : (
                 <>
                   <img
                     src={require("../../assets/icons/submit.svg")}
                     alt=""
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      display: "inline-block",
-                      marginRight: "6px",
-                    }}
+                    style={{ width: "16px", height: "16px", display: "inline-block", marginRight: "6px" }}
                     aria-hidden="true"
                   />
                   Submit

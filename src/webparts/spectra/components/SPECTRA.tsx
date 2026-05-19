@@ -1448,6 +1448,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           isContributor={auth.effectiveRole === "contributor"}
           isUploading={upload.isUploading}
           uploadProgress={upload.uploadProgress}
+          uploadPercent={upload.uploadPercent}
+          cancelUpload={upload.cancelUpload}
           onSubmit={handleUploadSubmit}
           onCancel={() => {
             setUploadPanelOpen(false);
@@ -1502,6 +1504,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
             isAdmin={auth.effectiveRole === "admin"}
             isContributor={auth.effectiveRole === "contributor"}
             isUploading={upload.isUploading}
+            uploadProgress={upload.uploadProgress}
+            uploadPercent={upload.uploadPercent}
+            cancelUpload={upload.cancelUpload}
             panelNotice="The current file will be archived after successful replacement upload."
             onSubmit={handleReplaceSubmit}
             onCancel={() => archiveReplace.cancelReplace()}

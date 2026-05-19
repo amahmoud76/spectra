@@ -1,16 +1,25 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { DocumentService } from "../services/DocumentService";
 import { captureAndLogError } from "../services/errorLogService";
 import { IUploadPayload, IUploadResult } from "../interfaces/IUploadPayload";
 
-type UploadProgressStage = "Preparing" | "Uploading" | "Finalizing" | "Completed" | "Failed" | "";
+export type UploadProgressStage =
+  | "Preparing"
+  | "UploadingFile"
+  | "SavingMetadata"
+  | "Finalizing"
+  | "Completed"
+  | "Failed"
+  | "";
 
 interface IUseUploadResult {
   isUploading: boolean;
   uploadProgress: UploadProgressStage;
+  uploadPercent: number;
   uploadResult: IUploadResult | null;
   upload: (payload: IUploadPayload, archiveTargetId?: string) => Promise<IUploadResult>;
+  cancelUpload: () => void;
   resetUpload: () => void;
 }
 
@@ -21,30 +30,51 @@ export const useUpload = (
 ): IUseUploadResult => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressStage>("");
+  const [uploadPercent, setUploadPercent] = useState(0);
   const [uploadResult, setUploadResult] = useState<IUploadResult | null>(null);
+
+  // Holds the XHR abort function while a file transfer is in progress.
+  const cancelRef = useRef<(() => void) | null>(null);
+
+  const cancelUpload = useCallback(() => {
+    cancelRef.current?.();
+  }, []);
 
   const upload = useCallback(
     async (payload: IUploadPayload, archiveTargetId?: string): Promise<IUploadResult> => {
       let currentStage: UploadProgressStage = "Preparing";
       setIsUploading(true);
       setUploadProgress("Preparing");
+      setUploadPercent(0);
       setUploadResult(null);
 
+      // cancelSignal is passed into DocumentService so it can wire the XHR abort.
+      const cancelSignal = { abort: (): void => { /* filled in by service */ } };
+      cancelRef.current = () => cancelSignal.abort();
+
       try {
-        // Simulate brief preparing stage for UX feedback
-        await new Promise(resolve => setTimeout(resolve, 300));
-        currentStage = "Uploading";
-        setUploadProgress("Uploading");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        currentStage = "UploadingFile";
+        setUploadProgress("UploadingFile");
 
         const service = new DocumentService(context, documentLibrary, useMock);
-        const result = await service.uploadDocument(payload, archiveTargetId);
-        
+        const result = await service.uploadDocument(payload, archiveTargetId, {
+          onFileProgress: (percent) => {
+            setUploadPercent(percent);
+          },
+          onMetadataSave: () => {
+            currentStage = "SavingMetadata";
+            setUploadProgress("SavingMetadata");
+            setUploadPercent(100);
+          },
+          cancelSignal,
+        });
+
         currentStage = "Finalizing";
         setUploadProgress("Finalizing");
-        
-        // Simulate brief finalizing stage for UX feedback
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         if (result.success) {
           currentStage = "Completed";
           setUploadProgress("Completed");
@@ -76,10 +106,21 @@ export const useUpload = (
             });
           }
         }
-        
+
         setUploadResult(result);
         return result;
       } catch (error) {
+        // Treat user-initiated cancellation as a silent reset, not an error.
+        if ((error as Error & { cancelled?: boolean }).cancelled) {
+          setUploadProgress("");
+          setUploadPercent(0);
+          setIsUploading(false);
+          cancelRef.current = null;
+          const cancelled: IUploadResult = { success: false, message: "Upload cancelled." };
+          setUploadResult(cancelled);
+          return cancelled;
+        }
+
         currentStage = "Failed";
         setUploadProgress("Failed");
         const errorMessage =
@@ -114,6 +155,7 @@ export const useUpload = (
         return result;
       } finally {
         setIsUploading(false);
+        cancelRef.current = null;
       }
     },
     [context, documentLibrary, useMock],
@@ -122,8 +164,9 @@ export const useUpload = (
   const resetUpload = useCallback(() => {
     setIsUploading(false);
     setUploadProgress("");
+    setUploadPercent(0);
     setUploadResult(null);
   }, []);
 
-  return { isUploading, uploadProgress, uploadResult, upload, resetUpload };
+  return { isUploading, uploadProgress, uploadPercent, uploadResult, upload, cancelUpload, resetUpload };
 };

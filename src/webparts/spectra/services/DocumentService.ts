@@ -207,7 +207,78 @@ export class DocumentService {
   // UPLOAD DOCUMENT
   // ─────────────────────────────────────────────────────────────
 
-  public async uploadDocument(payload: IUploadPayload, archiveTargetId?: string): Promise<IUploadResult> {
+  // ─────────────────────────────────────────────────────────────
+  // UPLOAD HELPERS
+  // ─────────────────────────────────────────────────────────────
+
+  private async _getRequestDigest(): Promise<string> {
+    const siteUrl = this.context.pageContext.web.absoluteUrl;
+    const response = await this.context.spHttpClient.post(
+      `${siteUrl}/_api/contextinfo`,
+      SPHttpClient.configurations.v1,
+      { headers: { Accept: "application/json;odata=nometadata" } },
+    );
+    const data = await response.json();
+    return String(data.FormDigestValue || "");
+  }
+
+  private _uploadFileWithProgress(
+    url: string,
+    fileBuffer: ArrayBuffer,
+    requestDigest: string,
+    onProgress: (percent: number) => void,
+    cancelSignal: { abort: () => void },
+  ): Promise<{ ok: boolean; status: number; statusText: string; text: () => Promise<string>; json: () => Promise<unknown> }> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.withCredentials = true;
+      xhr.open("POST", url);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      xhr.setRequestHeader("X-RequestDigest", requestDigest);
+      xhr.setRequestHeader("Accept", "application/json;odata=nometadata");
+
+      xhr.upload.onprogress = (event): void => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+
+      xhr.onload = (): void => {
+        const responseText = xhr.responseText;
+        resolve({
+          ok: xhr.status >= 200 && xhr.status < 300,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          text: () => Promise.resolve(responseText),
+          json: () => Promise.resolve(JSON.parse(responseText)),
+        });
+      };
+
+      xhr.onerror = (): void => reject(new Error("Network error during file upload"));
+
+      const cancelError = new Error("Upload cancelled");
+      (cancelError as Error & { cancelled: boolean }).cancelled = true;
+      xhr.onabort = (): void => reject(cancelError);
+
+      cancelSignal.abort = () => xhr.abort();
+
+      xhr.send(fileBuffer);
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // UPLOAD DOCUMENT
+  // ─────────────────────────────────────────────────────────────
+
+  public async uploadDocument(
+    payload: IUploadPayload,
+    archiveTargetId?: string,
+    options?: {
+      onFileProgress?: (percent: number) => void;
+      onMetadataSave?: () => void;
+      cancelSignal?: { abort: () => void };
+    },
+  ): Promise<IUploadResult> {
     // Generate standardized filename from metadata (BRD Appendix H)
     const generatedName = generateFileName(payload, payload.file.name.split(".").pop() || "pdf");
     // Preserve original filename for audit trail
@@ -416,13 +487,16 @@ export class DocumentService {
       const fileBuffer = await payload.file.arrayBuffer();
       const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/RootFolder/Files/add(url='${encodeURIComponent(generatedName)}',overwrite=${replaceUsingSameGeneratedName ? "true" : "false"})`;
 
-      const uploadResponse = await this.context.spHttpClient.post(
+      const onFileProgress = options?.onFileProgress ?? ((): void => { /* no-op */ });
+      const cancelSignal = options?.cancelSignal ?? { abort: (): void => { /* no-op */ } };
+      const requestDigest = await this._getRequestDigest();
+
+      const uploadResponse = await this._uploadFileWithProgress(
         uploadUrl,
-        SPHttpClient.configurations.v1,
-        {
-          headers: { "Content-Type": "application/octet-stream" },
-          body: fileBuffer,
-        },
+        fileBuffer,
+        requestDigest,
+        onFileProgress,
+        cancelSignal,
       );
 
       if (!uploadResponse.ok) {
@@ -452,7 +526,7 @@ export class DocumentService {
       // Step 2: Get the list item ID via the file's ServerRelativeUrl.
       // Do not URL-encode the entire server-relative path inside the OData
       // function call; SharePoint expects the raw path string there.
-      const serverRelativeUrl: string = uploadData.ServerRelativeUrl;
+      const serverRelativeUrl: string = (uploadData as Record<string, unknown>).ServerRelativeUrl as string;
       const escapedServerRelativeUrl = serverRelativeUrl.replace(/'/g, "''");
       const itemResponse = await this.context.spHttpClient.get(
         `${siteUrl}/_api/web/getfilebyserverrelativeurl('${escapedServerRelativeUrl}')/ListItemAllFields?$select=Id`,
@@ -465,6 +539,7 @@ export class DocumentService {
       const itemId = itemData.Id;
 
       // Step 3: Update metadata + store original filename
+      options?.onMetadataSave?.();
       const metadata = this._buildMetadataPayload(payload);
       metadata.SpectraImmutableFileName = originalFileName;
       const updateUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${itemId})`;
