@@ -568,11 +568,76 @@ export const captureAndLogError = async (
   }
 };
 
+// External CDN domains that host SharePoint platform scripts — errors from these
+// are not our code and cannot be fixed by us.
+const EXTERNAL_CDN_HOSTS = ["cdn.office.net", "onecdn.static.microsoft"];
+
+// Rate-limit map: errorMessageKey -> last logged timestamp (ms).
+// Prevents burst-flooding the log when the same error fires dozens of times
+// within a short window (e.g. the Safari chunk-load cascade pattern).
+const recentlyLogged = new Map<string, number>();
+const RATE_LIMIT_MS = 10_000;
+
+const isRateLimited = (key: string): boolean => {
+  const last = recentlyLogged.get(key);
+  const now = Date.now();
+  if (last !== undefined && now - last < RATE_LIMIT_MS) return true;
+  recentlyLogged.set(key, now);
+  return false;
+};
+
+const shouldIgnoreGlobalError = (event: ErrorEvent): boolean => {
+  // Errors originating from SharePoint/Microsoft CDN scripts
+  if (EXTERNAL_CDN_HOSTS.some((host) => event.filename?.includes(host))) return true;
+
+  const msg = event.message || "";
+  // Benign browser notification — not a real error
+  if (msg.includes("ResizeObserver loop")) return true;
+
+  return false;
+};
+
+const shouldIgnoreRejection = (event: PromiseRejectionEvent): boolean => {
+  const reason = event.reason;
+
+  // undefined/null reasons carry zero diagnostic value and represent ~60% of log noise
+  if (reason === undefined || reason === null) return true;
+
+  // Safari wraps unhandled DOM event errors as { isTrusted: true } — not actionable
+  if (
+    typeof reason === "object" &&
+    Object.keys(reason as object).join("") === "isTrusted"
+  ) return true;
+
+  if (typeof reason === "object" && reason !== null) {
+    const r = reason as Record<string, unknown>;
+
+    // MSAL explicitly marks these as expected — useAuth already logs the auth failure
+    if (r.isExpectedFailure === true) return true;
+
+    // SharePoint CDN webpack chunk load failures — infrastructure issue, not our code
+    if (r.name === "ChunkLoadError") return true;
+
+    // SharePoint shell iframe request aborted/timed out
+    if (r.name === "ShellException") return true;
+
+    // MSAL iframe token acquisition timeout — expected in some auth configurations
+    if (r.errorCode === "monitor_window_timeout") return true;
+  }
+
+  return false;
+};
+
 /**
  * Global error handler for uncaught exceptions
  */
 export const setupGlobalErrorHandler = (): void => {
   window.addEventListener("error", (event: ErrorEvent) => {
+    if (shouldIgnoreGlobalError(event)) return;
+
+    const message = event.message || normalizeErrorMessage(event.error) || "Unknown error";
+    if (isRateLimited(`error:${message}`)) return;
+
     const globalContext = {
       url: window.location.href,
       source: event.filename,
@@ -586,8 +651,7 @@ export const setupGlobalErrorHandler = (): void => {
       const userInfo = await getCurrentUserInfo();
       await logErrorToSharePoint({
         Title: `Global Error-${new Date().getTime()}`,
-        ErrorMessage:
-          event.message || normalizeErrorMessage(event.error) || "Unknown error",
+        ErrorMessage: message,
         ErrorType: "JavaScript Error",
         ComponentPage: "Global",
         ErrorTimestamp: new Date().toISOString(),
@@ -603,6 +667,11 @@ export const setupGlobalErrorHandler = (): void => {
 
   // Handle unhandled promise rejections
   window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
+    if (shouldIgnoreRejection(event)) return;
+
+    const message = normalizeErrorMessage(event.reason) || "Unhandled Promise Rejection";
+    if (isRateLimited(`rejection:${message}`)) return;
+
     const rejectionContext = {
       url: window.location.href,
       online: navigator.onLine,
@@ -619,8 +688,7 @@ export const setupGlobalErrorHandler = (): void => {
       const userInfo = await getCurrentUserInfo();
       await logErrorToSharePoint({
         Title: `Promise Rejection-${new Date().getTime()}`,
-        ErrorMessage:
-          normalizeErrorMessage(event.reason) || "Unhandled Promise Rejection",
+        ErrorMessage: message,
         ErrorType: "Unhandled Promise Rejection",
         ComponentPage: "Global",
         ErrorTimestamp: new Date().toISOString(),
