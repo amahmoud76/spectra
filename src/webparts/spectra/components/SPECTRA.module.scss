@@ -1224,8 +1224,8 @@
 
 /* Column min-widths — table scrolls horizontally when needed */
 .colFileName {
-  min-width: 300px;
-  max-width: 420px;
+  min-width: 340px;
+  max-width: 500px;
   overflow: hidden;
 }
 
@@ -1234,7 +1234,8 @@
 }
 
 .colType {
-  min-width: 88px;
+  min-width: 68px;
+  width: 68px;
 }
 
 .colTa {

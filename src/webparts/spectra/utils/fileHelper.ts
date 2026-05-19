@@ -53,17 +53,17 @@ export const formatFileSize = (bytes: number): string => {
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
-/** Table display without a search match badge (E/C). */
-export const FILE_NAME_DISPLAY_MAX_LENGTH = 42;
+/** Table display without a search match badge. */
+export const FILE_NAME_DISPLAY_MAX_LENGTH = 52;
 
-/** Shorter limit when an E/C badge sits beside the name in the same cell. */
-export const FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE = 32;
+/** Shorter limit when a badge sits beside the name in the same cell. */
+export const FILE_NAME_DISPLAY_MAX_LENGTH_WITH_BADGE = 42;
 
 /** Enhanced style: file type icon occupies some horizontal space. */
-export const FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED = 38;
+export const FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED = 48;
 
-/** Enhanced style: file type icon + E/C badge both present. */
-export const FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE = 28;
+/** Enhanced style: file type icon + badge both present. */
+export const FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE = 38;
 
 /**
  * Shorten a file name for table display; full name should be shown in a tooltip.
