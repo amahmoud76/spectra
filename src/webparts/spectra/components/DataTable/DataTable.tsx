@@ -230,7 +230,9 @@ export const DataTable: React.FC<IDataTableProps> = ({
       return (
         <div className={styles.fileNameCell}>
           <div className={styles.fileNameIcons}>
-            {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+            <div className={styles.fileNameBadgeSlot}>
+              {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+            </div>
             {fileIconSrc && (
               <TooltipHost content={ext.toUpperCase()} styles={{ root: { display: "flex", alignItems: "center" } }}>
                 <img

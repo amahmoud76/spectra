@@ -10,7 +10,7 @@ export const SearchMatchBadge: React.FC<ISearchMatchBadgeProps> = ({ kind }) => 
   if (kind !== "exact") return null;
 
   return (
-    <TooltipHost content="Exact" styles={{ root: { display: "flex", alignItems: "center", flexShrink: 0 } }}>
+    <TooltipHost content="Exact Match" styles={{ root: { display: "flex", alignItems: "center", flexShrink: 0 } }}>
       <img
         src={require("../../assets/icons/check-circle.svg")}
         alt="Exact match"

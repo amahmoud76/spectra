@@ -2682,7 +2682,7 @@
 .fileNameCell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
@@ -2693,6 +2693,15 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+}
+
+.fileNameBadgeSlot {
+  width: 17px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fileNameTextHost {
