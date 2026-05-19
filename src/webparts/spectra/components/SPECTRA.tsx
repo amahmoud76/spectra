@@ -251,7 +251,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
 
   const sortedDocuments = React.useMemo(() => {
     const sorted = sorting.sortDocs(filteredDocuments);
-    if (!hasActiveSearchText(filters.filters)) {
+    // Only group exact-before-close when no explicit column sort is active.
+    // If the user clicked a sort column, respect that order instead.
+    if (!hasActiveSearchText(filters.filters) || sorting.sortState !== null) {
       return sorted;
     }
 
