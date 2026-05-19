@@ -190,7 +190,7 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
             selectedKeys={filters.diseaseArea}
             onChange={(selected) => onFilterChange("diseaseArea", selected)}
             placeholder="Type to search DAS..."
-            multiSelect={false}
+            multiSelect={true}
           />
 
           {/* Asset */}
@@ -200,7 +200,7 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
             selectedKeys={filters.asset}
             onChange={(selected) => onFilterChange("asset", selected)}
             placeholder="Type to search asset..."
-            multiSelect={false}
+            multiSelect={true}
           />
 
           {/* Indication */}
@@ -220,7 +220,7 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
             selectedKeys={filters.paid}
             onChange={(selected) => onFilterChange("paid", selected)}
             placeholder="Type to search PAID..."
-            multiSelect={false}
+            multiSelect={true}
           />
 
           {/* Effective Date */}

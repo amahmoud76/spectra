@@ -226,13 +226,22 @@ const matchesTermStrict = (searchCorpus: string[], term: string): boolean => {
   return searchCorpus.some((value) => value.includes(term));
 };
 
+/**
+ * Only restrict to the short-code corpus for known document-type abbreviations
+ * (DAS, MSL, TPC …). Common English words that are ≤4 chars (area, line, type,
+ * paid) must still search the full corpus so multi-word synonym tokens like
+ * "disease area strategy" are reachable.
+ */
+const requiresShortCodeCorpus = (term: string): boolean =>
+  DOCUMENT_TYPE_TOKEN_CODES.has(toAlphanumeric(term));
+
 const matchesSearchTermsStrictForDoc = (
   doc: IDocument,
   queryTerms: string[],
 ): boolean =>
   queryTerms.length === 0 ||
   queryTerms.every((term) => {
-    const corpus = isShortMetadataCodeTerm(term)
+    const corpus = requiresShortCodeCorpus(term)
       ? buildShortCodeSearchCorpus(doc)
       : buildDocumentSearchCorpus(doc);
     return matchesTermStrict(corpus, term);
@@ -244,7 +253,7 @@ const matchesSearchTermsFuzzyForDoc = (
 ): boolean =>
   queryTerms.length === 0 ||
   queryTerms.every((term) => {
-    const corpus = isShortMetadataCodeTerm(term)
+    const corpus = requiresShortCodeCorpus(term)
       ? buildShortCodeSearchCorpus(doc)
       : buildDocumentSearchCorpus(doc);
     return corpus.some((value) => matchesTermFuzzyInValue(term, value));

@@ -998,7 +998,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
         comments,
         searchTokens: [],
       };
-      return generateFileName(payload);
+      return generateFileName(payload, payload.file.name.split(".").pop() || "pdf");
     } catch {
       return "";
     }

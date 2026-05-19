@@ -5,7 +5,7 @@ import styles from "../SPECTRA.module.scss";
 export interface IConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel: string;
   cancelLabel?: string;
   secondaryLabel?: string;

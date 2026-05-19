@@ -23,17 +23,23 @@ export class DocumentService {
   /**
    * Compute document identity key from metadata.
    * Used to detect duplicate/replacement scenarios.
-   * Format: "DocType|TA|SubTA|Indication|LOT|Asset"
-   * Excludes Effective Date, Comments, PAID, and Disease Area.
+   * DAS format:     "DAS|TA|SubTA|DiseaseArea"
+   * Non-DAS format: "DocType|TA|SubTA|Indication|LOT|Asset"
+   * Excludes Effective Date, Comments, and PAID for all types.
    */
   private _getDocumentIdentityKey(payload: Partial<IUploadPayload>): string {
     const docType = payload.documentType || "";
     const ta = (payload.therapeuticArea || []).sort().join(";");
     const subTA = (payload.subTherapeuticArea || []).sort().join(";");
+
+    if (docType === "DAS") {
+      const diseaseArea = (payload.diseaseArea || []).sort().join(";");
+      return `${docType}|${ta}|${subTA}|${diseaseArea}`;
+    }
+
     const indication = (payload.indication || []).sort().join(";");
     const lot = (payload.lineOfTherapy || []).sort().join(";");
     const asset = (payload.asset || []).sort().join(";");
-    // Note: effectiveDate, comments, paid, and diseaseArea are intentionally excluded
     return `${docType}|${ta}|${subTA}|${indication}|${lot}|${asset}`;
   }
 
@@ -42,11 +48,17 @@ export class DocumentService {
    */
   private _getDocumentIdentityKeyFromDoc(doc: IDocument): string {
     const docType = doc.documentType;
-    const ta = doc.therapeuticArea.sort().join(";");
-    const subTA = doc.subTherapeuticArea.sort().join(";");
-    const indication = doc.indication.sort().join(";");
-    const lot = doc.lineOfTherapy.sort().join(";");
-    const asset = doc.asset.sort().join(";");
+    const ta = [...doc.therapeuticArea].sort().join(";");
+    const subTA = [...doc.subTherapeuticArea].sort().join(";");
+
+    if (docType === "DAS") {
+      const diseaseArea = [...doc.diseaseArea].sort().join(";");
+      return `${docType}|${ta}|${subTA}|${diseaseArea}`;
+    }
+
+    const indication = [...doc.indication].sort().join(";");
+    const lot = [...doc.lineOfTherapy].sort().join(";");
+    const asset = [...doc.asset].sort().join(";");
     return `${docType}|${ta}|${subTA}|${indication}|${lot}|${asset}`;
   }
 
@@ -197,7 +209,7 @@ export class DocumentService {
 
   public async uploadDocument(payload: IUploadPayload, archiveTargetId?: string): Promise<IUploadResult> {
     // Generate standardized filename from metadata (BRD Appendix H)
-    const generatedName = generateFileName(payload);
+    const generatedName = generateFileName(payload, payload.file.name.split(".").pop() || "pdf");
     // Preserve original filename for audit trail
     const originalFileName = payload.file.name;
     // Compute identity key for duplicate detection (excludes Effective Date and Comments)
@@ -697,6 +709,9 @@ export class DocumentService {
       if (updates.searchTokens !== undefined)
         newDoc.searchTokens = updates.searchTokens;
 
+      // Regenerate filename from merged metadata
+      newDoc.fileName = generateFileName(newDoc, newDoc.fileExtension);
+
       this.mockDocs.unshift(newDoc);
       return true;
     }
@@ -704,10 +719,21 @@ export class DocumentService {
     // ── LIVE MODE ───────────────────────────────────────────
     try {
       const siteUrl = this.context.pageContext.web.absoluteUrl;
-      const updateUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${documentId})`;
+      const listUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items`;
 
+      // Step 1: Fetch current doc to get file location and existing metadata for merge
+      const currentDocUrl = `${listUrl}(${documentId})?$select=Id,FileLeafRef,FileRef,SpectraDocumentType,SpectraTherapeuticArea,SpectraSubTherapeuticArea,SpectraIndication,SpectraLineOfTherapy,SpectraAsset,SpectraDiseaseArea`;
+      const currentResponse = await this.context.spHttpClient.get(
+        currentDocUrl,
+        SPHttpClient.configurations.v1,
+      );
+      if (!currentResponse.ok) return false;
+      const currentItem = await currentResponse.json() as Record<string, unknown>;
+      const currentDoc = this._mapSharePointItemToDocument(currentItem);
+
+      // Step 2: Update metadata (preserve lifecycle status)
+      const updateUrl = `${listUrl}(${documentId})`;
       const metadata = this._buildMetadataPayload(updates);
-      // Editing metadata should not change lifecycle status.
       delete metadata.SpectraStatus;
 
       const updateResponse = await this.context.spHttpClient.post(
@@ -730,9 +756,51 @@ export class DocumentService {
           statusText: updateResponse.statusText,
           errorText,
         });
+        return false;
       }
 
-      return updateResponse.ok;
+      // Step 3: Rename the file if the standardized name has changed
+      const mergedPayload: Partial<IUploadPayload> = {
+        documentType: updates.documentType ?? currentDoc.documentType,
+        therapeuticArea: updates.therapeuticArea ?? currentDoc.therapeuticArea,
+        subTherapeuticArea: updates.subTherapeuticArea ?? currentDoc.subTherapeuticArea,
+        asset: updates.asset ?? currentDoc.asset,
+        indication: updates.indication ?? currentDoc.indication,
+        lineOfTherapy: updates.lineOfTherapy ?? currentDoc.lineOfTherapy,
+        diseaseArea: updates.diseaseArea ?? currentDoc.diseaseArea,
+      };
+
+      const newFileName = generateFileName(mergedPayload, currentDoc.fileExtension);
+
+      if (newFileName.toLowerCase() !== currentDoc.fileName.toLowerCase()) {
+        const currentFileRef = currentDoc.fileUrl;
+        const folderRef = currentFileRef.substring(0, currentFileRef.lastIndexOf("/"));
+        const newFileRef = `${folderRef}/${newFileName}`;
+
+        const escapedCurrentRef = currentFileRef.replace(/'/g, "''");
+        const escapedNewRef = newFileRef.replace(/'/g, "''");
+        const moveUrl = `${siteUrl}/_api/web/getFileByServerRelativeUrl('${escapedCurrentRef}')/MoveTo(newurl='${escapedNewRef}',flags=1)`;
+
+        const moveResponse = await this.context.spHttpClient.post(
+          moveUrl,
+          SPHttpClient.configurations.v1,
+          {
+            headers: { "Content-Type": "application/json;odata=nometadata" },
+          },
+        );
+
+        if (!moveResponse.ok) {
+          const moveError = await moveResponse.text();
+          console.error("DocumentService.updateDocument rename failed:", {
+            status: moveResponse.status,
+            statusText: moveResponse.statusText,
+            moveError,
+          });
+          return false;
+        }
+      }
+
+      return true;
     } catch (error) {
       console.error("DocumentService.updateDocument:", error);
       return false;
@@ -816,7 +884,7 @@ export class DocumentService {
     }
   }
 
-  public async reActivateDocument(documentId: string): Promise<boolean> {
+  public async reActivateDocument(documentId: string, newFileName?: string): Promise<boolean> {
     if (this.useMock) {
       await new Promise((resolve) => setTimeout(resolve, 300));
       const doc = this.mockDocs.find((d) => d.id === documentId);
@@ -826,6 +894,7 @@ export class DocumentService {
       this.mockDocs.forEach((item) => {
         if (item.id === documentId) {
           item.status = "Current";
+          if (newFileName) item.fileName = newFileName;
         } else if (
           item.status === "Current" &&
           this._getDocumentIdentityKeyFromDoc(item) === identityKey
@@ -906,7 +975,37 @@ export class DocumentService {
       ];
 
       const results = await Promise.all(allUpdates);
-      return results.every((r) => r.ok);
+      if (!results.every((r) => r.ok)) return false;
+
+      // Rename the file if the caller requested a new name
+      if (newFileName && newFileName.toLowerCase() !== targetDoc.fileName.toLowerCase()) {
+        const currentFileRef = targetDoc.fileUrl;
+        const folderRef = currentFileRef.substring(0, currentFileRef.lastIndexOf("/"));
+        const newFileRef = `${folderRef}/${newFileName}`;
+        const escapedCurrentRef = currentFileRef.replace(/'/g, "''");
+        const escapedNewRef = newFileRef.replace(/'/g, "''");
+        const moveUrl = `${siteUrl}/_api/web/getFileByServerRelativeUrl('${escapedCurrentRef}')/MoveTo(newurl='${escapedNewRef}',flags=1)`;
+
+        const moveResponse = await this.context.spHttpClient.post(
+          moveUrl,
+          SPHttpClient.configurations.v1,
+          {
+            headers: { "Content-Type": "application/json;odata=nometadata" },
+          },
+        );
+
+        if (!moveResponse.ok) {
+          const moveError = await moveResponse.text();
+          console.error("DocumentService.reActivateDocument rename failed:", {
+            status: moveResponse.status,
+            statusText: moveResponse.statusText,
+            moveError,
+          });
+          return false;
+        }
+      }
+
+      return true;
     } catch (error) {
       console.error("DocumentService.reActivateDocument:", error);
       return false;

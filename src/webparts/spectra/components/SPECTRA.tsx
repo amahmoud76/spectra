@@ -23,6 +23,7 @@ import {
   hasActiveSearchText,
 } from "../utils/filterHelper";
 import { exportDocumentsToCSV } from "../utils/exportHelper";
+import { generateFileName } from "../utils/fileNamingHelper";
 import {
   AUTH_CACHE_KEY_PREFIX,
   METADATA_CACHE_KEY,
@@ -126,6 +127,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   // ── Re-activate confirmation ────────────────────────────────
   const [reActivateTarget, setReActivateTarget] =
     React.useState<IDocument | null>(null);
+  const [reActivateNamingChoice, setReActivateNamingChoice] =
+    React.useState<{ doc: IDocument; newFileName: string; fromEditPanel: boolean } | null>(null);
   const [isSplashFading, setIsSplashFading] = React.useState(false);
 
   const [showStartupSplash, setShowStartupSplash] = React.useState(() => {
@@ -692,27 +695,47 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   ]);
 
   // ── Re-activate confirm ─────────────────────────────────────
+  // Shared execution — called after the naming choice is resolved
+  const doReActivate = React.useCallback(
+    async (doc: IDocument, newFileName: string | undefined, fromEditPanel: boolean) => {
+      const service = new DocumentService(context, documentLibrary, useMock);
+      const success = await service.reActivateDocument(doc.id, newFileName);
+      if (success) {
+        setReActivateTarget(null);
+        setReActivateNamingChoice(null);
+        if (fromEditPanel) {
+          setEditPanelOpen(false);
+          setEditTarget(null);
+        }
+        const displayName = newFileName ?? doc.fileName;
+        notification.showSuccess(`"${displayName}" re-activated successfully.`);
+        documents.refetch();
+      } else {
+        notification.showError(GENERIC_ERROR_MESSAGE);
+      }
+    },
+    [context, documentLibrary, useMock, notification, documents],
+  );
+
+  // Naming check — computes new name and routes to the right modal
+  const triggerReActivateWithNamingCheck = React.useCallback(
+    (doc: IDocument, fromEditPanel: boolean) => {
+      const newFileName = generateFileName(doc, doc.fileExtension);
+      if (newFileName.toLowerCase() !== doc.fileName.toLowerCase()) {
+        setReActivateNamingChoice({ doc, newFileName, fromEditPanel });
+      } else if (fromEditPanel) {
+        void doReActivate(doc, undefined, true);
+      } else {
+        setReActivateTarget(doc);
+      }
+    },
+    [doReActivate],
+  );
+
   const handleReActivateConfirm = React.useCallback(async () => {
     if (!reActivateTarget) return;
-    const service = new DocumentService(context, documentLibrary, useMock);
-    const success = await service.reActivateDocument(reActivateTarget.id);
-    if (success) {
-      setReActivateTarget(null);
-      notification.showSuccess(
-        `"${reActivateTarget.fileName}" re-activated successfully.`,
-      );
-      documents.refetch();
-    } else {
-      notification.showError(GENERIC_ERROR_MESSAGE);
-    }
-  }, [
-    reActivateTarget,
-    context,
-    documentLibrary,
-    useMock,
-    notification,
-    documents,
-  ]);
+    await doReActivate(reActivateTarget, undefined, false);
+  }, [reActivateTarget, doReActivate]);
 
   // ── Duplicate confirmation dialog ──────────────────────────
   const handleDuplicateConfirmArchive = React.useCallback(async () => {
@@ -968,21 +991,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     };
   }, [archiveReplace.targetDocument]);
 
-  const handleReActivate = React.useCallback(async () => {
+  const handleReActivate = React.useCallback(() => {
     if (!editTarget) return;
-    const service = new DocumentService(context, documentLibrary, useMock);
-    const success = await service.reActivateDocument(editTarget.id);
-    if (success) {
-      setEditPanelOpen(false);
-      setEditTarget(null);
-      notification.showSuccess(
-        `"${editTarget.fileName}" re-activated successfully.`,
-      );
-      documents.refetch();
-    } else {
-      notification.showError(GENERIC_ERROR_MESSAGE);
-    }
-  }, [editTarget, context, documentLibrary, useMock, notification, documents]);
+    triggerReActivateWithNamingCheck(editTarget, true);
+  }, [editTarget, triggerReActivateWithNamingCheck]);
 
   // ── Startup splash (cold start / expired cache) ────────────
   if (showStartupSplash) {
@@ -1354,7 +1366,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   onArchiveReplaceClick={(doc, anchorPosition) =>
                     archiveReplace.initiateArchiveReplace(doc, anchorPosition)
                   }
-                  onReActivateClick={(doc) => setReActivateTarget(doc)}
+                  onReActivateClick={(doc) => triggerReActivateWithNamingCheck(doc, false)}
                   isLoading={false}
                   useEnhancedStyle={useEnhancedStyle}
                 />
@@ -1379,7 +1391,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   onArchiveReplaceClick={(doc, anchorPosition) =>
                     archiveReplace.initiateArchiveReplace(doc, anchorPosition)
                   }
-                  onReActivateClick={(doc) => setReActivateTarget(doc)}
+                  onReActivateClick={(doc) => triggerReActivateWithNamingCheck(doc, false)}
                   isLoading={false}
                   useEnhancedStyle={useEnhancedStyle}
                 />
@@ -1550,7 +1562,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           onCancel={() => setArchiveTarget(null)}
         />
 
-        {/* Re-activate: Confirmation */}
+        {/* Re-activate: Confirmation (no name change needed) */}
         <ConfirmDialog
           isOpen={reActivateTarget !== null}
           title="Re-activate this document?"
@@ -1558,6 +1570,58 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           confirmLabel="Re-activate"
           onConfirm={handleReActivateConfirm}
           onCancel={() => setReActivateTarget(null)}
+        />
+
+        {/* Re-activate: Naming choice (document name is outdated) */}
+        <ConfirmDialog
+          isOpen={reActivateNamingChoice !== null}
+          title="Re-activate this document?"
+          message={
+            reActivateNamingChoice && (
+              <div>
+                <p>
+                  The stored document name does not match the current naming
+                  convention based on its metadata. Choose how to proceed.
+                </p>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 12, color: "var(--spectra-text-secondary)", marginBottom: 4 }}>
+                    Current name
+                  </div>
+                  <div style={{ fontFamily: "Consolas, 'Courier New', monospace", fontSize: 13 }}>
+                    {reActivateNamingChoice.doc.fileName}
+                  </div>
+                </div>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 12, color: "var(--spectra-text-secondary)", marginBottom: 4 }}>
+                    Updated name
+                  </div>
+                  <div className={styles.namingImmutablePreview}>
+                    {reActivateNamingChoice.newFileName}
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          confirmLabel={`Update to new name`}
+          secondaryLabel="Keep old name"
+          cancelLabel="Cancel"
+          onConfirm={() =>
+            reActivateNamingChoice &&
+            void doReActivate(
+              reActivateNamingChoice.doc,
+              reActivateNamingChoice.newFileName,
+              reActivateNamingChoice.fromEditPanel,
+            )
+          }
+          onSecondary={() =>
+            reActivateNamingChoice &&
+            void doReActivate(
+              reActivateNamingChoice.doc,
+              undefined,
+              reActivateNamingChoice.fromEditPanel,
+            )
+          }
+          onCancel={() => setReActivateNamingChoice(null)}
         />
 
         {/* Delete: Confirmation */}

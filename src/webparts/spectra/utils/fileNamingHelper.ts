@@ -26,44 +26,48 @@ const MULTI_VALUE_FILENAME_DELIMITER = "__";
  *   - Disease Area included for DAS only; optional on other types and excluded
  *   - Spaces replaced with hyphens in each segment
  */
-export const generateFileName = (payload: IUploadPayload): string => {
-  const ext = payload.file.name.split(".").pop() || "pdf";
+export const generateFileName = (
+  payload: Partial<IUploadPayload>,
+  extension: string,
+): string => {
+  const ext = extension || "pdf";
 
   // Document type abbreviation
+  const docTypeName = payload.documentType ?? "";
   const docType =
-    DOC_TYPE_ABBREVIATIONS[payload.documentType] ||
-    sanitize(payload.documentType);
+    DOC_TYPE_ABBREVIATIONS[docTypeName] || sanitize(docTypeName);
 
   // Therapeutic area abbreviation
+  const taValues = payload.therapeuticArea ?? [];
   const ta =
-    payload.therapeuticArea.length > 0
-      ? payload.therapeuticArea
+    taValues.length > 0
+      ? taValues
           .map((t) => TA_ABBREVIATIONS[t] || sanitize(t))
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
       : "";
 
   // Sub-TA for therapeutic areas that require it
-  const includeSubTA = payload.therapeuticArea.some((t) =>
-    TA_INCLUDES_SUB_TA.includes(t),
-  );
+  const includeSubTA = taValues.some((t) => TA_INCLUDES_SUB_TA.includes(t));
+  const subTAValues = payload.subTherapeuticArea ?? [];
   const subTA =
-    includeSubTA && payload.subTherapeuticArea.length > 0
-      ? payload.subTherapeuticArea
+    includeSubTA && subTAValues.length > 0
+      ? subTAValues
           .map(sanitize)
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
       : "";
 
+  const diseaseAreaValues = payload.diseaseArea ?? [];
   const diseaseArea =
-    payload.diseaseArea.length > 0
-      ? payload.diseaseArea
+    diseaseAreaValues.length > 0
+      ? diseaseAreaValues
           .map(sanitize)
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
       : "";
 
-  if (payload.documentType === "DAS") {
+  if (docTypeName === "DAS") {
     const segments: string[] = [docType];
     if (ta) segments.push(ta);
     if (subTA) segments.push(subTA);
@@ -72,27 +76,30 @@ export const generateFileName = (payload: IUploadPayload): string => {
   }
 
   // Indication
+  const indicationValues = payload.indication ?? [];
   const indication =
-    payload.indication.length > 0
-      ? payload.indication
+    indicationValues.length > 0
+      ? indicationValues
           .map(sanitize)
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
       : "";
 
   // Line of Therapy (included if it exists)
+  const lotValues = payload.lineOfTherapy ?? [];
   const lot =
-    payload.lineOfTherapy.length > 0
-      ? payload.lineOfTherapy
+    lotValues.length > 0
+      ? lotValues
           .map(sanitize)
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
       : "";
 
   // Asset
+  const assetValues = payload.asset ?? [];
   const asset =
-    payload.asset.length > 0
-      ? payload.asset
+    assetValues.length > 0
+      ? assetValues
           .map(sanitize)
           .sort()
           .join(MULTI_VALUE_FILENAME_DELIMITER)
