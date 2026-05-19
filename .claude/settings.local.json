@@ -3,7 +3,10 @@
     "allow": [
       "WebFetch(domain:developer.microsoft.com)",
       "WebFetch(domain:uifabricicons.azurewebsites.net)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Projects\\\\SPECTRA\" -Recurse -File)",
+      "Bash(Measure-Object)",
+      "Bash(Select-Object -ExpandProperty Count)"
     ]
   }
 }

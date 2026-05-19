@@ -10,7 +10,6 @@ import {
   FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE,
   truncateFileNameForDisplay,
 } from "../../utils/fileHelper";
-import { FontIcon } from "@fluentui/react/lib/Icon";
 import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
@@ -35,23 +34,12 @@ export interface IDataTableProps {
   useEnhancedStyle?: boolean;
 }
 
-const TYPE_CHIP_COLORS: Record<string, { bg: string; color: string }> = {
-  DAS:  { bg: "#7C3AED", color: "#fff" },
-  TPP:  { bg: "#0891B2", color: "#fff" },
-  TPC:  { bg: "#2563EB", color: "#fff" },
-  IEP:  { bg: "#16A34A", color: "#fff" },
-  EBP:  { bg: "#EA580C", color: "#fff" },
-  EIVP: { bg: "#BE185D", color: "#fff" },
-  IAS:  { bg: "#374151", color: "#fff" },
-};
-const TYPE_CHIP_DEFAULT = { bg: "#6B7280", color: "#fff" };
 
-interface IFileTypeConfig { iconName: string; colorClass: string; }
-const FILE_TYPE_CONFIG: Record<string, IFileTypeConfig> = {
-  pdf:  { iconName: "PDF",                colorClass: styles.fileIconPdf },
-  docx: { iconName: "WordDocument",       colorClass: styles.fileIconWord },
-  pptx: { iconName: "PowerPointDocument", colorClass: styles.fileIconPpt },
-  xlsx: { iconName: "ExcelDocument",      colorClass: styles.fileIconExcel },
+const FILE_TYPE_ICON: Record<string, string> = {
+  pdf:  require("../../assets/icons/file-pdf.svg"),
+  docx: require("../../assets/icons/file-word.svg"),
+  pptx: require("../../assets/icons/file-ppt.svg"),
+  xlsx: require("../../assets/icons/file-excel.svg"),
 };
 
 const getFileExtension = (fileName: string): string => {
@@ -233,7 +221,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
 
     if (useEnhancedStyle) {
       const ext = getFileExtension(doc.fileName);
-      const iconConfig = FILE_TYPE_CONFIG[ext];
+      const fileIconSrc = FILE_TYPE_ICON[ext];
       const displayName = stripExtension(doc.fileName);
       const maxLen = matchKind
         ? FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE
@@ -241,14 +229,18 @@ export const DataTable: React.FC<IDataTableProps> = ({
 
       return (
         <div className={styles.fileNameCell}>
-          {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
-          {iconConfig && (
-            <FontIcon
-              iconName={iconConfig.iconName}
-              className={`${styles.fileTypeIcon} ${iconConfig.colorClass}`}
-              aria-label={ext.toUpperCase()}
-            />
-          )}
+          <div className={styles.fileNameIcons}>
+            {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+            {fileIconSrc && (
+              <TooltipHost content={ext.toUpperCase()} styles={{ root: { display: "flex", alignItems: "center" } }}>
+                <img
+                  src={fileIconSrc}
+                  alt={ext.toUpperCase()}
+                  className={styles.fileTypeIcon}
+                />
+              </TooltipHost>
+            )}
+          </div>
           <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
             <span
               className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
@@ -314,7 +306,10 @@ export const DataTable: React.FC<IDataTableProps> = ({
         <thead>
           <tr>
             {(role === "contributor" || role === "admin") && (
-              <th className={styles.leadingActionHeader} aria-label="Actions" />
+              <th
+                className={role === "contributor" ? styles.leadingActionHeaderNarrow : styles.leadingActionHeader}
+                aria-label="Actions"
+              />
             )}
 
             {visibleColumns.map((col) => (
@@ -346,7 +341,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
           {documents.map((doc) => (
             <tr key={doc.id}>
               {(role === "contributor" || role === "admin") && (
-                <td className={styles.leadingActionCell}>
+                <td className={role === "contributor" ? styles.leadingActionCellNarrow : styles.leadingActionCell}>
                   {role === "contributor" &&
                     doc.status === "Current" &&
                     onArchiveReplaceClick && (
@@ -451,12 +446,8 @@ export const DataTable: React.FC<IDataTableProps> = ({
                     : col.key === "type" && useEnhancedStyle ? (
                     (() => {
                       const val = col.getValue(doc);
-                      const chip = TYPE_CHIP_COLORS[val] ?? TYPE_CHIP_DEFAULT;
                       return (
-                        <span
-                          className={styles.typeChip}
-                          style={{ backgroundColor: chip.bg, color: chip.color }}
-                        >
+                        <span className={styles.typeChip}>
                           {val}
                         </span>
                       );

@@ -58,7 +58,6 @@ import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 import { DocumentViewingPage } from "../components/DocumentViewingPage/DocumentViewingPage";
 import { ShowArchivedToggle } from "./ShowArchivedToggle/ShowArchivedToggle";
 import { ViewFullLibraryButton } from "./ViewFullLibraryButton/ViewFullLibraryButton";
-import { SearchMatchBadge } from "./SearchMatchBadge/SearchMatchBadge";
 // Styles
 import styles from "./SPECTRA.module.scss";
 
@@ -277,29 +276,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
 
   const useEnhancedStyle =
     enableEnhancedTableStyle && (isDevMode || auth.effectiveRole === "admin");
-
-  const showSearchMatchSummary =
-    hasSearchApplied &&
-    !documents.isLoading &&
-    sortedDocuments.length > 0 &&
-    filteredResult.matchKindByDocumentId.size > 0;
-
-  const searchMatchSummaryText = React.useMemo(() => {
-    const query = filters.filters.searchText.trim();
-    if (filteredResult.hasMixedSearchResults) {
-      return `${filteredResult.exactMatchCount} exact and ${filteredResult.closeMatchCount} close matches for "${query}".`;
-    }
-    if (filteredResult.usedFuzzySearch) {
-      return `${filteredResult.closeMatchCount} close match${filteredResult.closeMatchCount === 1 ? "" : "es"} for "${query}".`;
-    }
-    return `${filteredResult.exactMatchCount} result${filteredResult.exactMatchCount === 1 ? "" : "es"} for "${query}".`;
-  }, [
-    filters.filters.searchText,
-    filteredResult.hasMixedSearchResults,
-    filteredResult.exactMatchCount,
-    filteredResult.closeMatchCount,
-    filteredResult.usedFuzzySearch,
-  ]);
 
   const pagination = usePagination(sortedDocuments, pageSize);
 
@@ -1277,34 +1253,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 showExport={false}
               />
             </div>
-
-            {showSearchMatchSummary && (
-              <div
-                className={styles.searchMatchSummary}
-                role="status"
-                aria-live="polite"
-              >
-                <span className={styles.searchMatchLegend}>
-                  <span className={styles.searchMatchLegendEntry}>
-                    <SearchMatchBadge kind="exact" />
-                    <span className={styles.searchMatchLegendLabel}>
-                      = Exact match
-                    </span>
-                  </span>
-                  {filteredResult.usedFuzzySearch && (
-                    <span className={styles.searchMatchLegendEntry}>
-                      <SearchMatchBadge kind="close" />
-                      <span className={styles.searchMatchLegendLabel}>
-                        = Close match
-                      </span>
-                    </span>
-                  )}
-                </span>
-                <span className={styles.searchMatchSummaryText}>
-                  {searchMatchSummaryText}
-                </span>
-              </div>
-            )}
 
             {isFullLibraryView && (
               <div
