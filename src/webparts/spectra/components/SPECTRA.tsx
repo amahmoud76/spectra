@@ -90,8 +90,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   enableStartupSplash,
   enableVerboseStartupStatus,
   startupSplashCompletionDelayMs,
-  enableEnhancedTableStyle,
-  isDevMode,
 }) => {
   // ── Page state ──────────────────────────────────────────────
   const [page, setPage] = React.useState<PageState>("landing");
@@ -277,8 +275,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
 
   const hasSearchApplied = hasActiveSearchText(filters.filters);
 
-  const useEnhancedStyle =
-    enableEnhancedTableStyle && (isDevMode || auth.effectiveRole === "admin");
+  const useEnhancedStyle = true;
 
   const pagination = usePagination(sortedDocuments, pageSize);
 
