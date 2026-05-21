@@ -333,20 +333,8 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 }
                 aria-label={col.sortField ? `Sort by ${col.label}` : col.label}
               >
-                {col.key === "fileName" && useEnhancedStyle ? (
-                  <div className={styles.fileNameCellHeader}>
-                    <span className={styles.exactMatchHeaderLabel}>Exact Match</span>
-                    <span>
-                      {col.label}
-                      {renderSortIcon(col.sortField)}
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    {col.label}
-                    {renderSortIcon(col.sortField)}
-                  </>
-                )}
+                {col.label}
+                {renderSortIcon(col.sortField)}
               </th>
             ))}
           </tr>

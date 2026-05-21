@@ -1101,10 +1101,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               />
               {auth.effectiveRole === "admin" && (
                 <div className={styles.adminSearchControls}>
-                  <ShowArchivedToggle
-                    checked={showArchivedDocuments}
-                    onChange={handleArchiveToggleChange}
-                  />
                   <ViewFullLibraryButton
                     onClick={handleViewFullLibrary}
                     isActive={isFullLibraryView}

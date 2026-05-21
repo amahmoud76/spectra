@@ -2723,8 +2723,8 @@
   white-space: nowrap;
 }
 
-/* Shared width for the Exact Match badge zone and its header label */
-$exact-match-area-width: 90px;
+/* Width of the Exact Match badge zone in each row cell */
+$exact-match-area-width: 30px;
 
 /* Split-header wrapper inside the Document Name <th> (enhanced style) */
 .fileNameCellHeader {
