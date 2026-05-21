@@ -30,6 +30,26 @@ export const Toolbar: React.FC<IToolbarProps> = ({
 }) => {
   return (
     <div className={styles.toolbar}>
+      {/* Export CSV — Admin only (rendered before Upload so it sits to the left) */}
+      {showExport && role === "admin" && (
+        <TooltipHost content="Export documents to CSV">
+          <button
+            className={styles.btnGhost}
+            onClick={onExportClick}
+            aria-label="Export documents to CSV"
+            type="button"
+          >
+            <img
+              src={require("../../assets/icons/export.svg")}
+              alt=""
+              style={{ width: "16px", height: "16px", display: "inline-block" }}
+              aria-hidden="true"
+            />
+            Export CSV
+          </button>
+        </TooltipHost>
+      )}
+
       {/* Upload — Admin and Contributor only */}
       {showUpload && role !== "viewer" && (
         <TooltipHost content="Upload a new document">
@@ -92,20 +112,6 @@ export const Toolbar: React.FC<IToolbarProps> = ({
         </TooltipHost>
       )}
 
-      {/* Export CSV — Admin only */}
-      {showExport && role === "admin" && (
-        <TooltipHost content="Export documents to CSV">
-          <button
-            className={styles.btnSecondary}
-            onClick={onExportClick}
-            aria-label="Export documents to CSV"
-            type="button"
-          >
-            <i className="fa fa-file-excel" />
-            Export CSV
-          </button>
-        </TooltipHost>
-      )}
     </div>
   );
 };

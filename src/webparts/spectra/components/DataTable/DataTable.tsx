@@ -228,11 +228,11 @@ export const DataTable: React.FC<IDataTableProps> = ({
         : FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED;
 
       return (
-        <div className={styles.fileNameCell}>
-          <div className={styles.fileNameIcons}>
-            <div className={styles.fileNameBadgeSlot}>
-              {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
-            </div>
+        <div className={styles.fileNameCell} style={{ gap: 0 }}>
+          <div className={styles.fileNameBadgeArea}>
+            {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
+          </div>
+          <div className={styles.fileNameDocContent}>
             {fileIconSrc && (
               <TooltipHost content={ext.toUpperCase()} styles={{ root: { display: "flex", alignItems: "center" } }}>
                 <img
@@ -242,19 +242,19 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 />
               </TooltipHost>
             )}
+            <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
+              <span
+                className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
+                onClick={() => onDocumentClick(doc)}
+                onKeyDown={(e) => { if (e.key === "Enter") onDocumentClick(doc); }}
+                tabIndex={0}
+                role="link"
+                aria-label={`Open ${doc.fileName}`}
+              >
+                {truncateFileNameForDisplay(displayName, maxLen)}
+              </span>
+            </TooltipHost>
           </div>
-          <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
-            <span
-              className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
-              onClick={() => onDocumentClick(doc)}
-              onKeyDown={(e) => { if (e.key === "Enter") onDocumentClick(doc); }}
-              tabIndex={0}
-              role="link"
-              aria-label={`Open ${doc.fileName}`}
-            >
-              {truncateFileNameForDisplay(displayName, maxLen)}
-            </span>
-          </TooltipHost>
         </div>
       );
     }
@@ -333,8 +333,20 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 }
                 aria-label={col.sortField ? `Sort by ${col.label}` : col.label}
               >
-                {col.label}
-                {renderSortIcon(col.sortField)}
+                {col.key === "fileName" && useEnhancedStyle ? (
+                  <div className={styles.fileNameCellHeader}>
+                    <span className={styles.exactMatchHeaderLabel}>Exact Match</span>
+                    <span>
+                      {col.label}
+                      {renderSortIcon(col.sortField)}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    {col.label}
+                    {renderSortIcon(col.sortField)}
+                  </>
+                )}
               </th>
             ))}
           </tr>
@@ -344,6 +356,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
             <tr key={doc.id}>
               {(role === "contributor" || role === "admin") && (
                 <td className={role === "contributor" ? styles.leadingActionCellNarrow : styles.leadingActionCell}>
+
                   {role === "contributor" &&
                     doc.status === "Current" &&
                     onArchiveReplaceClick && (

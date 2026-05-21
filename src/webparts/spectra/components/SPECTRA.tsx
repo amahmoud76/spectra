@@ -1104,13 +1104,13 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               />
               {auth.effectiveRole === "admin" && (
                 <div className={styles.adminSearchControls}>
-                  <ViewFullLibraryButton
-                    onClick={handleViewFullLibrary}
-                    isActive={isFullLibraryView}
-                  />
                   <ShowArchivedToggle
                     checked={showArchivedDocuments}
                     onChange={handleArchiveToggleChange}
+                  />
+                  <ViewFullLibraryButton
+                    onClick={handleViewFullLibrary}
+                    isActive={isFullLibraryView}
                   />
                 </div>
               )}
@@ -1233,15 +1233,27 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 isError={noResults && !!searchText}
               />
 
+              {useEnhancedStyle && hasSearchApplied && (
+                <div className={styles.exactMatchLegend}>
+                  <img
+                    src={require("../assets/icons/check-circle.svg")}
+                    alt=""
+                    style={{ width: 17, height: 16, display: "block" }}
+                    aria-hidden="true"
+                  />
+                  = Exact match
+                </div>
+              )}
+
               {auth.effectiveRole === "admin" && (
                 <div className={styles.adminSearchControls}>
-                  <ViewFullLibraryButton
-                    onClick={handleViewFullLibrary}
-                    isActive={isFullLibraryView}
-                  />
                   <ShowArchivedToggle
                     checked={showArchivedDocuments}
                     onChange={handleArchiveToggleChange}
+                  />
+                  <ViewFullLibraryButton
+                    onClick={handleViewFullLibrary}
+                    isActive={isFullLibraryView}
                   />
                 </div>
               )}
