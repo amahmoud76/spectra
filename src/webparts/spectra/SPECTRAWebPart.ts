@@ -48,6 +48,10 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
   public render(): void {
     const urlParams = new URLSearchParams(window.location.search);
     const isSpectraDev = urlParams.get("spectraDev") === "1";
+    const spectraDocParam = urlParams.get("spectraDoc");
+    const initialDocumentId = spectraDocParam && /^\d+$/.test(spectraDocParam)
+      ? parseInt(spectraDocParam, 10)
+      : undefined;
 
     const props: IWebPartProps = {
       context: this.context,
@@ -69,6 +73,7 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
         this.properties.startupSplashCompletionDelayMs ?? 700,
       helpEmail: this.properties.helpEmail || HELP_EMAIL,
       helpGuideUrl: this.properties.helpGuideUrl || HELP_GUIDE_URL,
+      initialDocumentId,
     };
 
     ReactDom.render(React.createElement(SPECTRA, props), this.domElement);

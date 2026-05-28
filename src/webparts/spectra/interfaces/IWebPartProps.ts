@@ -16,4 +16,5 @@ export interface IWebPartProps {
   startupSplashCompletionDelayMs: number; // Delay before hiding splash after ready
   helpEmail: string; // Support email value configurable from property pane
   helpGuideUrl: string; // Support guide URL configurable from property pane
+  initialDocumentId?: number; // Deep-link: SP list item ID from ?spectraDoc= URL param
 }

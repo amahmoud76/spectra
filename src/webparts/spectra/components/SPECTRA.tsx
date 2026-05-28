@@ -91,6 +91,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   enableStartupSplash,
   enableVerboseStartupStatus,
   startupSplashCompletionDelayMs,
+  initialDocumentId,
 }) => {
   // ── Page state ──────────────────────────────────────────────
   const [page, setPage] = React.useState<PageState>("landing");
@@ -128,6 +129,11 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const [reActivateNamingChoice, setReActivateNamingChoice] =
     React.useState<{ doc: IDocument; newFileName: string; fromEditPanel: boolean } | null>(null);
   const [isSplashFading, setIsSplashFading] = React.useState(false);
+
+  // ── Deep-link state ─────────────────────────────────────────
+  const [deepLinkLoading, setDeepLinkLoading] = React.useState(!!initialDocumentId);
+  const [deepLinkError, setDeepLinkError] = React.useState(false);
+  const deepLinkHandled = React.useRef(false);
 
   const [showStartupSplash, setShowStartupSplash] = React.useState(() => {
     if (!enableStartupSplash || useMock) return false;
@@ -343,6 +349,26 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     headerConfig.isLoading,
     startupSplashCompletionDelayMs,
   ]);
+
+  // ── Deep-link: open document from ?spectraDoc= URL param ───
+  React.useEffect(() => {
+    if (!initialDocumentId || auth.isLoading || deepLinkHandled.current) return;
+    deepLinkHandled.current = true;
+
+    const service = new DocumentService(context, documentLibrary, useMock);
+    service.getDocumentById(String(initialDocumentId)).then((doc) => {
+      if (doc) {
+        setViewingDocument(doc);
+        setPage("viewing");
+      } else {
+        setDeepLinkError(true);
+      }
+      setDeepLinkLoading(false);
+    }).catch(() => {
+      setDeepLinkError(true);
+      setDeepLinkLoading(false);
+    });
+  }, [auth.isLoading, initialDocumentId, context, documentLibrary, useMock]);
 
   // ── Setup global error handler ──────────────────────────────
   React.useEffect(() => {
@@ -1013,6 +1039,60 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     );
   }
 
+
+  // ── Deep-link loading ───────────────────────────────────────
+  if (deepLinkLoading) {
+    return (
+      <div className={styles.spectraApp}>
+        <ParentHeader
+          config={headerConfig.config}
+          role="viewer"
+          userDisplayName={userDisplayName}
+          userEmail={userEmail}
+          siteUrl={siteUrl}
+          enableDevRoleSwitch={false}
+          onRoleBadgeClick={() => undefined}
+          onSpectraClick={() => undefined}
+        />
+        <div style={{ padding: 40, textAlign: "center" }}>
+          <span className={styles.spinner} />
+          <p>Loading document…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Deep-link error ─────────────────────────────────────────
+  if (deepLinkError) {
+    return (
+      <div className={styles.spectraApp}>
+        <ParentHeader
+          config={headerConfig.config}
+          role={auth.effectiveRole}
+          userDisplayName={userDisplayName}
+          userEmail={userEmail}
+          siteUrl={siteUrl}
+          enableDevRoleSwitch={enableDevRoleSwitch}
+          onRoleBadgeClick={() => undefined}
+          onSpectraClick={() => {
+            setDeepLinkError(false);
+            setPage("landing");
+          }}
+        />
+        <div style={{ padding: 40, textAlign: "center" }}>
+          <p>The document you followed a link to could not be found. It may have been deleted or you may not have permission to view it.</p>
+          <button
+            onClick={() => {
+              setDeepLinkError(false);
+              setPage("landing");
+            }}
+          >
+            Go to SPECTRA Search
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── Render ──────────────────────────────────────────────────
   return (
