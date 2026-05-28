@@ -186,7 +186,16 @@ export class DocumentService {
     }
 
     const siteUrl = this.context.pageContext.web.absoluteUrl;
-    const url = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${documentId})?$select=*&$expand=Author,Editor`;
+    const select = [
+      "Id", "Title", "FileLeafRef", "FileRef", "Created",
+      "Author/Title", "Author/EMail", "Editor/Title", "Editor/EMail",
+      "SpectraAsset", "SpectraDocumentType", "SpectraTherapeuticArea",
+      "SpectraSubTherapeuticArea", "SpectraIndication", "SpectraLineOfTherapy",
+      "SpectraPAID", "SpectraDiseaseArea", "SpectraEffectiveDate",
+      "SpectraStatus", "SpectraDescription", "SpectraComments",
+      "SpectraSearchTokens", "SpectraImmutableFileName",
+    ].join(",");
+    const url = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${documentId})?$select=${select}&$expand=Author,Editor`;
 
     try {
       const response = await this.context.spHttpClient.get(
