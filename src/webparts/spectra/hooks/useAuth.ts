@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import {
   IProcessedAuth,
@@ -74,8 +74,14 @@ export const useAuth = (
   >(undefined);
   const [startupStage, setStartupStage] = useState<AuthStartupStage>("idle");
   const [authRefreshToken, setAuthRefreshToken] = useState(0);
+  const autoRetryCountRef = useRef(0);
+  const retryTimerRef = useRef<number | null>(null);
+
+  const MAX_AUTO_RETRIES = 2;
+  const RETRY_DELAY_MS = 5000;
 
   const retryAuth = useCallback(() => {
+    autoRetryCountRef.current = 0;
     setAuthRefreshToken((current) => current + 1);
   }, []);
 
@@ -184,6 +190,7 @@ export const useAuth = (
           return;
         }
 
+        autoRetryCountRef.current = 0;
         setCachedAuth(userEmail, response);
 
         logAuth("Live auth response received", {
@@ -202,8 +209,25 @@ export const useAuth = (
         if (AUTH_DEBUG_LOGS) {
           console.error("useAuth: Failed to fetch user context", error);
         }
-        logAuth("Auth fetch failed", { error });
-        logAuthFailure("Auth fetch failed", error);
+
+        autoRetryCountRef.current += 1;
+
+        if (autoRetryCountRef.current <= MAX_AUTO_RETRIES) {
+          logAuth("Auth fetch failed; scheduling auto-retry", {
+            attempt: autoRetryCountRef.current,
+            maxRetries: MAX_AUTO_RETRIES,
+          });
+          setStartupStage("retrying");
+          retryTimerRef.current = window.setTimeout(() => {
+            retryTimerRef.current = null;
+            setAuthRefreshToken((n) => n + 1);
+          }, RETRY_DELAY_MS);
+          return;
+        }
+
+        autoRetryCountRef.current = 0;
+        logAuth("Auth fetch failed after all retries; falling back to viewer", { error });
+        logAuthFailure("Auth fetch failed after retries", error);
         setStartupStage("ready");
         setState((prev) => ({
           ...prev,
@@ -215,6 +239,13 @@ export const useAuth = (
     };
 
     void fetchAuth();
+
+    return () => {
+      if (retryTimerRef.current !== null) {
+        window.clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+    };
   }, [context, userEmail, useMock, useAdGroups, mockRole, logAuth, authRefreshToken]);
 
   useEffect(() => {

@@ -1276,6 +1276,13 @@
   min-width: 104px;
 }
 
+.cellPaidWrap {
+  max-width: 200px;
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+}
+
 .colDiseaseArea {
   min-width: 168px;
 }
@@ -2115,6 +2122,83 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--spectra-sp-3);
+}
+
+/* ── Auth warning strip ─────────────────────────────────────────── */
+
+.permStrip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  background: #fffbf2;
+  border-bottom: 1px solid #e8a825;
+  font-size: 13px;
+  color: #7a4800;
+}
+
+.permStripIcon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.permStripMessage {
+  flex: 1;
+  font-weight: 500;
+}
+
+.permStripRetry {
+  background: none;
+  border: 1px solid #bb5a00;
+  border-radius: var(--spectra-radius-sm);
+  color: #bb5a00;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--spectra-transition-fast), color var(--spectra-transition-fast);
+}
+
+.permStripRetry:hover {
+  background: #bb5a00;
+  color: #fff;
+}
+
+.permStripRetryLink {
+  background: none;
+  border: none;
+  color: #7a4800;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: underline;
+  opacity: 0.7;
+  padding: 0;
+  transition: opacity var(--spectra-transition-fast);
+}
+
+.permStripRetryLink:hover {
+  opacity: 1;
+}
+
+.permStripDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7a4800;
+  opacity: 0.6;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: opacity var(--spectra-transition-fast);
+}
+
+.permStripDismiss:hover {
+  opacity: 1;
 }
 
 /* ── Success & Error Banners ───────────────────────────────────── */

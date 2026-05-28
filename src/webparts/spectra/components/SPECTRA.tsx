@@ -51,6 +51,7 @@ import { EditPanel } from "../components/EditPanel/EditPanel";
 import { ConfirmDialog } from "../components/ConfirmDialog/ConfirmDialog";
 import { SuccessBanner } from "../components/SuccessBanner/SuccessBanner";
 import { ErrorBanner } from "../components/ErrorBanner/ErrorBanner";
+import { AuthWarningStrip } from "../components/AuthWarningStrip/AuthWarningStrip";
 import { EmptyState } from "../components/EmptyState/EmptyState";
 import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 
@@ -354,7 +355,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
 
     if (auth.isLoading) {
       if (auth.startupStage === "authenticating") {
-        return { label: wrapLabel("Authenticating"), percent: 20 };
+        return { label: wrapLabel("Connecting to SharePoint"), percent: 20 };
       }
       if (auth.startupStage === "loadingUserInfo") {
         return { label: wrapLabel("Loading user information"), percent: 38 };
@@ -362,8 +363,11 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       if (auth.startupStage === "assigningRole") {
         return { label: wrapLabel("Assigning role"), percent: 55 };
       }
+      if (auth.startupStage === "retrying") {
+        return { label: wrapLabel("Connection is slow — trying again…"), percent: 25 };
+      }
 
-      return { label: wrapLabel("Authenticating"), percent: 20 };
+      return { label: wrapLabel("Connecting to SharePoint"), percent: 20 };
     }
 
     if (metadata.isLoading) {
@@ -484,7 +488,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     const currentSearchText = filters.filters.searchText;
     filters.clearAllFilters();
     filters.setFilter("searchText", currentSearchText);
-    setDraftFilters((prev) => ({
+    setDraftFilters((_prev) => ({
       ...defaultFilterState,
       searchText: currentSearchText,
     }));
@@ -1009,39 +1013,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     );
   }
 
-  if (auth.isError) {
-    return (
-      <div className={styles.spectraApp}>
-        <ParentHeader
-          config={headerConfig.config}
-          role="viewer"
-          userDisplayName={userDisplayName}
-          userEmail={userEmail}
-          siteUrl={siteUrl}
-          enableDevRoleSwitch={false}
-          onRoleBadgeClick={() => undefined}
-          onSpectraClick={() => undefined}
-        />
-        <div style={{ padding: 40, maxWidth: 720, margin: "0 auto" }}>
-          <ErrorBanner
-            message="We could not verify your permissions right now. This can happen when a SharePoint or Microsoft Graph call fails."
-            onDismiss={() => undefined}
-          />
-          <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-            <button className={styles.btnPrimary} onClick={auth.retryAuth}>
-              Retry access check
-            </button>
-            <button
-              className={styles.btnSecondary}
-              onClick={() => window.location.reload()}
-            >
-              Reload page
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ── Render ──────────────────────────────────────────────────
   return (
@@ -1059,6 +1030,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
         />
 
         {/* Notification banners */}
+        {auth.isError && (
+          <AuthWarningStrip onRetry={auth.retryAuth} userEmail={userEmail} />
+        )}
         {notification.notification?.type === "success" && (
           <SuccessBanner
             message={notification.notification.message}

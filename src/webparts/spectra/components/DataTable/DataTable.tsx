@@ -484,6 +484,8 @@ export const DataTable: React.FC<IDataTableProps> = ({
                         {col.getValue(doc)}
                       </span>
                     </TooltipHost>
+                  ) : col.key === "paid" ? (
+                    <div className={styles.cellPaidWrap}>{col.getValue(doc)}</div>
                   ) : (
                     col.getValue(doc)
                   )}

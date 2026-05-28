@@ -21,6 +21,7 @@ export type AuthStartupStage =
   | "authenticating"
   | "loadingUserInfo"
   | "assigningRole"
+  | "retrying"
   | "ready";
 
 // Raw response from AuthService
