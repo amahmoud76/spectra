@@ -126,12 +126,16 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   // ── Re-activate confirmation ────────────────────────────────
   const [reActivateTarget, setReActivateTarget] =
     React.useState<IDocument | null>(null);
-  const [reActivateNamingChoice, setReActivateNamingChoice] =
-    React.useState<{ doc: IDocument; newFileName: string; fromEditPanel: boolean } | null>(null);
+  const [reActivateNamingChoice, setReActivateNamingChoice] = React.useState<{
+    doc: IDocument;
+    newFileName: string;
+    fromEditPanel: boolean;
+  } | null>(null);
   const [isSplashFading, setIsSplashFading] = React.useState(false);
 
   // ── Deep-link state ─────────────────────────────────────────
-  const [deepLinkLoading, setDeepLinkLoading] = React.useState(!!initialDocumentId);
+  const [deepLinkLoading, setDeepLinkLoading] =
+    React.useState(!!initialDocumentId);
   const [deepLinkError, setDeepLinkError] = React.useState(false);
   const deepLinkHandled = React.useRef(false);
 
@@ -356,18 +360,21 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     deepLinkHandled.current = true;
 
     const service = new DocumentService(context, documentLibrary, useMock);
-    service.getDocumentById(String(initialDocumentId)).then((doc) => {
-      if (doc) {
-        setViewingDocument(doc);
-        setPage("viewing");
-      } else {
+    service
+      .getDocumentById(String(initialDocumentId))
+      .then((doc) => {
+        if (doc) {
+          setViewingDocument(doc);
+          setPage("viewing");
+        } else {
+          setDeepLinkError(true);
+        }
+        setDeepLinkLoading(false);
+      })
+      .catch(() => {
         setDeepLinkError(true);
-      }
-      setDeepLinkLoading(false);
-    }).catch(() => {
-      setDeepLinkError(true);
-      setDeepLinkLoading(false);
-    });
+        setDeepLinkLoading(false);
+      });
   }, [auth.isLoading, initialDocumentId, context, documentLibrary, useMock]);
 
   // ── Setup global error handler ──────────────────────────────
@@ -390,7 +397,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
         return { label: wrapLabel("Assigning role"), percent: 55 };
       }
       if (auth.startupStage === "retrying") {
-        return { label: wrapLabel("Connection is slow — trying again…"), percent: 25 };
+        return {
+          label: wrapLabel("Connection is slow — trying again…"),
+          percent: 25,
+        };
       }
 
       return { label: wrapLabel("Connecting to SharePoint"), percent: 20 };
@@ -703,7 +713,11 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   // ── Re-activate confirm ─────────────────────────────────────
   // Shared execution — called after the naming choice is resolved
   const doReActivate = React.useCallback(
-    async (doc: IDocument, newFileName: string | undefined, fromEditPanel: boolean) => {
+    async (
+      doc: IDocument,
+      newFileName: string | undefined,
+      fromEditPanel: boolean,
+    ) => {
       const service = new DocumentService(context, documentLibrary, useMock);
       const success = await service.reActivateDocument(doc.id, newFileName);
       if (success) {
@@ -799,8 +813,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       return;
     }
 
-    let doc =
-      documents.documents.find((d) => d.id === existingDocId) ?? null;
+    let doc = documents.documents.find((d) => d.id === existingDocId) ?? null;
 
     if (!doc) {
       const service = new DocumentService(context, documentLibrary, useMock);
@@ -908,8 +921,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       return;
     }
 
-    let doc =
-      documents.documents.find((d) => d.id === existingDocId) ?? null;
+    let doc = documents.documents.find((d) => d.id === existingDocId) ?? null;
 
     if (!doc) {
       const service = new DocumentService(context, documentLibrary, useMock);
@@ -1039,7 +1051,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     );
   }
 
-
   // ── Deep-link loading ───────────────────────────────────────
   if (deepLinkLoading) {
     return (
@@ -1080,7 +1091,11 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           }}
         />
         <div style={{ padding: 40, textAlign: "center" }}>
-          <p>The document you followed a link to could not be found. It may have been deleted or you may not have permission to view it.</p>
+          <p>
+            The document you are trying to reach is currently unavailable. It
+            may have been deleted or moved. Our system refreshes nightly, so
+            please try again later.
+          </p>
           <button
             onClick={() => {
               setDeepLinkError(false);
@@ -1376,7 +1391,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   onArchiveReplaceClick={(doc, anchorPosition) =>
                     archiveReplace.initiateArchiveReplace(doc, anchorPosition)
                   }
-                  onReActivateClick={(doc) => triggerReActivateWithNamingCheck(doc, false)}
+                  onReActivateClick={(doc) =>
+                    triggerReActivateWithNamingCheck(doc, false)
+                  }
                   isLoading={false}
                   useEnhancedStyle={useEnhancedStyle}
                 />
@@ -1401,7 +1418,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   onArchiveReplaceClick={(doc, anchorPosition) =>
                     archiveReplace.initiateArchiveReplace(doc, anchorPosition)
                   }
-                  onReActivateClick={(doc) => triggerReActivateWithNamingCheck(doc, false)}
+                  onReActivateClick={(doc) =>
+                    triggerReActivateWithNamingCheck(doc, false)
+                  }
                   isLoading={false}
                   useEnhancedStyle={useEnhancedStyle}
                 />
@@ -1599,15 +1618,32 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   convention based on its metadata. Choose how to proceed.
                 </p>
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 12, color: "var(--spectra-text-secondary)", marginBottom: 4 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "var(--spectra-text-secondary)",
+                      marginBottom: 4,
+                    }}
+                  >
                     Current name
                   </div>
-                  <div style={{ fontFamily: "Consolas, 'Courier New', monospace", fontSize: 13 }}>
+                  <div
+                    style={{
+                      fontFamily: "Consolas, 'Courier New', monospace",
+                      fontSize: 13,
+                    }}
+                  >
                     {reActivateNamingChoice.doc.fileName}
                   </div>
                 </div>
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 12, color: "var(--spectra-text-secondary)", marginBottom: 4 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "var(--spectra-text-secondary)",
+                      marginBottom: 4,
+                    }}
+                  >
                     Updated name
                   </div>
                   <div className={styles.namingImmutablePreview}>
