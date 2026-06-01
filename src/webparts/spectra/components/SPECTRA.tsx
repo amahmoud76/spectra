@@ -59,6 +59,7 @@ import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 import { DocumentViewingPage } from "../components/DocumentViewingPage/DocumentViewingPage";
 import { ShowArchivedToggle } from "./ShowArchivedToggle/ShowArchivedToggle";
 import { ViewFullLibraryButton } from "./ViewFullLibraryButton/ViewFullLibraryButton";
+import { ActiveFilterChips } from "./ActiveFilterChips/ActiveFilterChips";
 // Styles
 import styles from "./SPECTRA.module.scss";
 
@@ -538,6 +539,30 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       setDraftFilters((prev) => ({ ...prev, [field]: value }));
     },
     [],
+  );
+
+  const handleRemoveFilterValue = React.useCallback(
+    (field: keyof IFilterState, value: string) => {
+      const current = filters.filters[field] as string[];
+      const updated = current.filter((v) => v !== value);
+      filters.setFilter(field, updated as IFilterState[typeof field]);
+      documents.refetch();
+    },
+    [filters, documents],
+  );
+
+  const handleRemoveDateFilter = React.useCallback(
+    (type: "effective" | "upload") => {
+      if (type === "effective") {
+        filters.setFilter("effectiveDateFrom", null);
+        filters.setFilter("effectiveDateTo", null);
+      } else {
+        filters.setFilter("uploadDateFrom", null);
+        filters.setFilter("uploadDateTo", null);
+      }
+      documents.refetch();
+    },
+    [filters, documents],
   );
 
   // ── Document click → viewing page ───────────────────────────
@@ -1330,6 +1355,15 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 showExport={false}
               />
             </div>
+
+            {filters.activeFilterCount > 0 && (
+              <ActiveFilterChips
+                filters={filters.filters}
+                onRemoveValue={handleRemoveFilterValue}
+                onRemoveDateRange={handleRemoveDateFilter}
+                onClearAll={handleClearFiltersQuick}
+              />
+            )}
 
             {isFullLibraryView && (
               <div
