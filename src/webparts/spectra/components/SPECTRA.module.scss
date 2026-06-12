@@ -242,6 +242,53 @@
   color: var(--spectra-navy);
 }
 
+.parentHeaderHelpMenu {
+  position: relative;
+  display: inline-flex;
+}
+
+.parentHeaderHelpDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid #d0daf5;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.parentHeaderHelpDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-family: var(--spectra-font-body);
+  font-size: 14px;
+  color: var(--spectra-navy);
+  text-decoration: none;
+  transition: background-color var(--spectra-transition-fast);
+
+  &:hover,
+  &:focus-visible {
+    background: #f0f4ff;
+    outline: none;
+  }
+
+  & + & {
+    border-top: 1px solid #eaf0ff;
+  }
+}
+
+.parentHeaderHelpDropdownItemIcon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex-shrink: 0;
+}
+
 .parentHeaderAvatar {
   width: 34px;
   height: 34px;
@@ -2510,8 +2557,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spectra-sp-4) 0;
-  gap: var(--spectra-sp-3);
+  padding: var(--spectra-sp-4) 0 0;
+  gap: var(--spectra-sp-4);
   box-sizing: border-box;
 }
 
@@ -2526,46 +2573,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--spectra-sp-2);
+  width: 100%;
+  gap: 14px;
   background: var(--spectra-white);
-  border: 1px solid var(--spectra-border);
-  border-radius: 4px;
-  padding: 8px 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--spectra-border);
+  padding: 12px 16px;
+  box-sizing: border-box;
 }
 
 .viewerPageBtn {
-  background: var(--spectra-white);
-  border: 1px solid var(--spectra-border);
+  background: #f4f4f4;
+  border: 1px solid #d3d3d3;
   cursor: pointer;
   padding: 6px 12px;
-  color: var(--spectra-navy);
-  border-radius: 3px;
-  line-height: 1;
+  color: #1f1f1f;
+  border-radius: 4px;
+  line-height: 16px;
   display: inline-flex;
   align-items: center;
-  font-size: 13px;
-  font-weight: 600;
-  min-height: 32px;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 400;
+  font-family: "Segoe UI", sans-serif;
+  min-height: 36px;
+  min-width: 46px;
 
   &:hover:not(:disabled) {
-    background: var(--spectra-bg-hover);
+    background: #eaeaea;
   }
 
   &:disabled {
-    color: var(--spectra-text-placeholder);
-    background: #f3f3f3;
-    border-color: var(--spectra-border);
+    color: #8a8a8a;
+    background: #f8f8f8;
+    border-color: #dddddd;
     cursor: default;
   }
 }
 
 .viewerPageInfo {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--spectra-text-primary);
-  padding: 0 var(--spectra-sp-2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--spectra-navy);
+  padding: 0;
   user-select: none;
 }
 

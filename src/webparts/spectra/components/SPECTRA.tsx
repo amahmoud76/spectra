@@ -93,6 +93,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   enableVerboseStartupStatus,
   startupSplashCompletionDelayMs,
   initialDocumentId,
+  helpEmail,
+  helpGuideUrl,
 }) => {
   // ── Page state ──────────────────────────────────────────────
   const [page, setPage] = React.useState<PageState>("landing");
@@ -574,8 +576,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   // ── Back to results ─────────────────────────────────────────
   const handleBackToResults = React.useCallback(() => {
     setViewingDocument(null);
+    setHasResultsContext(true);
+    documents.refetch();
     setPage("results");
-  }, []);
+  }, [documents]);
 
   // ── Export CSV (Admin only) ────────────────────────────────
   const handleExport = React.useCallback(async () => {
@@ -1069,6 +1073,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           userEmail={userEmail}
           siteUrl={siteUrl}
           enableDevRoleSwitch={false}
+          helpEmail={helpEmail}
+          helpGuideUrl={helpGuideUrl}
           onRoleBadgeClick={() => undefined}
           onSpectraClick={() => undefined}
         />
@@ -1091,6 +1097,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           userEmail={userEmail}
           siteUrl={siteUrl}
           enableDevRoleSwitch={false}
+          helpEmail={helpEmail}
+          helpGuideUrl={helpGuideUrl}
           onRoleBadgeClick={() => undefined}
           onSpectraClick={() => undefined}
         />
@@ -1113,6 +1121,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           userEmail={userEmail}
           siteUrl={siteUrl}
           enableDevRoleSwitch={enableDevRoleSwitch}
+          helpEmail={helpEmail}
+          helpGuideUrl={helpGuideUrl}
           onRoleBadgeClick={() => undefined}
           onSpectraClick={() => {
             setDeepLinkError(false);
@@ -1149,6 +1159,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           userEmail={userEmail}
           siteUrl={siteUrl}
           enableDevRoleSwitch={auth.isDevRoleSwitchEnabled}
+          helpEmail={helpEmail}
+          helpGuideUrl={helpGuideUrl}
           onRoleBadgeClick={auth.cycleDevRole}
           onSpectraClick={handleLogoClick}
         />
