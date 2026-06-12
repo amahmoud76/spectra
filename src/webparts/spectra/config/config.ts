@@ -68,8 +68,10 @@ export const SEARCH_DEBOUNCE_MS = 300;
 // ─────────────────────────────────────────────────────────────────
 // FILE UPLOAD
 // ─────────────────────────────────────────────────────────────────
-export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 * 1024; // 5 GB
-export const MAX_FILE_SIZE_DISPLAY = "5 GB";
+// SharePoint REST API Files/add endpoint supports up to ~250 MB.
+// Files above this fail with HTTP 400 on upload.
+export const MAX_FILE_SIZE_BYTES = 250 * 1024 * 1024; // 250 MB
+export const MAX_FILE_SIZE_DISPLAY = "250 MB";
 
 export const ACCEPTED_FILE_EXTENSIONS = [".pdf", ".docx", ".pptx", ".xlsx"];
 export const ACCEPTED_FILE_TYPES = [

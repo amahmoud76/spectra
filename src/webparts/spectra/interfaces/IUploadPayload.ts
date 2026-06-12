@@ -31,4 +31,6 @@ export interface IUploadResult {
   isDuplicateIdentity?: boolean; // True if an identical Current document already exists
   existingDocumentId?: string; // ID of the existing Current document (if isDuplicateIdentity is true)
   existingFileName?: string; // Filename of existing document for display
+  isFileNameConflict?: boolean; // True when a file with the same generated name already exists
+  conflictFileName?: string; // The generated file name that conflicted
 }

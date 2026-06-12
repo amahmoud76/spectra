@@ -77,8 +77,8 @@ export const useAuth = (
   const autoRetryCountRef = useRef(0);
   const retryTimerRef = useRef<number | null>(null);
 
-  const MAX_AUTO_RETRIES = 2;
-  const RETRY_DELAY_MS = 5000;
+  const MAX_AUTO_RETRIES = 3;
+  const RETRY_DELAY_MS = 7500;
 
   const retryAuth = useCallback(() => {
     autoRetryCountRef.current = 0;

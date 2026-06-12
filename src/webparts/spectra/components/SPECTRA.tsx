@@ -630,6 +630,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           result.generatedFileName,
         );
         documents.refetch();
+      } else if (result.isFileNameConflict) {
+        notification.showError(result.message);
       } else {
         notification.showError(GENERIC_ERROR_MESSAGE);
       }
@@ -816,6 +818,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       );
       documents.refetch();
       if (page === "viewing") setPage("results");
+    } else if (result.isFileNameConflict) {
+      notification.showError(result.message);
     } else if (!result.isDuplicateIdentity) {
       notification.showError(GENERIC_ERROR_MESSAGE);
     }

@@ -82,7 +82,9 @@ export const useUpload = (
           currentStage = "Failed";
           setUploadProgress("Failed");
 
-          if (!result.isDuplicateIdentity) {
+          // Skip logging for expected user-correctable outcomes: duplicate identity
+          // (user sees a dialog) and file name conflict (user sees an actionable message).
+          if (!result.isDuplicateIdentity && !result.isFileNameConflict) {
             await captureAndLogError(result.message || "Upload failed", {
               component: "Upload Hook",
               errorType: "Upload Failure",
@@ -123,8 +125,16 @@ export const useUpload = (
 
         currentStage = "Failed";
         setUploadProgress("Failed");
-        const errorMessage =
+        const rawMessage =
           error instanceof Error ? error.message : String(error);
+        // The browser throws a NotReadableError/DOMException when the file handle
+        // is revoked after selection (e.g., user moved or deleted the file).
+        const isFileUnreadable =
+          /could not be read|NotReadableError|permission.*file|file.*permission/i.test(rawMessage) ||
+          (error instanceof DOMException && error.name === "NotReadableError");
+        const errorMessage = isFileUnreadable
+          ? "The file could not be read. Please re-select the file and try again."
+          : rawMessage;
 
         await captureAndLogError(errorMessage, {
           component: "Upload Hook",

@@ -476,7 +476,7 @@ export class DocumentService {
            // has the same name as the old one
            if (replaceUsingSameGeneratedName) {
              const archiveUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${archiveTargetId})`;
-             await this.context.spHttpClient.post(
+             const preArchiveResponse = await this.context.spHttpClient.post(
                archiveUrl,
                SPHttpClient.configurations.v1,
                {
@@ -488,6 +488,11 @@ export class DocumentService {
                  body: JSON.stringify({ SpectraStatus: "Archive" }),
                },
              );
+             if (!preArchiveResponse.ok) {
+               throw new Error(
+                 `Replace failed: could not archive the existing document before upload (status ${preArchiveResponse.status}). Please retry and contact support if the issue persists.`,
+               );
+             }
            }
          }
        }
@@ -516,14 +521,25 @@ export class DocumentService {
 
         if (isFileNameConflict) {
           if (replaceUsingSameGeneratedName) {
-            throw new Error(
-              `Replace failed while trying to overwrite existing file: ${generatedName}. Please retry and contact support if the issue persists.`,
-            );
+            return {
+              success: false,
+              isFileNameConflict: true,
+              conflictFileName: generatedName,
+              message: `Upload failed and no file was uploaded. Replace failed while trying to overwrite existing file: ${generatedName}. Please retry and contact support if the issue persists.`,
+            };
           }
 
+          return {
+            success: false,
+            isFileNameConflict: true,
+            conflictFileName: generatedName,
+            message: `Upload failed and no file was uploaded. A document with this generated file name already exists: ${generatedName}. Use Replace for versioned updates, or adjust metadata fields that affect naming.`,
+          };
+        }
+
+        if (uploadResponse.status === 400) {
           throw new Error(
-            `A document with this generated file name already exists: ${generatedName}. ` +
-              "Use Replace for versioned updates, or adjust metadata fields that affect naming.",
+            `File size exceeds the limit supported by SharePoint. Please reduce the file size below 250 MB and try again.`,
           );
         }
 
@@ -548,25 +564,38 @@ export class DocumentService {
       const itemId = itemData.Id;
 
       // Step 3: Update metadata + store original filename
+      // Retries on 409 (conflict), 429 (throttled), and 5xx (server errors)
+      // because SharePoint can return these transiently after a fresh file upload.
       options?.onMetadataSave?.();
       const metadata = this._buildMetadataPayload(payload);
       metadata.SpectraImmutableFileName = originalFileName;
       const updateUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${itemId})`;
 
-      const updateResponse = await this.context.spHttpClient.post(
-        updateUrl,
-        SPHttpClient.configurations.v1,
-        {
-          headers: {
-            "Content-Type": "application/json;odata=nometadata",
-            "IF-MATCH": "*",
-            "X-HTTP-Method": "MERGE",
+      const MAX_METADATA_RETRIES = 3;
+      let updateResponse: { ok: boolean; status: number } | undefined;
+      for (let attempt = 1; attempt <= MAX_METADATA_RETRIES; attempt++) {
+        updateResponse = await this.context.spHttpClient.post(
+          updateUrl,
+          SPHttpClient.configurations.v1,
+          {
+            headers: {
+              "Content-Type": "application/json;odata=nometadata",
+              "IF-MATCH": "*",
+              "X-HTTP-Method": "MERGE",
+            },
+            body: JSON.stringify(metadata),
           },
-          body: JSON.stringify(metadata),
-        },
-      );
-      if (!updateResponse.ok) {
-        throw new Error(`Metadata update failed: ${updateResponse.status}`);
+        );
+        if (updateResponse.ok) break;
+        const isRetryable =
+          updateResponse.status === 409 ||
+          updateResponse.status === 429 ||
+          updateResponse.status >= 500;
+        if (!isRetryable || attempt === MAX_METADATA_RETRIES) break;
+        await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
+      }
+      if (!updateResponse?.ok) {
+        throw new Error(`Metadata update failed: ${updateResponse?.status}`);
       }
 
       // Step 4: If archiveTargetId provided, archive that document (after upload succeeds)
