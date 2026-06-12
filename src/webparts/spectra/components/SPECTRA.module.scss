@@ -53,6 +53,7 @@
   --spectra-warning: #bb5a00;
   --spectra-status-active: #338700;
   --spectra-status-archived: #bb5a00;
+  --spectra-black: #000000;
 
   /* Typography */
   --spectra-font-heading: "F37 Lineca", "Segoe UI", sans-serif;
@@ -2558,7 +2559,7 @@
   flex-direction: column;
   align-items: center;
   padding: var(--spectra-sp-4) 0 0;
-  gap: var(--spectra-sp-4);
+  // gap: var(--spectra-sp-4);
   box-sizing: border-box;
 }
 
@@ -2575,37 +2576,37 @@
   justify-content: center;
   width: 100%;
   gap: 14px;
-  background: var(--spectra-white);
+  background: var(--spectra-black);
   border-top: 1px solid var(--spectra-border);
   padding: 12px 16px;
   box-sizing: border-box;
 }
 
 .viewerPageBtn {
-  background: #f4f4f4;
-  border: 1px solid #d3d3d3;
+  background: var(--spectra-black);
+  border: 0px;
   cursor: pointer;
   padding: 6px 12px;
-  color: #1f1f1f;
-  border-radius: 4px;
+  color: #e8e8e8;
+  border-radius: 0px;
   line-height: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 400;
   font-family: "Segoe UI", sans-serif;
   min-height: 36px;
   min-width: 46px;
 
   &:hover:not(:disabled) {
-    background: #eaeaea;
+    background: #3b3b3b;
   }
 
   &:disabled {
     color: #8a8a8a;
-    background: #f8f8f8;
-    border-color: #dddddd;
+    // background: #f8f8f8;
+    // border-color: #dddddd;
     cursor: default;
   }
 }
@@ -2615,7 +2616,7 @@
   line-height: 16px;
   font-weight: 400;
   font-family: "Segoe UI", sans-serif;
-  color: var(--spectra-navy);
+  color: var(--spectra-white);
   padding: 0;
   user-select: none;
 }
