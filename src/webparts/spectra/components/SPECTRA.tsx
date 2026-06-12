@@ -92,6 +92,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   enableStartupSplash,
   enableVerboseStartupStatus,
   startupSplashCompletionDelayMs,
+  splashVariant,
   initialDocumentId,
   helpEmail,
   helpGuideUrl,
@@ -135,6 +136,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     fromEditPanel: boolean;
   } | null>(null);
   const [isSplashFading, setIsSplashFading] = React.useState(false);
+  const [splashAnimDone, setSplashAnimDone] = React.useState(
+    splashVariant !== "elegant",
+  );
 
   // ── Deep-link state ─────────────────────────────────────────
   const [deepLinkLoading, setDeepLinkLoading] =
@@ -340,7 +344,12 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   React.useEffect(() => {
     if (!showStartupSplash) return;
 
-    if (!auth.isLoading && !metadata.isLoading && !headerConfig.isLoading) {
+    if (
+      !auth.isLoading &&
+      !metadata.isLoading &&
+      !headerConfig.isLoading &&
+      splashAnimDone
+    ) {
       setIsSplashFading(true);
       const hideTimer = window.setTimeout(() => {
         setShowStartupSplash(false);
@@ -354,6 +363,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     auth.isLoading,
     metadata.isLoading,
     headerConfig.isLoading,
+    splashAnimDone,
     startupSplashCompletionDelayMs,
   ]);
 
@@ -1057,6 +1067,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           statusLabel={startupProgress.label}
           progressPercent={startupProgress.percent}
           isFading={isSplashFading}
+          variant={splashVariant}
+          onAnimationComplete={() => setSplashAnimDone(true)}
         />
       </div>
     );

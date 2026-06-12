@@ -14,6 +14,7 @@ export interface IWebPartProps {
   enableStartupSplash: boolean; // Toggle first-load startup splash screen
   enableVerboseStartupStatus: boolean; // Toggle detailed startup stage text in splash
   startupSplashCompletionDelayMs: number; // Delay before hiding splash after ready
+  splashVariant: "classic" | "elegant"; // UI style of the startup splash screen
   helpEmail: string; // Support email value configurable from property pane
   helpGuideUrl: string; // Support guide URL configurable from property pane
   initialDocumentId?: number; // Deep-link: SP list item ID from ?spectraDoc= URL param

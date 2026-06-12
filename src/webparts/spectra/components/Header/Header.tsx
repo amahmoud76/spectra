@@ -30,10 +30,10 @@ export const Header: React.FC<IHeaderProps> = ({
         onKeyDown={(e) => {
           if (e.key === "Enter") onLogoClick();
         }}
-        aria-label="PEAKS home"
+        aria-label="SPECTRA home"
       >
         <div className={styles.headerLogoIcon}>a</div>
-        <span className={styles.headerLogoText}>PEAKS</span>
+        <span className={styles.headerLogoText}>SPECTRA</span>
       </div>
 
       <div className={styles.headerRight}>

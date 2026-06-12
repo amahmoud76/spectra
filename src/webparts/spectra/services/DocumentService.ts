@@ -360,7 +360,7 @@ export class DocumentService {
         id: `doc-${getTime(new Date())}`,
         fileName: generatedName,
         fileExtension: payload.file.name.split(".").pop() || "pdf",
-        fileUrl: `/sites/PEAKS/Documents/${generatedName}`,
+        fileUrl: `/sites/SPECTRA/Documents/${generatedName}`,
         fileSize: payload.file.size,
         createdBy: "Mock User",
         createdByEmail: "mock.user@abbvie.com",

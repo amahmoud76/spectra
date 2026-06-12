@@ -24,7 +24,7 @@ import {
   HELP_GUIDE_URL,
 } from "./config/config";
 
-export interface IPeaksWebPartProps {
+export interface ISPECTRAWebPartProps {
   title: string;
   pageSize: number;
   inactivityTimeoutMinutes: number;
@@ -35,11 +35,12 @@ export interface IPeaksWebPartProps {
   enableStartupSplash: boolean;
   enableVerboseStartupStatus: boolean;
   startupSplashCompletionDelayMs: number;
+  splashVariant: "classic" | "elegant";
   helpEmail: string;
   helpGuideUrl: string;
 }
 
-export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartProps> {
+export default class SPECTRAWebPart extends BaseClientSideWebPart<ISPECTRAWebPartProps> {
   protected onInit(): Promise<void> {
     initializeIcons();
     return super.onInit();
@@ -48,10 +49,6 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
   public render(): void {
     const urlParams = new URLSearchParams(window.location.search);
     const isSpectraDev = urlParams.get("spectraDev") === "1";
-    const spectraDocParam = urlParams.get("spectraDoc");
-    const initialDocumentId = spectraDocParam && /^\d+$/.test(spectraDocParam)
-      ? parseInt(spectraDocParam, 10)
-      : undefined;
 
     const props: IWebPartProps = {
       context: this.context,
@@ -71,9 +68,9 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
         this.properties.enableVerboseStartupStatus ?? true,
       startupSplashCompletionDelayMs:
         this.properties.startupSplashCompletionDelayMs ?? 700,
+      splashVariant: this.properties.splashVariant || "elegant",
       helpEmail: this.properties.helpEmail || HELP_EMAIL,
       helpGuideUrl: this.properties.helpGuideUrl || HELP_GUIDE_URL,
-      initialDocumentId,
     };
 
     ReactDom.render(React.createElement(SPECTRA, props), this.domElement);
@@ -156,6 +153,14 @@ export default class PeaksWebPart extends BaseClientSideWebPart<IPeaksWebPartPro
                   onText: "On",
                   offText: "Off",
                   checked: true,
+                }),
+                PropertyPaneDropdown("splashVariant", {
+                  label: "Splash Screen Style",
+                  selectedKey: "elegant",
+                  options: [
+                    { key: "elegant", text: "Elegant (full-screen)" },
+                    { key: "classic", text: "Classic (card)" },
+                  ],
                 }),
                 PropertyPaneToggle("enableVerboseStartupStatus", {
                   label: "Show Detailed Startup Status",
