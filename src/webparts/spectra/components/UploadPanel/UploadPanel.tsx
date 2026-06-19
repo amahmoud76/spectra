@@ -17,6 +17,7 @@ import {
   ADMIN_ONLY_DOC_TYPES,
   COMMENTS_MAX_LENGTH,
   ACCEPTED_FILE_DISPLAY,
+  DOCUMENT_TYPE_FULL_NAMES,
 } from "../../config/config";
 import {
   FIELD_NAMES,
@@ -456,9 +457,19 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     },
   );
 
-  // Sibling-safe Indication cascade: TA/Asset only.
-  // Selecting a PAID should not auto-remove already selected indications.
-  const cascadeForIndicationsStructural = getCascadedOptionsMulti(
+  // Indication cascade: TA + Asset + PAID (excludes Indication to avoid self-filtering).
+  // Includes PAID so that selecting a PAID properly narrows the Indication list.
+  const cascadeForIndicationsFull = getCascadedOptionsMulti(
+    options.projectPaidRelationships,
+    {
+      selectedTAs: therapeuticArea,
+      selectedAssets: asset,
+      selectedPaids: paid,
+    },
+  );
+
+  // Structural PAID cascade: TA/Asset only (unchanged — PAID pruning stays conservative).
+  const cascadeForPaidsStructural = getCascadedOptionsMulti(
     options.projectPaidRelationships,
     {
       selectedTAs: therapeuticArea,
@@ -466,13 +477,14 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     },
   );
 
-  // Sibling-safe PAID cascade: TA/Asset only.
-  // Selecting an indication should not auto-remove already selected PAIDs.
-  const cascadeForPaidsStructural = getCascadedOptionsMulti(
+  // Disease Area cascade: TA + Asset + Indication + PAID (excludes Disease Area to avoid self-filtering)
+  const cascadeForDiseaseAreas = getCascadedOptionsMulti(
     options.projectPaidRelationships,
     {
       selectedTAs: therapeuticArea,
       selectedAssets: asset,
+      selectedIndications: indication,
+      selectedPaids: paid,
     },
   );
 
@@ -502,14 +514,21 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
       .filter((value, index, values) => values.indexOf(value) === index);
   }, [options.subTherapeuticAreas, selectedTherapeuticArea]);
 
-  const filteredDiseaseAreaStrategies = React.useMemo(
-    () =>
-      getDiseaseAreaStrategiesForTherapeuticArea(
-        options.diseaseAreaStrategyRelationships,
-        selectedTherapeuticArea,
-      ),
-    [options.diseaseAreaStrategyRelationships, selectedTherapeuticArea],
-  );
+  const filteredDiseaseAreaStrategies = React.useMemo(() => {
+    const fromTA = getDiseaseAreaStrategiesForTherapeuticArea(
+      options.diseaseAreaStrategyRelationships,
+      selectedTherapeuticArea,
+    );
+    const fromPaidRels = cascadeForDiseaseAreas.availableDiseaseAreas;
+    if (fromPaidRels.length === 0) return fromTA;
+    if (fromTA.length === 0) return fromPaidRels;
+    const paidSet = new Set(fromPaidRels);
+    return fromTA.filter((v) => paidSet.has(v));
+  }, [
+    options.diseaseAreaStrategyRelationships,
+    selectedTherapeuticArea,
+    cascadeForDiseaseAreas.availableDiseaseAreas,
+  ]);
 
   const focusAfterTopError = React.useCallback(() => {
     window.setTimeout(() => {
@@ -582,7 +601,11 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
         setSubTherapeuticArea([]);
       }
     }
-  }, [fieldVisibility.subTherapeuticArea, subTherapeuticArea, filteredSubTherapeuticAreas]);
+  }, [
+    fieldVisibility.subTherapeuticArea,
+    subTherapeuticArea,
+    filteredSubTherapeuticAreas,
+  ]);
 
   // Prune Disease Area if current selection is no longer valid for selected TA
   React.useEffect(() => {
@@ -596,21 +619,22 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     }
   }, [fieldVisibility.diseaseArea, diseaseArea, filteredDiseaseAreaStrategies]);
 
-  // Prune Indication if current selection is no longer valid for cascade (TA/Asset/PAID)
+  // Prune Indication when it is no longer valid for the current TA/Asset/PAID combination
   React.useEffect(() => {
     if (fieldVisibility.indication && indication.length > 0) {
-      const validIndications = keepCascadeOverlap(
-        indication,
-        cascadeForIndicationsStructural.availableIndications,
-      );
-      if (validIndications.length !== indication.length) {
-        // Preserve sibling behavior: keep overlap and avoid wiping all selections.
-        if (validIndications.length > 0) {
+      const cascade = cascadeForIndicationsFull.availableIndications;
+      if (cascade.length > 0) {
+        const validIndications = indication.filter((v) => cascade.includes(v));
+        if (validIndications.length !== indication.length) {
           setIndication(validIndications);
         }
       }
     }
-  }, [fieldVisibility.indication, indication, cascadeForIndicationsStructural.availableIndications]);
+  }, [
+    fieldVisibility.indication,
+    indication,
+    cascadeForIndicationsFull.availableIndications,
+  ]);
 
   // Prune Asset if current selection is no longer valid for cascade (TA/Indication/PAID)
   React.useEffect(() => {
@@ -665,7 +689,102 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     ) {
       setLineOfTherapy([availableLoTs[0]]);
     }
-  }, [indication, cascadeForPaids.availableSubTherapeuticAreas, cascadeForPaids.availableLineOfTherapies, fieldVisibility.subTherapeuticArea, fieldVisibility.lineOfTherapy, subTherapeuticArea, lineOfTherapy]);
+  }, [
+    indication,
+    cascadeForPaids.availableSubTherapeuticAreas,
+    cascadeForPaids.availableLineOfTherapies,
+    fieldVisibility.subTherapeuticArea,
+    fieldVisibility.lineOfTherapy,
+    subTherapeuticArea,
+    lineOfTherapy,
+  ]);
+
+  // Per-field refs: store the cascade options at the time each field was last empty.
+  // Auto-select only fires when those options have CHANGED (meaning a parent field changed).
+  // If the user manually clears a child, the cascade is unchanged → refs match → no re-select.
+  const assetCascadeRef = React.useRef<string[]>([]);
+  const indicationCascadeRef = React.useRef<string[]>([]);
+  const paidCascadeRef = React.useRef<string[]>([]);
+  const dasCascadeRef = React.useRef<string[]>([]);
+
+  React.useEffect(() => {
+    const cascade = cascadeForAssets.availableAssets;
+    if (asset.length === 0) {
+      if (
+        fieldVisibility.asset &&
+        cascade.join(",") !== assetCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setAsset([cascade[0]]);
+      }
+      assetCascadeRef.current = cascade;
+    }
+  }, [fieldVisibility.asset, cascadeForAssets.availableAssets, asset]);
+
+  React.useEffect(() => {
+    const cascade = cascadeForIndicationsFull.availableIndications;
+    if (indication.length === 0) {
+      if (
+        fieldVisibility.indication &&
+        cascade.join(",") !== indicationCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setIndication([cascade[0]]);
+      }
+      indicationCascadeRef.current = cascade;
+    }
+  }, [
+    fieldVisibility.indication,
+    cascadeForIndicationsFull.availableIndications,
+    indication,
+  ]);
+
+  React.useEffect(() => {
+    const cascade = cascadeForPaidsStructural.availablePaids;
+    if (paid.length === 0) {
+      if (
+        fieldVisibility.paid &&
+        cascade.join(",") !== paidCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setPaid([cascade[0]]);
+      }
+      paidCascadeRef.current = cascade;
+    }
+  }, [fieldVisibility.paid, cascadeForPaidsStructural.availablePaids, paid]);
+
+  React.useEffect(() => {
+    const cascade = filteredDiseaseAreaStrategies;
+    if (diseaseArea.length === 0) {
+      if (
+        fieldVisibility.diseaseArea &&
+        cascade.join(",") !== dasCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setDiseaseArea([cascade[0]]);
+      }
+      dasCascadeRef.current = cascade;
+    }
+  }, [fieldVisibility.diseaseArea, filteredDiseaseAreaStrategies, diseaseArea]);
+
+  const taCascadeRef = React.useRef<string[]>([]);
+  React.useEffect(() => {
+    const cascade = cascadeForTAs.availableTAs;
+    if (therapeuticArea.length === 0) {
+      if (
+        !shouldLockContributorTaAndAsset &&
+        cascade.join(",") !== taCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setTherapeuticArea([cascade[0]]);
+      }
+      taCascadeRef.current = cascade;
+    }
+  }, [
+    cascadeForTAs.availableTAs,
+    therapeuticArea,
+    shouldLockContributorTaAndAsset,
+  ]);
 
   // ── File handling ─────────────────────────────────────────
   const handleFileSelect = React.useCallback((selectedFile: File) => {
@@ -720,8 +839,8 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     };
 
     const validIndications =
-      cascadeForIndicationsStructural.availableIndications.length > 0
-        ? cascadeForIndicationsStructural.availableIndications
+      cascadeForIndicationsFull.availableIndications.length > 0
+        ? cascadeForIndicationsFull.availableIndications
         : allIndications;
     const validAssets =
       cascadeForAssets.availableAssets.length > 0
@@ -764,7 +883,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
       nextErrors.indication = buildInvalidSelectionMessage(
         "Indication",
         invalidIndications,
-        ["Therapeutic Area", "Asset"],
+        ["Therapeutic Area", "Asset", "PAID"],
       );
     }
 
@@ -798,7 +917,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     indication,
     asset,
     paid,
-    cascadeForIndicationsStructural.availableIndications,
+    cascadeForIndicationsFull.availableIndications,
     cascadeForAssets.availableAssets,
     cascadeForPaidsStructural.availablePaids,
     allIndications,
@@ -909,18 +1028,40 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
       values: string[];
       fieldName: string;
     }> = [
-      { label: "Therapeutic Area", values: therapeuticArea, fieldName: FIELD_NAMES.THERAPEUTIC_AREA },
-      { label: "Sub-Therapeutic Area", values: subTherapeuticArea, fieldName: FIELD_NAMES.SUB_THERAPEUTIC_AREA },
+      {
+        label: "Therapeutic Area",
+        values: therapeuticArea,
+        fieldName: FIELD_NAMES.THERAPEUTIC_AREA,
+      },
+      {
+        label: "Sub-Therapeutic Area",
+        values: subTherapeuticArea,
+        fieldName: FIELD_NAMES.SUB_THERAPEUTIC_AREA,
+      },
       { label: "Asset", values: asset, fieldName: FIELD_NAMES.ASSET },
-      { label: "Indication", values: indication, fieldName: FIELD_NAMES.INDICATION },
-      { label: "Line of Therapy", values: lineOfTherapy, fieldName: FIELD_NAMES.LINE_OF_THERAPY },
+      {
+        label: "Indication",
+        values: indication,
+        fieldName: FIELD_NAMES.INDICATION,
+      },
+      {
+        label: "Line of Therapy",
+        values: lineOfTherapy,
+        fieldName: FIELD_NAMES.LINE_OF_THERAPY,
+      },
       { label: "PAID", values: paid, fieldName: FIELD_NAMES.PAID },
-      { label: "Disease Area", values: diseaseArea, fieldName: FIELD_NAMES.DISEASE_AREA },
+      {
+        label: "Disease Area",
+        values: diseaseArea,
+        fieldName: FIELD_NAMES.DISEASE_AREA,
+      },
     ];
 
     fieldChecks.forEach(({ label, values, fieldName }) => {
-      if (!isFieldVisible(fieldName, documentType, selectedTherapeuticArea)) return;
-      if (isFieldMultiSelect(fieldName, documentType, selectedTherapeuticArea)) return;
+      if (!isFieldVisible(fieldName, documentType, selectedTherapeuticArea))
+        return;
+      if (isFieldMultiSelect(fieldName, documentType, selectedTherapeuticArea))
+        return;
       if (values.length > 1) {
         violations.push(
           `${label} is single-select for ${documentType}, but ${values.length} values were selected. Please select only one ${label}.`,
@@ -1009,7 +1150,10 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
         comments,
         searchTokens: [],
       };
-      return generateFileName(payload, payload.file.name.split(".").pop() || "pdf");
+      return generateFileName(
+        payload,
+        payload.file.name.split(".").pop() || "pdf",
+      );
     } catch {
       return "";
     }
@@ -1139,6 +1283,15 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   // ── Helpers ───────────────────────────────────────────────
   const toOpts = (values: string[]): IDropdownOption[] =>
     values.map((v) => ({ key: v, text: v }));
+
+  const toDocTypeOpts = (values: string[]): IDropdownOption[] =>
+    values.map((v) => ({
+      key: v,
+      text: v,
+      title: DOCUMENT_TYPE_FULL_NAMES[v]
+        ? `${v} – ${DOCUMENT_TYPE_FULL_NAMES[v]}`
+        : v,
+    }));
 
   // ── Calendar day styles for blue selected/today state ────
   const calendarDayStyles = {
@@ -1275,7 +1428,13 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
             <div className={styles.dropZoneFile}>
               <span>
                 {file.name}
-                <span style={{ color: "var(--spectra-text-secondary)", marginLeft: 6, fontWeight: 400 }}>
+                <span
+                  style={{
+                    color: "var(--spectra-text-secondary)",
+                    marginLeft: 6,
+                    fontWeight: 400,
+                  }}
+                >
                   ({formatFileSize(file.size)})
                 </span>
               </span>
@@ -1352,7 +1511,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
               ariaLabel="Document Type"
               required
               disabled={shouldLockContributorDocType}
-              options={toOpts(availableDocTypes)}
+              options={toDocTypeOpts(availableDocTypes)}
               selectedKey={documentType || undefined}
               onChange={(_, item) =>
                 setDocumentType(item ? (item.key as string) : "")
@@ -1464,9 +1623,8 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                   label="Indication"
                   required={fieldRequirements.indication}
                   options={
-                    cascadeForIndicationsStructural.availableIndications
-                      .length > 0
-                      ? cascadeForIndicationsStructural.availableIndications
+                    cascadeForIndicationsFull.availableIndications.length > 0
+                      ? cascadeForIndicationsFull.availableIndications
                       : toValueArray(options.indications)
                   }
                   selectedKeys={indication}
@@ -1577,7 +1735,13 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                       }
                     />
                   </div>
-                  <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#6b7280",
+                      marginTop: "4px",
+                    }}
+                  >
                     The date the document was aligned at TASC/AST.
                   </div>
                 </div>
@@ -1658,17 +1822,37 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                       src={require("../../assets/icons/check.svg")}
                       alt=""
                       aria-hidden="true"
-                      style={{ width: "14px", height: "14px", display: "inline-block" }}
+                      style={{
+                        width: "14px",
+                        height: "14px",
+                        display: "inline-block",
+                      }}
                     />{" "}
                     Upload complete
                   </>
                 ) : uploadProgress === "Failed" ? (
                   <>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
-                      style={{ display: "inline-block", flexShrink: 0 }}>
-                      <circle cx="7" cy="7" r="6" stroke="#dc2626" strokeWidth="1.5" />
-                      <path d="M4.5 4.5L9.5 9.5M9.5 4.5L4.5 9.5" stroke="#dc2626"
-                        strokeWidth="1.5" strokeLinecap="round" />
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      aria-hidden="true"
+                      style={{ display: "inline-block", flexShrink: 0 }}
+                    >
+                      <circle
+                        cx="7"
+                        cy="7"
+                        r="6"
+                        stroke="#dc2626"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M4.5 4.5L9.5 9.5M9.5 4.5L4.5 9.5"
+                        stroke="#dc2626"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
                     </svg>{" "}
                     Upload failed
                   </>
@@ -1676,8 +1860,18 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                   <span>
                     Uploading file
                     {file && (
-                      <span style={{ color: "var(--spectra-text-secondary)", fontWeight: 400 }}>
-                        {" "}— {formatFileSize(Math.round(file.size * uploadPercent / 100))} of {formatFileSize(file.size)}
+                      <span
+                        style={{
+                          color: "var(--spectra-text-secondary)",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {" "}
+                        —{" "}
+                        {formatFileSize(
+                          Math.round((file.size * uploadPercent) / 100),
+                        )}{" "}
+                        of {formatFileSize(file.size)}
                       </span>
                     )}
                     <span style={{ marginLeft: 6 }}>{uploadPercent}%</span>
@@ -1718,7 +1912,10 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                             : uploadProgress === "Finalizing"
                               ? "95%"
                               : "100%",
-                    transition: uploadProgress === "UploadingFile" ? "width 0.1s linear" : "width 0.3s ease",
+                    transition:
+                      uploadProgress === "UploadingFile"
+                        ? "width 0.1s linear"
+                        : "width 0.3s ease",
                   }}
                 />
               </div>
@@ -1735,7 +1932,9 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
             {isUploading ? (
               <button
                 className={styles.btnSecondary}
-                onClick={() => { cancelUpload?.(); }}
+                onClick={() => {
+                  cancelUpload?.();
+                }}
                 aria-label="Cancel upload"
               >
                 Cancel Upload
@@ -1764,7 +1963,12 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                   <img
                     src={require("../../assets/icons/submit.svg")}
                     alt=""
-                    style={{ width: "16px", height: "16px", display: "inline-block", marginRight: "6px" }}
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      display: "inline-block",
+                      marginRight: "6px",
+                    }}
                     aria-hidden="true"
                   />
                   Submit

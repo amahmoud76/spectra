@@ -5,7 +5,6 @@ export interface IWebPartProps {
   pageSize: number; // Documents per page — configured in property pane
   title: string; // Web part title from property pane
   userEmail: string; // From context.pageContext.user.email
-  enableDevRoleSwitch: boolean; // Runtime dev flag to enable role override UI
   documentLibrary: string; // Target document library — configured in property pane
   inactivityTimeoutMinutes: number; // Session lock timeout after inactivity
   useMock: boolean; // Runtime mode toggle: mock/demo vs live SharePoint

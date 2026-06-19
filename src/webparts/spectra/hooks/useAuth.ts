@@ -47,7 +47,6 @@ const deriveEffectiveRole = (roles: ApiRole[]): EffectiveRole => {
 export const useAuth = (
   context: WebPartContext,
   userEmail: string,
-  enableDevRoleSwitch: boolean,
   useMock: boolean,
   useAdGroups: boolean,
   mockRole: EffectiveRole,
@@ -87,32 +86,35 @@ export const useAuth = (
 
   const logAuthFailure = useCallback(
     (message: string, error?: unknown): void => {
-      void captureAndLogError(error instanceof Error ? error : new Error(message), {
-        component: "useAuth",
-        errorType: "Auth Verification Failure",
-        featureFunction: "useAuth",
-        userEmail,
-        userRole: "viewer",
-        userAction: "Auth lookup",
-        additionalContext: {
-          message,
-          userEmail: userEmail.trim().toLowerCase(),
-          useMock,
-          useAdGroups,
-          mockRole,
-          authRefreshToken,
+      void captureAndLogError(
+        error instanceof Error ? error : new Error(message),
+        {
+          component: "useAuth",
+          errorType: "Auth Verification Failure",
+          featureFunction: "useAuth",
+          userEmail,
+          userRole: "viewer",
+          userAction: "Auth lookup",
+          additionalContext: {
+            message,
+            userEmail: userEmail.trim().toLowerCase(),
+            useMock,
+            useAdGroups,
+            mockRole,
+            authRefreshToken,
+          },
         },
-      }).catch(() => undefined);
+      ).catch(() => undefined);
     },
     [authRefreshToken, mockRole, useAdGroups, useMock, userEmail],
   );
 
   useEffect(() => {
-    if (!enableDevRoleSwitch) {
+    if (state.isLoading) return;
+    if (state.effectiveRole !== "admin") {
       setDevOverrideRole(undefined);
       return;
     }
-
     try {
       const stored = parseStoredRole(
         localStorage.getItem(DEV_ROLE_OVERRIDE_KEY) || undefined,
@@ -121,13 +123,17 @@ export const useAuth = (
     } catch {
       setDevOverrideRole(undefined);
     }
-  }, [enableDevRoleSwitch]);
+  }, [state.isLoading, state.effectiveRole]);
 
   useEffect(() => {
     if (!userEmail) return;
 
     const fetchAuth = async (): Promise<void> => {
-      setState((previous) => ({ ...previous, isLoading: true, isError: false }));
+      setState((previous) => ({
+        ...previous,
+        isLoading: true,
+        isError: false,
+      }));
       setStartupStage("authenticating");
       logAuth("useAuth fetch started", {
         userEmail: userEmail.trim().toLowerCase(),
@@ -172,14 +178,20 @@ export const useAuth = (
         setStartupStage("ready");
 
         if (!response.authVerified) {
-          logAuth("Auth verification failed; refusing to cache fallback result", {
-            roles: response.roles,
-            derivedRole,
-          });
-          logAuthFailure("Auth verification failed; returned fallback viewer state", {
-            roles: response.roles,
-            derivedRole,
-          });
+          logAuth(
+            "Auth verification failed; refusing to cache fallback result",
+            {
+              roles: response.roles,
+              derivedRole,
+            },
+          );
+          logAuthFailure(
+            "Auth verification failed; returned fallback viewer state",
+            {
+              roles: response.roles,
+              derivedRole,
+            },
+          );
           setState({
             effectiveRole: "viewer" as EffectiveRole,
             assets: response.assets,
@@ -226,7 +238,9 @@ export const useAuth = (
         }
 
         autoRetryCountRef.current = 0;
-        logAuth("Auth fetch failed after all retries; falling back to viewer", { error });
+        logAuth("Auth fetch failed after all retries; falling back to viewer", {
+          error,
+        });
         logAuthFailure("Auth fetch failed after retries", error);
         setStartupStage("ready");
         setState((prev) => ({
@@ -246,25 +260,32 @@ export const useAuth = (
         retryTimerRef.current = null;
       }
     };
-  }, [context, userEmail, useMock, useAdGroups, mockRole, logAuth, authRefreshToken]);
+  }, [
+    context,
+    userEmail,
+    useMock,
+    useAdGroups,
+    mockRole,
+    logAuth,
+    authRefreshToken,
+  ]);
 
   useEffect(() => {
     if (state.isLoading) return;
 
+    const isAdminSwitch = state.effectiveRole === "admin";
     const finalRole =
-      enableDevRoleSwitch && devOverrideRole
-        ? devOverrideRole
-        : state.effectiveRole;
+      isAdminSwitch && devOverrideRole ? devOverrideRole : state.effectiveRole;
 
     logAuth("Final role resolved", {
       derivedRole: state.effectiveRole,
       devOverrideRole: devOverrideRole ?? null,
       finalRole,
     });
-  }, [state.isLoading, state.effectiveRole, devOverrideRole, enableDevRoleSwitch, logAuth]);
+  }, [state.isLoading, state.effectiveRole, devOverrideRole, logAuth]);
 
   const cycleDevRole = useCallback(() => {
-    if (!enableDevRoleSwitch) return;
+    if (state.effectiveRole !== "admin") return;
 
     setDevOverrideRole((previousRole) => {
       const baseRole = previousRole ?? state.effectiveRole;
@@ -277,14 +298,14 @@ export const useAuth = (
       }
 
       if (AUTH_DEBUG_LOGS) {
-        console.info(`SPECTRA dev role override active: ${nextRole}`);
+        console.info(`SPECTRA role preview active: ${nextRole}`);
       }
       return nextRole;
     });
-  }, [enableDevRoleSwitch, state.effectiveRole]);
+  }, [state.effectiveRole]);
 
   const clearDevRoleOverride = useCallback(() => {
-    if (!enableDevRoleSwitch) return;
+    if (state.effectiveRole !== "admin") return;
 
     try {
       localStorage.removeItem(DEV_ROLE_OVERRIDE_KEY);
@@ -293,17 +314,19 @@ export const useAuth = (
     }
 
     setDevOverrideRole(undefined);
-  }, [enableDevRoleSwitch]);
+  }, [state.effectiveRole]);
+
+  const isAdminRoleSwitch = state.effectiveRole === "admin" && !state.isLoading;
 
   return {
     ...state,
     startupStage,
     effectiveRole:
-      enableDevRoleSwitch && devOverrideRole
+      isAdminRoleSwitch && devOverrideRole
         ? devOverrideRole
         : state.effectiveRole,
     devOverrideRole,
-    isDevRoleSwitchEnabled: enableDevRoleSwitch,
+    isDevRoleSwitchEnabled: isAdminRoleSwitch,
     cycleDevRole,
     clearDevRoleOverride,
     retryAuth,

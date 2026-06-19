@@ -10,7 +10,10 @@ import {
   getCascadedOptionsMulti,
 } from "../../utils/cascadingFilterHelper";
 import { buildDocumentSearchTokens } from "../../utils/searchTokenHelper";
-import { COMMENTS_MAX_LENGTH } from "../../config/config";
+import {
+  COMMENTS_MAX_LENGTH,
+  DOCUMENT_TYPE_FULL_NAMES,
+} from "../../config/config";
 import {
   FIELD_NAMES,
   isFieldVisible,
@@ -341,14 +344,39 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
 
   // ── Cascade option computations (for pruning use) ──────────
 
-  const filteredDiseaseAreaStrategies = React.useMemo(
+  // Disease Area cascade: TA + Asset + Indication + PAID (excludes Disease Area to avoid self-filtering)
+  const cascadeForDiseaseAreas = React.useMemo(
     () =>
-      getDiseaseAreaStrategiesForTherapeuticArea(
-        options.diseaseAreaStrategyRelationships,
-        selectedTherapeuticArea || undefined,
-      ),
-    [options.diseaseAreaStrategyRelationships, selectedTherapeuticArea],
+      getCascadedOptionsMulti(options.projectPaidRelationships, {
+        selectedTAs: therapeuticArea,
+        selectedAssets: asset,
+        selectedIndications: indication,
+        selectedPaids: paid,
+      }),
+    [
+      options.projectPaidRelationships,
+      therapeuticArea,
+      asset,
+      indication,
+      paid,
+    ],
   );
+
+  const filteredDiseaseAreaStrategies = React.useMemo(() => {
+    const fromTA = getDiseaseAreaStrategiesForTherapeuticArea(
+      options.diseaseAreaStrategyRelationships,
+      selectedTherapeuticArea || undefined,
+    );
+    const fromPaidRels = cascadeForDiseaseAreas.availableDiseaseAreas;
+    if (fromPaidRels.length === 0) return fromTA;
+    if (fromTA.length === 0) return fromPaidRels;
+    const paidSet = new Set(fromPaidRels);
+    return fromTA.filter((v) => paidSet.has(v));
+  }, [
+    options.diseaseAreaStrategyRelationships,
+    selectedTherapeuticArea,
+    cascadeForDiseaseAreas,
+  ]);
 
   const filteredSubTherapeuticAreas = React.useMemo(() => {
     if (!selectedTherapeuticArea) {
@@ -398,19 +426,30 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
     [options.projectPaidRelationships, therapeuticArea, asset, indication],
   );
 
-  // Sibling-safe Indication cascade: TA/Asset only.
-  // Selecting a PAID should not auto-remove already selected indications.
-  const cascadeForIndicationsStructural = React.useMemo(
+  // Indication cascade: TA + Asset + PAID (excludes Indication to avoid self-filtering).
+  // Includes PAID so that selecting a PAID properly narrows the Indication list.
+  const cascadeForIndicationsFull = React.useMemo(
     () =>
       getCascadedOptionsMulti(options.projectPaidRelationships, {
         selectedTAs: therapeuticArea,
         selectedAssets: asset,
+        selectedPaids: paid,
       }),
-    [options.projectPaidRelationships, therapeuticArea, asset],
+    [options.projectPaidRelationships, therapeuticArea, asset, paid],
   );
 
-  // Sibling-safe PAID cascade: TA/Asset only.
-  // Selecting an indication should not auto-remove already selected PAIDs.
+  // Cascade for TA options — filter by Asset, Indication, PAID (NOT TA)
+  const cascadeForTAs = React.useMemo(
+    () =>
+      getCascadedOptionsMulti(options.projectPaidRelationships, {
+        selectedAssets: asset,
+        selectedIndications: indication,
+        selectedPaids: paid,
+      }),
+    [options.projectPaidRelationships, asset, indication, paid],
+  );
+
+  // Structural PAID cascade: TA/Asset only (unchanged — PAID pruning stays conservative).
   const cascadeForPaidsStructural = React.useMemo(
     () =>
       getCascadedOptionsMulti(options.projectPaidRelationships, {
@@ -437,7 +476,11 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
         setSubTherapeuticArea([]);
       }
     }
-  }, [fieldVisibility.subTherapeuticArea, subTherapeuticArea, filteredSubTherapeuticAreas]);
+  }, [
+    fieldVisibility.subTherapeuticArea,
+    subTherapeuticArea,
+    filteredSubTherapeuticAreas,
+  ]);
 
   // Prune Disease Area if current selection is no longer valid for selected TA
   React.useEffect(() => {
@@ -451,21 +494,22 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
     }
   }, [fieldVisibility.diseaseArea, diseaseArea, filteredDiseaseAreaStrategies]);
 
-  // Prune Indication if current selection is no longer valid for cascade (TA/Asset/PAID)
+  // Prune Indication when it is no longer valid for the current TA/Asset/PAID combination
   React.useEffect(() => {
     if (fieldVisibility.indication && indication.length > 0) {
-      const validIndications = keepCascadeOverlap(
-        indication,
-        cascadeForIndicationsStructural.availableIndications,
-      );
-      if (validIndications.length !== indication.length) {
-        // Preserve sibling behavior: keep overlap and avoid wiping all selections.
-        if (validIndications.length > 0) {
+      const cascade = cascadeForIndicationsFull.availableIndications;
+      if (cascade.length > 0) {
+        const validIndications = indication.filter((v) => cascade.includes(v));
+        if (validIndications.length !== indication.length) {
           setIndication(validIndications);
         }
       }
     }
-  }, [fieldVisibility.indication, indication, cascadeForIndicationsStructural.availableIndications]);
+  }, [
+    fieldVisibility.indication,
+    indication,
+    cascadeForIndicationsFull.availableIndications,
+  ]);
 
   // Prune Asset if current selection is no longer valid for cascade (TA/Indication/PAID)
   React.useEffect(() => {
@@ -520,7 +564,100 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
     ) {
       setLineOfTherapy([availableLoTs[0]]);
     }
-  }, [indication, cascadeForPaids.availableSubTherapeuticAreas, cascadeForPaids.availableLineOfTherapies, fieldVisibility.subTherapeuticArea, fieldVisibility.lineOfTherapy, subTherapeuticArea, lineOfTherapy]);
+  }, [
+    indication,
+    cascadeForPaids.availableSubTherapeuticAreas,
+    cascadeForPaids.availableLineOfTherapies,
+    fieldVisibility.subTherapeuticArea,
+    fieldVisibility.lineOfTherapy,
+    subTherapeuticArea,
+    lineOfTherapy,
+  ]);
+
+  // Auto-select Asset, Indication, and PAID when the cascade narrows each to exactly one option.
+  // Uses the same structural cascade sources as the dropdowns themselves so the auto-selected value
+  // is always drawn from the same list the user would see.
+  // Per-field refs: store the cascade options at the time each field was last empty.
+  // Auto-select only fires when those options have CHANGED (meaning a parent field changed).
+  // If the user manually clears a child, the cascade is unchanged → refs match → no re-select.
+  const assetCascadeRef = React.useRef<string[]>([]);
+  const indicationCascadeRef = React.useRef<string[]>([]);
+  const paidCascadeRef = React.useRef<string[]>([]);
+  const dasCascadeRef = React.useRef<string[]>([]);
+
+  React.useEffect(() => {
+    const cascade = cascadeForAssets.availableAssets;
+    if (asset.length === 0) {
+      if (
+        fieldVisibility.asset &&
+        cascade.join(",") !== assetCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setAsset([cascade[0]]);
+      }
+      assetCascadeRef.current = cascade;
+    }
+  }, [fieldVisibility.asset, cascadeForAssets.availableAssets, asset]);
+
+  React.useEffect(() => {
+    const cascade = cascadeForIndicationsFull.availableIndications;
+    if (indication.length === 0) {
+      if (
+        fieldVisibility.indication &&
+        cascade.join(",") !== indicationCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setIndication([cascade[0]]);
+      }
+      indicationCascadeRef.current = cascade;
+    }
+  }, [
+    fieldVisibility.indication,
+    cascadeForIndicationsFull.availableIndications,
+    indication,
+  ]);
+
+  const taCascadeRef = React.useRef<string[]>([]);
+  React.useEffect(() => {
+    const cascade = cascadeForTAs.availableTAs;
+    if (therapeuticArea.length === 0) {
+      if (
+        cascade.join(",") !== taCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setTherapeuticArea([cascade[0]]);
+      }
+      taCascadeRef.current = cascade;
+    }
+  }, [cascadeForTAs.availableTAs, therapeuticArea]);
+
+  React.useEffect(() => {
+    const cascade = cascadeForPaidsStructural.availablePaids;
+    if (paid.length === 0) {
+      if (
+        fieldVisibility.paid &&
+        cascade.join(",") !== paidCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setPaid([cascade[0]]);
+      }
+      paidCascadeRef.current = cascade;
+    }
+  }, [fieldVisibility.paid, cascadeForPaidsStructural.availablePaids, paid]);
+
+  React.useEffect(() => {
+    const cascade = filteredDiseaseAreaStrategies;
+    if (diseaseArea.length === 0) {
+      if (
+        fieldVisibility.diseaseArea &&
+        cascade.join(",") !== dasCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        setDiseaseArea([cascade[0]]);
+      }
+      dasCascadeRef.current = cascade;
+    }
+  }, [fieldVisibility.diseaseArea, filteredDiseaseAreaStrategies, diseaseArea]);
 
   React.useEffect(() => {
     if (Object.keys(cascadeErrors).length === 0) return;
@@ -574,7 +711,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
     const invalidIndications = indication.filter(
       (value) =>
         !containsCascadeValue(
-          cascadeForIndicationsStructural.availableIndications,
+          cascadeForIndicationsFull.availableIndications,
           value,
         ),
     );
@@ -582,7 +719,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
       nextErrors.indication = buildInvalidSelectionMessage(
         "Indication",
         invalidIndications,
-        ["Therapeutic Area", "Asset"],
+        ["Therapeutic Area", "Asset", "PAID"],
       );
     }
 
@@ -619,7 +756,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
     indication,
     asset,
     paid,
-    cascadeForIndicationsStructural.availableIndications,
+    cascadeForIndicationsFull.availableIndications,
     cascadeForAssets.availableAssets,
     cascadeForPaidsStructural.availablePaids,
   ]);
@@ -718,18 +855,40 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
       values: string[];
       fieldName: string;
     }> = [
-      { label: "Therapeutic Area", values: therapeuticArea, fieldName: FIELD_NAMES.THERAPEUTIC_AREA },
-      { label: "Sub-Therapeutic Area", values: subTherapeuticArea, fieldName: FIELD_NAMES.SUB_THERAPEUTIC_AREA },
+      {
+        label: "Therapeutic Area",
+        values: therapeuticArea,
+        fieldName: FIELD_NAMES.THERAPEUTIC_AREA,
+      },
+      {
+        label: "Sub-Therapeutic Area",
+        values: subTherapeuticArea,
+        fieldName: FIELD_NAMES.SUB_THERAPEUTIC_AREA,
+      },
       { label: "Asset", values: asset, fieldName: FIELD_NAMES.ASSET },
-      { label: "Indication", values: indication, fieldName: FIELD_NAMES.INDICATION },
-      { label: "Line of Therapy", values: lineOfTherapy, fieldName: FIELD_NAMES.LINE_OF_THERAPY },
+      {
+        label: "Indication",
+        values: indication,
+        fieldName: FIELD_NAMES.INDICATION,
+      },
+      {
+        label: "Line of Therapy",
+        values: lineOfTherapy,
+        fieldName: FIELD_NAMES.LINE_OF_THERAPY,
+      },
       { label: "PAID", values: paid, fieldName: FIELD_NAMES.PAID },
-      { label: "Disease Area", values: diseaseArea, fieldName: FIELD_NAMES.DISEASE_AREA },
+      {
+        label: "Disease Area",
+        values: diseaseArea,
+        fieldName: FIELD_NAMES.DISEASE_AREA,
+      },
     ];
 
     fieldChecks.forEach(({ label, values, fieldName }) => {
-      if (!isFieldVisible(fieldName, documentType, selectedTherapeuticArea)) return;
-      if (isFieldMultiSelect(fieldName, documentType, selectedTherapeuticArea)) return;
+      if (!isFieldVisible(fieldName, documentType, selectedTherapeuticArea))
+        return;
+      if (isFieldMultiSelect(fieldName, documentType, selectedTherapeuticArea))
+        return;
       if (values.length > 1) {
         violations.push(
           `${label} is single-select for ${documentType}, but ${values.length} values were selected. Please select only one ${label}.`,
@@ -777,10 +936,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
 
     if (effectiveDate) {
       const parsedEffectiveDate = parseISO(effectiveDate);
-      if (
-        !isValid(parsedEffectiveDate) ||
-        isFutureDate(parsedEffectiveDate)
-      ) {
+      if (!isValid(parsedEffectiveDate) || isFutureDate(parsedEffectiveDate)) {
         setEffectiveDateError(FUTURE_EFFECTIVE_DATE_ERROR);
         setSaveError(FUTURE_EFFECTIVE_DATE_ERROR);
         focusAfterTopError();
@@ -843,6 +999,15 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
   // ── Helpers ───────────────────────────────────────────────
   const toOpts = (values: string[]): IDropdownOption[] =>
     values.map((v) => ({ key: v, text: v }));
+
+  const toDocTypeOpts = (values: string[]): IDropdownOption[] =>
+    values.map((v) => ({
+      key: v,
+      text: v,
+      title: DOCUMENT_TYPE_FULL_NAMES[v]
+        ? `${v} – ${DOCUMENT_TYPE_FULL_NAMES[v]}`
+        : v,
+    }));
 
   // ── Calendar day styles for blue selected/today state ────
   const calendarDayStyles = {
@@ -1026,7 +1191,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
               label="Document Type"
               ariaLabel="Document Type"
               required
-              options={toOpts(toValueArray(options.documentTypes))}
+              options={toDocTypeOpts(toValueArray(options.documentTypes))}
               selectedKey={documentType || undefined}
               onChange={(_, item) =>
                 setDocumentType(item ? (item.key as string) : "")
@@ -1042,7 +1207,11 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
                 label="Therapeutic Area"
                 ariaLabel="Therapeutic Area"
                 required={fieldRequirements.therapeuticArea}
-                options={toOpts(toValueArray(options.therapeuticAreas))}
+                options={toOpts(
+                  cascadeForTAs.availableTAs.length > 0
+                    ? cascadeForTAs.availableTAs
+                    : toValueArray(options.therapeuticAreas),
+                )}
                 selectedKey={
                   therapeuticArea.length > 0 ? therapeuticArea[0] : undefined
                 }
@@ -1105,8 +1274,8 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
               label="Indication"
               required={fieldRequirements.indication}
               options={
-                cascadeForIndicationsStructural.availableIndications.length > 0
-                  ? cascadeForIndicationsStructural.availableIndications
+                cascadeForIndicationsFull.availableIndications.length > 0
+                  ? cascadeForIndicationsFull.availableIndications
                   : toValueArray(options.indications)
               }
               selectedKeys={indication}
@@ -1196,7 +1365,13 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
                   }}
                   placeholder="Select date"
                 />
-                <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
                   The date the document was aligned at TASC/AST.
                 </div>
               </div>

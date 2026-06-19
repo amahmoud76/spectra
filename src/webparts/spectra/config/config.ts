@@ -193,6 +193,17 @@ export const isFirewalledAsset = (
 //   - DAS: DocType-TA[-SubTA]-DiseaseArea only (Disease Area required, not optional)
 // ─────────────────────────────────────────────────────────────────
 
+// Full display names for document type abbreviations (shown as tooltips in dropdowns)
+export const DOCUMENT_TYPE_FULL_NAMES: Record<string, string> = {
+  DAS: "Disease Area Strategies",
+  TPP: "Target Product Profiles",
+  TPC: "Target Product Claims",
+  IEP: "Integrated Evidence Plans",
+  EBP: "Early Brand Plans",
+  EIVP: "Early Integrated Value Propositions",
+  IAS: "Integrated Access Strategies",
+};
+
 // Abbreviation maps for file naming
 // Document types use their abbreviation in the filename
 export const DOC_TYPE_ABBREVIATIONS: Record<string, string> = {

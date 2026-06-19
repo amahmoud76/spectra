@@ -10,6 +10,7 @@ import {
   FILE_NAME_DISPLAY_MAX_LENGTH_ENHANCED_WITH_BADGE,
   truncateFileNameForDisplay,
 } from "../../utils/fileHelper";
+import { DOCUMENT_TYPE_FULL_NAMES } from "../../config/config";
 import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
@@ -34,9 +35,8 @@ export interface IDataTableProps {
   useEnhancedStyle?: boolean;
 }
 
-
 const FILE_TYPE_ICON: Record<string, string> = {
-  pdf:  require("../../assets/icons/file-pdf.svg"),
+  pdf: require("../../assets/icons/file-pdf.svg"),
   docx: require("../../assets/icons/file-word.svg"),
   pptx: require("../../assets/icons/file-ppt.svg"),
   xlsx: require("../../assets/icons/file-excel.svg"),
@@ -82,6 +82,26 @@ const COLUMN_CLASS_BY_KEY: Record<string, string> = {
   modifiedBy: "colModifiedBy",
   comments: "colComments",
   status: "colStatus",
+};
+
+// ── Column width persistence ─────────────────────────────────
+const COL_WIDTHS_KEY_PREFIX = "spectra_col_widths_v1_";
+
+const loadColWidths = (role: string): Record<string, number> => {
+  try {
+    const raw = localStorage.getItem(COL_WIDTHS_KEY_PREFIX + role);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveColWidths = (role: string, widths: Record<string, number>): void => {
+  try {
+    localStorage.setItem(COL_WIDTHS_KEY_PREFIX + role, JSON.stringify(widths));
+  } catch {
+    /* quota exceeded — skip */
+  }
 };
 
 const COLUMNS: IColumnDef[] = [
@@ -187,6 +207,115 @@ export const DataTable: React.FC<IDataTableProps> = ({
     return true;
   });
 
+  // ── Column resizing ──────────────────────────────────────────
+  const [colWidths, setColWidths] = React.useState<Record<string, number>>(() =>
+    loadColWidths(role),
+  );
+
+  const dragRef = React.useRef<{
+    colKey: string;
+    startX: number;
+    startWidth: number;
+    thEl: HTMLTableCellElement;
+  } | null>(null);
+
+  const onResizeMouseDown = React.useCallback(
+    (e: React.MouseEvent, colKey: string): void => {
+      e.preventDefault();
+      e.stopPropagation();
+      const thEl = (e.currentTarget as HTMLElement)
+        .parentElement as HTMLTableCellElement;
+      dragRef.current = {
+        colKey,
+        startX: e.clientX,
+        startWidth: thEl.offsetWidth,
+        thEl,
+      };
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const onMouseMove = (ev: MouseEvent): void => {
+        if (!dragRef.current) return;
+        const w = Math.max(
+          50,
+          dragRef.current.startWidth + ev.clientX - dragRef.current.startX,
+        );
+        dragRef.current.thEl.style.width = `${w}px`;
+        dragRef.current.thEl.style.minWidth = `${w}px`;
+      };
+
+      const onMouseUp = (ev: MouseEvent): void => {
+        if (!dragRef.current) return;
+        const w = Math.max(
+          50,
+          dragRef.current.startWidth + ev.clientX - dragRef.current.startX,
+        );
+        const key = dragRef.current.colKey;
+        dragRef.current = null;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        setColWidths((prev) => {
+          const next = { ...prev, [key]: w };
+          saveColWidths(role, next);
+          return next;
+        });
+      };
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    },
+    [role],
+  );
+
+  const onResizeReset = React.useCallback(
+    (colKey: string): void => {
+      setColWidths((prev) => {
+        const next = { ...prev };
+        delete next[colKey];
+        saveColWidths(role, next);
+        return next;
+      });
+    },
+    [role],
+  );
+
+  // ── Mirrored top scrollbar ──────────────────────────────────
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const mirrorRef = React.useRef<HTMLDivElement>(null);
+  const innerMirrorRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const scroll = scrollRef.current;
+    const mirror = mirrorRef.current;
+    if (!scroll || !mirror) return;
+    const onScrollTable = (): void => {
+      mirror.scrollLeft = scroll.scrollLeft;
+    };
+    const onScrollMirror = (): void => {
+      scroll.scrollLeft = mirror.scrollLeft;
+    };
+    scroll.addEventListener("scroll", onScrollTable);
+    mirror.addEventListener("scroll", onScrollMirror);
+    return () => {
+      scroll.removeEventListener("scroll", onScrollTable);
+      mirror.removeEventListener("scroll", onScrollMirror);
+    };
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const update = (): void => {
+      if (scrollRef.current && innerMirrorRef.current) {
+        innerMirrorRef.current.style.width = `${scrollRef.current.scrollWidth}px`;
+      }
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    if (scrollRef.current) ro.observe(scrollRef.current);
+    return () => ro.disconnect();
+  }, [documents, role, useEnhancedStyle]);
+
   const styleClassMap = styles as unknown as Record<string, string>;
 
   const getColumnClassName = (key: string): string => {
@@ -202,13 +331,13 @@ export const DataTable: React.FC<IDataTableProps> = ({
 
     return (
       <img
-        src={require('../../assets/icons/sorting.svg')}
+        src={require("../../assets/icons/sorting.svg")}
         alt=""
         style={{
-          width: '20px',
-          height: '20px',
+          width: "20px",
+          height: "20px",
           opacity: isActive ? 1 : 0.5,
-          transform: isAsc ? 'scaleY(-1)' : 'none',
+          transform: isAsc ? "scaleY(-1)" : "none",
         }}
         className={styles.sortIcons}
         aria-hidden="true"
@@ -234,7 +363,10 @@ export const DataTable: React.FC<IDataTableProps> = ({
           </div>
           <div className={styles.fileNameDocContent}>
             {fileIconSrc && (
-              <TooltipHost content={ext.toUpperCase()} styles={{ root: { display: "flex", alignItems: "center" } }}>
+              <TooltipHost
+                content={ext.toUpperCase()}
+                styles={{ root: { display: "flex", alignItems: "center" } }}
+              >
                 <img
                   src={fileIconSrc}
                   alt={ext.toUpperCase()}
@@ -242,11 +374,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 />
               </TooltipHost>
             )}
-            <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
+            <TooltipHost
+              content={doc.fileName}
+              className={styles.fileNameTextHost}
+            >
               <span
                 className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
                 onClick={() => onDocumentClick(doc)}
-                onKeyDown={(e) => { if (e.key === "Enter") onDocumentClick(doc); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onDocumentClick(doc);
+                }}
                 tabIndex={0}
                 role="link"
                 aria-label={`Open ${doc.fileName}`}
@@ -262,10 +399,7 @@ export const DataTable: React.FC<IDataTableProps> = ({
     return (
       <div className={styles.fileNameCell}>
         {matchKind ? <SearchMatchBadge kind={matchKind} /> : null}
-        <TooltipHost
-          content={doc.fileName}
-          className={styles.fileNameTextHost}
-        >
+        <TooltipHost content={doc.fileName} className={styles.fileNameTextHost}>
           <span
             className={`${styles.cellTruncate} ${styles.cellLink} ${styles.fileNameLink}`}
             onClick={() => onDocumentClick(doc)}
@@ -298,8 +432,24 @@ export const DataTable: React.FC<IDataTableProps> = ({
     );
   }
 
+  const mirrorDiv = (
+    <div
+      ref={mirrorRef}
+      className={`${styleClassMap["scrollMirror"]}${useEnhancedStyle ? ` ${styleClassMap["scrollMirrorEnhanced"]}` : ""}`}
+      aria-hidden="true"
+    >
+      <div
+        ref={innerMirrorRef}
+        className={styleClassMap["scrollMirrorInner"]}
+      />
+    </div>
+  );
+
   const tableJsx = (
-    <div className={`${styles.dataTableScroll}${useEnhancedStyle ? ` ${styles.dataTableScrollEnhanced}` : ""}`}>
+    <div
+      ref={scrollRef}
+      className={`${styles.dataTableScroll}${useEnhancedStyle ? ` ${styles.dataTableScrollEnhanced}` : ""}`}
+    >
       <table
         className={styles.dataTable}
         role="grid"
@@ -309,7 +459,11 @@ export const DataTable: React.FC<IDataTableProps> = ({
           <tr>
             {(role === "contributor" || role === "admin") && (
               <th
-                className={role === "contributor" ? styles.leadingActionHeaderNarrow : styles.leadingActionHeader}
+                className={
+                  role === "contributor"
+                    ? styles.leadingActionHeaderNarrow
+                    : styles.leadingActionHeader
+                }
                 aria-label="Actions"
               />
             )}
@@ -318,6 +472,14 @@ export const DataTable: React.FC<IDataTableProps> = ({
               <th
                 key={col.key}
                 className={`${getColumnClassName(col.key)} ${col.sortField ? styles.sortable : ""}`.trim()}
+                style={
+                  colWidths[col.key]
+                    ? {
+                        width: colWidths[col.key],
+                        minWidth: colWidths[col.key],
+                      }
+                    : undefined
+                }
                 onClick={() => col.sortField && onSort(col.sortField)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && col.sortField) onSort(col.sortField);
@@ -335,6 +497,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
               >
                 {col.label}
                 {renderSortIcon(col.sortField)}
+                <div
+                  className={styleClassMap["colResizeHandle"]}
+                  onMouseDown={(e) => onResizeMouseDown(e, col.key)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    onResizeReset(col.key);
+                  }}
+                  title="Drag to resize · Double-click to reset"
+                  aria-hidden="true"
+                />
               </th>
             ))}
           </tr>
@@ -343,8 +515,13 @@ export const DataTable: React.FC<IDataTableProps> = ({
           {documents.map((doc) => (
             <tr key={doc.id}>
               {(role === "contributor" || role === "admin") && (
-                <td className={role === "contributor" ? styles.leadingActionCellNarrow : styles.leadingActionCell}>
-
+                <td
+                  className={
+                    role === "contributor"
+                      ? styles.leadingActionCellNarrow
+                      : styles.leadingActionCell
+                  }
+                >
                   {role === "contributor" &&
                     doc.status === "Current" &&
                     onArchiveReplaceClick && (
@@ -361,7 +538,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                           role="button"
                           aria-label={`Archive and replace ${doc.fileName}`}
                         >
-                          <img src={require('../../assets/icons/archive-replace.svg')} alt="" style={{ width: '16px', height: '16px', display: 'block' }} aria-hidden="true" />
+                          <img
+                            src={require("../../assets/icons/archive-replace.svg")}
+                            alt=""
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              display: "block",
+                            }}
+                            aria-hidden="true"
+                          />
                         </span>
                       </TooltipHost>
                     )}
@@ -375,7 +561,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                           aria-label={`Edit ${doc.fileName}`}
                           type="button"
                         >
-                          <img src={require('../../assets/icons/edit.svg')} alt="" style={{ width: '17px', height: '17px', display: 'block' }} aria-hidden="true" />
+                          <img
+                            src={require("../../assets/icons/edit.svg")}
+                            alt=""
+                            style={{
+                              width: "17px",
+                              height: "17px",
+                              display: "block",
+                            }}
+                            aria-hidden="true"
+                          />
                         </button>
                       </TooltipHost>
                       {doc.status === "Current" && onArchiveReplaceClick && (
@@ -391,7 +586,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                             aria-label={`Replace ${doc.fileName}`}
                             type="button"
                           >
-                            <img src={require('../../assets/icons/archive-replace.svg')} alt="" style={{ width: '16px', height: '16px', display: 'block' }} aria-hidden="true" />
+                            <img
+                              src={require("../../assets/icons/archive-replace.svg")}
+                              alt=""
+                              style={{
+                                width: "16px",
+                                height: "16px",
+                                display: "block",
+                              }}
+                              aria-hidden="true"
+                            />
                           </button>
                         </TooltipHost>
                       )}
@@ -405,7 +609,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                             aria-label={`Archive ${doc.fileName}`}
                             type="button"
                           >
-                            <img src={require('../../assets/icons/archive.svg')} alt="" style={{ width: '16px', height: '16px', display: 'block' }} aria-hidden="true" />
+                            <img
+                              src={require("../../assets/icons/archive.svg")}
+                              alt=""
+                              style={{
+                                width: "16px",
+                                height: "16px",
+                                display: "block",
+                              }}
+                              aria-hidden="true"
+                            />
                           </button>
                         </TooltipHost>
                       )}
@@ -419,7 +632,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                             aria-label={`Re-activate ${doc.fileName}`}
                             type="button"
                           >
-                            <img src={require('../../assets/icons/re-activate.svg')} alt="" style={{ width: '16px', height: '16px', display: 'block' }} aria-hidden="true" />
+                            <img
+                              src={require("../../assets/icons/re-activate.svg")}
+                              alt=""
+                              style={{
+                                width: "16px",
+                                height: "16px",
+                                display: "block",
+                              }}
+                              aria-hidden="true"
+                            />
                           </button>
                         </TooltipHost>
                       )}
@@ -431,7 +653,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
                           type="button"
                           style={{ color: "#DC2626" }}
                         >
-                          <img src={require('../../assets/icons/delete.svg')} alt="" style={{ width: '16px', height: '16px', display: 'block' }} aria-hidden="true" />
+                          <img
+                            src={require("../../assets/icons/delete.svg")}
+                            alt=""
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              display: "block",
+                            }}
+                            aria-hidden="true"
+                          />
                         </button>
                       </TooltipHost>
                     </div>
@@ -443,16 +674,27 @@ export const DataTable: React.FC<IDataTableProps> = ({
                 <td
                   key={col.key}
                   className={`${getColumnClassName(col.key)} ${col.key === "comments" ? styles.commentCell : ""}`.trim()}
+                  style={
+                    colWidths[col.key]
+                      ? {
+                          width: colWidths[col.key],
+                          minWidth: colWidths[col.key],
+                        }
+                      : undefined
+                  }
                 >
-                  {col.key === "fileName"
-                    ? renderFileNameCell(doc)
-                    : col.key === "type" && useEnhancedStyle ? (
+                  {col.key === "fileName" ? (
+                    renderFileNameCell(doc)
+                  ) : col.key === "type" && useEnhancedStyle ? (
                     (() => {
                       const val = col.getValue(doc);
+                      const fullName = DOCUMENT_TYPE_FULL_NAMES[val];
                       return (
-                        <span className={styles.typeChip}>
-                          {val}
-                        </span>
+                        <TooltipHost
+                          content={fullName ? `${val} – ${fullName}` : val}
+                        >
+                          <span className={styles.typeChip}>{val}</span>
+                        </TooltipHost>
                       );
                     })()
                   ) : col.key === "status" ? (
@@ -470,9 +712,13 @@ export const DataTable: React.FC<IDataTableProps> = ({
                       {(doc.comments || "").trim() ? (
                         <TooltipHost content={doc.comments.trim()}>
                           <img
-                            src={require('../../assets/icons/comment.svg')}
+                            src={require("../../assets/icons/comment.svg")}
                             alt=""
-                            style={{ width: '16px', height: '16px', display: 'block' }}
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              display: "block",
+                            }}
                             aria-hidden="true"
                           />
                         </TooltipHost>
@@ -484,8 +730,22 @@ export const DataTable: React.FC<IDataTableProps> = ({
                         {col.getValue(doc)}
                       </span>
                     </TooltipHost>
+                  ) : col.key === "type" ? (
+                    (() => {
+                      const val = col.getValue(doc);
+                      const fullName = DOCUMENT_TYPE_FULL_NAMES[val];
+                      return fullName ? (
+                        <TooltipHost content={`${val} – ${fullName}`}>
+                          <span>{val}</span>
+                        </TooltipHost>
+                      ) : (
+                        val
+                      );
+                    })()
                   ) : col.key === "paid" ? (
-                    <div className={styles.cellPaidWrap}>{col.getValue(doc)}</div>
+                    <div className={styles.cellPaidWrap}>
+                      {col.getValue(doc)}
+                    </div>
                   ) : (
                     col.getValue(doc)
                   )}
@@ -499,7 +759,14 @@ export const DataTable: React.FC<IDataTableProps> = ({
   );
 
   return useEnhancedStyle ? (
-    <div className={styles.dataTableEnhancedOuter}>{tableJsx}</div>
-  ) : tableJsx;
+    <>
+      {mirrorDiv}
+      <div className={styles.dataTableEnhancedOuter}>{tableJsx}</div>
+    </>
+  ) : (
+    <>
+      {mirrorDiv}
+      {tableJsx}
+    </>
+  );
 };
-

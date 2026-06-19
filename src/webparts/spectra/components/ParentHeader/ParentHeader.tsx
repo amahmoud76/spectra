@@ -188,7 +188,7 @@ export const ParentHeader: React.FC<IParentHeaderProps> = ({
           aria-current="page"
         >
           <img
-            src={require("../../assets/icons/rainbow-half.svg")}
+            src={require("../../assets/spectra/Spectra-Identifier-LightMode.svg")}
             alt=""
             style={{
               display: "inline-block",

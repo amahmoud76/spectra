@@ -38,7 +38,12 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
           aria-label="Back to SPECTRA home"
           type="button"
         >
-          <img src={require('../../assets/icons/home.svg')} alt="" style={{ width: '16px', height: '16px', display: 'inline-block' }} aria-hidden="true" />
+          <img
+            src={require("../../assets/icons/home.svg")}
+            alt=""
+            style={{ width: "16px", height: "16px", display: "inline-block" }}
+            aria-hidden="true"
+          />
         </button>
         <span
           className={styles.breadcrumbLink}
@@ -60,7 +65,9 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
       {/* Document name */}
       <div className={styles.docViewName}>
         <div>Document Name</div>
-        <div className={styles.docViewNameValue}>{doc.fileName}</div>
+        <TooltipHost content={doc.fileName}>
+          <div className={styles.docViewNameValue}>{doc.fileName}</div>
+        </TooltipHost>
       </div>
 
       {/* Role-specific action buttons */}
@@ -85,7 +92,18 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
                 onClick={onEditClick}
                 aria-label="Edit metadata"
               >
-                <img src={require('../../assets/icons/edit.svg')} alt="" style={{ width: '16px', height: '16px', display: 'inline-block', marginRight: '4px' }} aria-hidden="true" /> Edit
+                <img
+                  src={require("../../assets/icons/edit.svg")}
+                  alt=""
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    display: "inline-block",
+                    marginRight: "4px",
+                  }}
+                  aria-hidden="true"
+                />{" "}
+                Edit
               </button>
             </TooltipHost>
             {doc.status === "Current" && (
@@ -95,7 +113,18 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
                   onClick={onArchiveClick}
                   aria-label="Archive document"
                 >
-                  <img src={require('../../assets/icons/archive.svg')} alt="" style={{ width: '16px', height: '16px', display: 'inline-block', marginRight: '4px' }} aria-hidden="true" /> Archive
+                  <img
+                    src={require("../../assets/icons/archive.svg")}
+                    alt=""
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      display: "inline-block",
+                      marginRight: "4px",
+                    }}
+                    aria-hidden="true"
+                  />{" "}
+                  Archive
                 </button>
               </TooltipHost>
             )}
@@ -105,7 +134,18 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
                 onClick={onDeleteClick}
                 aria-label="Delete document"
               >
-                <img src={require('../../assets/icons/delete.svg')} alt="" style={{ width: '16px', height: '16px', display: 'inline-block', marginRight: '4px' }} aria-hidden="true" /> Delete
+                <img
+                  src={require("../../assets/icons/delete.svg")}
+                  alt=""
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    display: "inline-block",
+                    marginRight: "4px",
+                  }}
+                  aria-hidden="true"
+                />{" "}
+                Delete
               </button>
             </TooltipHost>
           </>
@@ -119,7 +159,18 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
               onClick={onArchiveReplaceClick}
               aria-label="Archive and replace document"
             >
-              <img src={require('../../assets/icons/archive-replace.svg')} alt="" style={{ width: '16px', height: '16px', display: 'inline-block', marginRight: '4px' }} aria-hidden="true" /> Archive and Replace
+              <img
+                src={require("../../assets/icons/archive-replace.svg")}
+                alt=""
+                style={{
+                  width: "16px",
+                  height: "16px",
+                  display: "inline-block",
+                  marginRight: "4px",
+                }}
+                aria-hidden="true"
+              />{" "}
+              Archive and Replace
             </button>
           </TooltipHost>
         )}

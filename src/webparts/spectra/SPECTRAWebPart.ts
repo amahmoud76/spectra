@@ -47,15 +47,15 @@ export default class SPECTRAWebPart extends BaseClientSideWebPart<ISPECTRAWebPar
   }
 
   public render(): void {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isSpectraDev = urlParams.get("spectraDev") === "1";
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const isSpectraDev = urlParams.get("spectraDev") === "1";
 
     const props: IWebPartProps = {
       context: this.context,
       pageSize: this.properties.pageSize || PAGE_SIZE_DEFAULT,
       title: this.properties.title || "SPECTRA Document Repository",
       userEmail: this.context.pageContext.user.email,
-      enableDevRoleSwitch: isSpectraDev,
+      // enableDevRoleSwitch: isSpectraDev,
       documentLibrary: this.properties.documentLibrary || SP_DOCUMENT_LIBRARY,
       inactivityTimeoutMinutes:
         this.properties.inactivityTimeoutMinutes ||

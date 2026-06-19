@@ -22,6 +22,7 @@ export interface ICascadeSelection {
   selectedTA?: string;
   selectedAsset?: string;
   selectedIndication?: string;
+  selectedDiseaseArea?: string;
 }
 
 /**
@@ -33,6 +34,7 @@ export interface ICascadeSelectionMulti {
   selectedTAs?: string | string[];
   selectedAssets?: string | string[];
   selectedIndications?: string | string[];
+  selectedDiseaseAreas?: string | string[];
 }
 
 export interface ICascadeResult {
@@ -42,6 +44,7 @@ export interface ICascadeResult {
   availableIndications: string[];
   availableSubTherapeuticAreas: string[];
   availableLineOfTherapies: string[];
+  availableDiseaseAreas: string[];
 }
 
 /**
@@ -76,6 +79,11 @@ export const getCascadedOptions = (
       (r) => r.indication === selection.selectedIndication,
     );
   }
+  if (selection.selectedDiseaseArea) {
+    filtered = filtered.filter(
+      (r) => r.diseaseArea === selection.selectedDiseaseArea,
+    );
+  }
 
   // Extract unique values from the filtered set
   return {
@@ -83,8 +91,19 @@ export const getCascadedOptions = (
     availableTAs: unique(filtered.map((r) => r.therapeuticArea)),
     availableAssets: unique(filtered.map((r) => r.assetNumber)),
     availableIndications: unique(filtered.map((r) => r.indication)),
-    availableSubTherapeuticAreas: unique(filtered.map((r) => r.subTherapeuticArea).filter((v): v is string => Boolean(v))),
-    availableLineOfTherapies: unique(filtered.map((r) => r.lineOfTherapy).filter((v): v is string => Boolean(v))),
+    availableSubTherapeuticAreas: unique(
+      filtered
+        .map((r) => r.subTherapeuticArea)
+        .filter((v): v is string => Boolean(v)),
+    ),
+    availableLineOfTherapies: unique(
+      filtered
+        .map((r) => r.lineOfTherapy)
+        .filter((v): v is string => Boolean(v)),
+    ),
+    availableDiseaseAreas: unique(
+      filtered.map((r) => r.diseaseArea).filter((v): v is string => Boolean(v)),
+    ),
   };
 };
 
@@ -127,50 +146,73 @@ export const getDiseaseAreaStrategiesForTherapeuticArea = (
   );
 };
 
-  /**
-   * Cascading options supporting Union/Permissive filtering.
-   * When multiple values are selected in a dimension, returns options
-   * that match ANY combination of those selections.
-   *
-   * Example: If user selects Indications [A, B] and PAIDs [1, 2],
-   * will return Assets valid with ANY of: A×1, A×2, B×1, B×2
-   */
-  export const getCascadedOptionsMulti = (
-    relationships: IProjectPaidRelationship[],
-    selection: ICascadeSelectionMulti,
-  ): ICascadeResult => {
-    const toArray = (value: string | string[] | undefined): string[] => {
-      if (!value) return [];
-      return Array.isArray(value) ? value : [value];
-    };
-
-    const selectedPaidsArr = toArray(selection.selectedPaids);
-    const selectedTAsArr = toArray(selection.selectedTAs);
-    const selectedAssetsArr = toArray(selection.selectedAssets);
-    const selectedIndicationsArr = toArray(selection.selectedIndications);
-
-    let filtered = [...relationships];
-
-    // Apply filters using OR logic within each dimension
-    if (selectedPaidsArr.length > 0) {
-      filtered = filtered.filter((r) => selectedPaidsArr.includes(r.projectPaid));
-    }
-    if (selectedTAsArr.length > 0) {
-      filtered = filtered.filter((r) => selectedTAsArr.includes(r.therapeuticArea));
-    }
-    if (selectedAssetsArr.length > 0) {
-      filtered = filtered.filter((r) => selectedAssetsArr.includes(r.assetNumber));
-    }
-    if (selectedIndicationsArr.length > 0) {
-      filtered = filtered.filter((r) => selectedIndicationsArr.includes(r.indication));
-    }
-
-    return {
-      availablePaids: unique(filtered.map((r) => r.projectPaid)),
-      availableTAs: unique(filtered.map((r) => r.therapeuticArea)),
-      availableAssets: unique(filtered.map((r) => r.assetNumber)),
-      availableIndications: unique(filtered.map((r) => r.indication)),
-      availableSubTherapeuticAreas: unique(filtered.map((r) => r.subTherapeuticArea).filter((v): v is string => Boolean(v))),
-      availableLineOfTherapies: unique(filtered.map((r) => r.lineOfTherapy).filter((v): v is string => Boolean(v))),
-    };
+/**
+ * Cascading options supporting Union/Permissive filtering.
+ * When multiple values are selected in a dimension, returns options
+ * that match ANY combination of those selections.
+ *
+ * Example: If user selects Indications [A, B] and PAIDs [1, 2],
+ * will return Assets valid with ANY of: A×1, A×2, B×1, B×2
+ */
+export const getCascadedOptionsMulti = (
+  relationships: IProjectPaidRelationship[],
+  selection: ICascadeSelectionMulti,
+): ICascadeResult => {
+  const toArray = (value: string | string[] | undefined): string[] => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
   };
+
+  const selectedPaidsArr = toArray(selection.selectedPaids);
+  const selectedTAsArr = toArray(selection.selectedTAs);
+  const selectedAssetsArr = toArray(selection.selectedAssets);
+  const selectedIndicationsArr = toArray(selection.selectedIndications);
+  const selectedDiseaseAreasArr = toArray(selection.selectedDiseaseAreas);
+
+  let filtered = [...relationships];
+
+  // Apply filters using OR logic within each dimension
+  if (selectedPaidsArr.length > 0) {
+    filtered = filtered.filter((r) => selectedPaidsArr.includes(r.projectPaid));
+  }
+  if (selectedTAsArr.length > 0) {
+    filtered = filtered.filter((r) =>
+      selectedTAsArr.includes(r.therapeuticArea),
+    );
+  }
+  if (selectedAssetsArr.length > 0) {
+    filtered = filtered.filter((r) =>
+      selectedAssetsArr.includes(r.assetNumber),
+    );
+  }
+  if (selectedIndicationsArr.length > 0) {
+    filtered = filtered.filter((r) =>
+      selectedIndicationsArr.includes(r.indication),
+    );
+  }
+  if (selectedDiseaseAreasArr.length > 0) {
+    filtered = filtered.filter(
+      (r) => r.diseaseArea && selectedDiseaseAreasArr.includes(r.diseaseArea),
+    );
+  }
+
+  return {
+    availablePaids: unique(filtered.map((r) => r.projectPaid)),
+    availableTAs: unique(filtered.map((r) => r.therapeuticArea)),
+    availableAssets: unique(filtered.map((r) => r.assetNumber)),
+    availableIndications: unique(filtered.map((r) => r.indication)),
+    availableSubTherapeuticAreas: unique(
+      filtered
+        .map((r) => r.subTherapeuticArea)
+        .filter((v): v is string => Boolean(v)),
+    ),
+    availableLineOfTherapies: unique(
+      filtered
+        .map((r) => r.lineOfTherapy)
+        .filter((v): v is string => Boolean(v)),
+    ),
+    availableDiseaseAreas: unique(
+      filtered.map((r) => r.diseaseArea).filter((v): v is string => Boolean(v)),
+    ),
+  };
+};

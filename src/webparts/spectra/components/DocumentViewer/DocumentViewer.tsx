@@ -181,17 +181,14 @@ const PdfViewer: React.FC<{ fileUrl: string; siteUrl: string }> = ({
 
   return (
     <div className={styles.viewerContainer} ref={containerRef}>
+      <canvas
+        ref={canvasRef}
+        className={styles.viewerCanvas}
+        aria-label="PDF document preview"
+      />
+
       {state.totalPages > 1 && (
         <div className={styles.viewerPageControls}>
-          <button
-            className={styles.viewerPageBtn}
-            onClick={() => goTo(1)}
-            disabled={state.currentPage === 1}
-            aria-label="First page"
-            type="button"
-          >
-            First
-          </button>
           <button
             className={styles.viewerPageBtn}
             onClick={() => goTo(state.currentPage - 1)}
@@ -199,7 +196,7 @@ const PdfViewer: React.FC<{ fileUrl: string; siteUrl: string }> = ({
             aria-label="Previous page"
             type="button"
           >
-            Previous
+            &lt;
           </button>
           <span className={styles.viewerPageInfo}>
             Page {state.currentPage} of {state.totalPages}
@@ -211,25 +208,10 @@ const PdfViewer: React.FC<{ fileUrl: string; siteUrl: string }> = ({
             aria-label="Next page"
             type="button"
           >
-            Next
-          </button>
-          <button
-            className={styles.viewerPageBtn}
-            onClick={() => goTo(state.totalPages)}
-            disabled={state.currentPage === state.totalPages}
-            aria-label="Last page"
-            type="button"
-          >
-            Last
+            &gt;
           </button>
         </div>
       )}
-
-      <canvas
-        ref={canvasRef}
-        className={styles.viewerCanvas}
-        aria-label="PDF document preview"
-      />
     </div>
   );
 };

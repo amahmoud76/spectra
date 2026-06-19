@@ -152,7 +152,10 @@ const mockDiseaseAreaStrategyRelationships: IDiseaseAreaStrategyRelationship[] =
     { value: "Hair", therapeuticArea: "Aesthetics" },
     { value: "Medical Weight Loss", therapeuticArea: "Aesthetics" },
     { value: "Other", therapeuticArea: "Aesthetics" },
-    { value: "Plastics & Regenerative Medicine", therapeuticArea: "Aesthetics" },
+    {
+      value: "Plastics & Regenerative Medicine",
+      therapeuticArea: "Aesthetics",
+    },
     { value: "Research & Other", therapeuticArea: "Aesthetics" },
     { value: "Skincare", therapeuticArea: "Aesthetics" },
     { value: "Toxins", therapeuticArea: "Aesthetics" },
@@ -167,7 +170,8 @@ const mockDiseaseAreaStrategyRelationships: IDiseaseAreaStrategyRelationship[] =
     { value: "Atopic Dermatitis", therapeuticArea: "Immunology" },
     { value: "Hidradenitis Suppurativa", therapeuticArea: "Immunology" },
     {
-      value: "Inflammatory Bowel Disease (Crohn's Disease & Ulcerative Colitis)",
+      value:
+        "Inflammatory Bowel Disease (Crohn's Disease & Ulcerative Colitis)",
       therapeuticArea: "Immunology",
     },
     { value: "Other", therapeuticArea: "Immunology" },
@@ -335,13 +339,19 @@ const mockIndications: IMetadataOption[] = [
   // Oncology Indications
   { value: "Acute Myeloid Leukemia", searchTokens: ["AML", "leukemia"] },
   { value: "Amyloidosis", searchTokens: ["amyloid", "oncology"] },
-  { value: "Blastic Plasmacytoid Dendritic Cell Neoplasm", searchTokens: ["BPDCN"] },
+  {
+    value: "Blastic Plasmacytoid Dendritic Cell Neoplasm",
+    searchTokens: ["BPDCN"],
+  },
   { value: "Breast Cancer", searchTokens: ["mammalian", "HER2"] },
   { value: "Cancers", searchTokens: ["malignant", "tumor"] },
   { value: "Chronic Lymphocytic Leukemia", searchTokens: ["CLL", "leukemia"] },
   { value: "Chronic Graft Versus Host Disease", searchTokens: ["GvHD"] },
   { value: "Colorectal Cancer", searchTokens: ["CRC", "colon"] },
-  { value: "Diffuse Large B-Cell Lymphoma", searchTokens: ["DLBCL", "lymphoma"] },
+  {
+    value: "Diffuse Large B-Cell Lymphoma",
+    searchTokens: ["DLBCL", "lymphoma"],
+  },
   { value: "Follicular Lymphoma", searchTokens: ["FL", "lymphoma"] },
   { value: "Glioblastoma", searchTokens: ["GBM", "brain"] },
   { value: "Hematologic Cancer", searchTokens: ["heme", "blood"] },
@@ -359,9 +369,18 @@ const mockIndications: IMetadataOption[] = [
   { value: "Solid Tumor", searchTokens: ["solid", "carcinoma"] },
   { value: "Urothelial Carcinoma", searchTokens: ["UCC", "bladder"] },
   // Specialty Indications
-  { value: "Acute Bacterial Skin and Skin Structure Infection", searchTokens: ["ABSSSI"] },
-  { value: "Acute Exacerbations of Chronic Bronchitis", searchTokens: ["AECB"] },
-  { value: "Autosomal Dominant Polycystic Kidney Disease", searchTokens: ["ADPKD"] },
+  {
+    value: "Acute Bacterial Skin and Skin Structure Infection",
+    searchTokens: ["ABSSSI"],
+  },
+  {
+    value: "Acute Exacerbations of Chronic Bronchitis",
+    searchTokens: ["AECB"],
+  },
+  {
+    value: "Autosomal Dominant Polycystic Kidney Disease",
+    searchTokens: ["ADPKD"],
+  },
   { value: "Bacterial Pneumonia", searchTokens: ["pneumonia", "bacterial"] },
   { value: "Central Precocious Puberty", searchTokens: ["CPP"] },
   { value: "Chronic Idiopathic Constipation", searchTokens: ["CIC"] },
@@ -369,7 +388,10 @@ const mockIndications: IMetadataOption[] = [
   { value: "Cystic Fibrosis", searchTokens: ["CF", "lung"] },
   { value: "Complicated Urinary Tract Infection", searchTokens: ["cUTI"] },
   { value: "Endometriosis", searchTokens: ["endo", "women's"] },
-  { value: "Exocrine Pancreatic Insufficiency", searchTokens: ["EPI", "pancrease"] },
+  {
+    value: "Exocrine Pancreatic Insufficiency",
+    searchTokens: ["EPI", "pancrease"],
+  },
   { value: "Hepatitis C", searchTokens: ["HCV", "viral"] },
   { value: "HIV Infection", searchTokens: ["HIV", "virology"] },
   { value: "Hypothyroidism", searchTokens: ["thyroid", "endo"] },
@@ -398,6 +420,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "AGN-8001",
     indication: "Aesthetics Indications and Procedures",
     subTherapeuticArea: "Body Contouring",
+    diseaseArea: "Plastics & Regenerative Medicine",
   },
   {
     projectPaid: "ABBV-1623 glabellar lines (ABBV1623/A)",
@@ -405,6 +428,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1623",
     indication: "Glabellar Lines",
     subTherapeuticArea: "Neurotoxin",
+    diseaseArea: "Plastics & Regenerative Medicine",
   },
   {
     projectPaid: "ABBV-2072 mid-face volume deficit (ABBV2072/A)",
@@ -412,6 +436,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-2072",
     indication: "Mid Face Volume Deficit",
     subTherapeuticArea: "Fillers",
+    diseaseArea: "Fillers",
   },
   {
     projectPaid: "ABBV-2082 nasolabial folds (ABBV2082/A)",
@@ -419,6 +444,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-2082",
     indication: "Nasolabial Folds",
     subTherapeuticArea: "Fillers",
+    diseaseArea: "Fillers",
   },
   {
     projectPaid: "ABBV-1624 lip enhancement (ABBV1624/A)",
@@ -426,6 +452,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1624",
     indication: "Lip Enhancement",
     subTherapeuticArea: "Fillers",
+    diseaseArea: "Fillers",
   },
   {
     projectPaid: "ABBV-444 skin quality (ABBV444/A)",
@@ -433,6 +460,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-444",
     indication: "Skin Quality Deficit",
     subTherapeuticArea: "Skincare",
+    diseaseArea: "Skincare",
   },
   // Eye Care
   {
@@ -441,6 +469,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-178",
     indication: "Dry Eye",
     subTherapeuticArea: "Consumer Eye Care",
+    diseaseArea: "Dry Eye",
   },
   {
     projectPaid: "ABBV-2064 RVO (ABBV2064/B)",
@@ -462,6 +491,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-571",
     indication: "Dry Eye",
     subTherapeuticArea: "Consumer Eye Care",
+    diseaseArea: "Dry Eye",
   },
   {
     projectPaid: "ABBV-573 presbyopia digital (ABBV573/A)",
@@ -477,6 +507,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-113",
     indication: "Ulcerative Colitis",
     subTherapeuticArea: "Gastroenterology",
+    diseaseArea: "Inflammatory Bowel Disease",
   },
   {
     projectPaid: "Rinvoq RA (ABBV599/B)",
@@ -484,6 +515,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-599",
     indication: "Rheumatoid Arthritis",
     subTherapeuticArea: "Rheumatology",
+    diseaseArea: "Rheumatoid Arthritis",
   },
   {
     projectPaid: "Skyrizi AD (ABBV066/C)",
@@ -491,6 +523,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-066",
     indication: "Atopic Dermatitis",
     subTherapeuticArea: "Dermatology",
+    diseaseArea: "Atopic Dermatitis",
   },
   {
     projectPaid: "Skyrizi PSO (ABBV066/D)",
@@ -498,6 +531,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-066",
     indication: "Psoriasis",
     subTherapeuticArea: "Dermatology",
+    diseaseArea: "Psoriasis",
   },
   {
     projectPaid: "ABBV-1318 AD (ABBV1318/A)",
@@ -505,6 +539,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1318",
     indication: "Atopic Dermatitis",
     subTherapeuticArea: "Dermatology",
+    diseaseArea: "Atopic Dermatitis",
   },
   {
     projectPaid: "ABBV-313 AD (ABBV313/A)",
@@ -512,6 +547,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-313",
     indication: "Atopic Dermatitis",
     subTherapeuticArea: "Dermatology",
+    diseaseArea: "Atopic Dermatitis",
   },
   {
     projectPaid: "ABBV-141 CD (ABBV141/A)",
@@ -519,6 +555,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-141",
     indication: "Crohn Disease",
     subTherapeuticArea: "Gastroenterology",
+    diseaseArea: "Inflammatory Bowel Disease",
   },
   {
     projectPaid: "ABBV-158 PsA (ABBV158/A)",
@@ -526,6 +563,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-158",
     indication: "Psoriatic Arthritis",
     subTherapeuticArea: "Rheumatology",
+    diseaseArea: "Psoriatic Arthritis",
   },
   {
     projectPaid: "ABBV-701 UC (ABBV701/A)",
@@ -533,6 +571,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-701",
     indication: "Ulcerative Colitis",
     subTherapeuticArea: "Gastroenterology",
+    diseaseArea: "Inflammatory Bowel Disease",
   },
   // Neuroscience
   {
@@ -548,6 +587,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1047",
     indication: "Depression",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Depression",
   },
   {
     projectPaid: "ABBV-1088 PD (ABBV1088/A)",
@@ -555,6 +595,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1088",
     indication: "Parkinson Disease",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Parkinson's Disease",
   },
   {
     projectPaid: "ABBV-1162 BPD (ABBV1162/A)",
@@ -569,6 +610,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1231",
     indication: "Major Depression",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Depression",
   },
   {
     projectPaid: "ABBV-1354 MDD (ABBV1354/B)",
@@ -576,6 +618,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1354",
     indication: "Major Depression",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Depression",
   },
   {
     projectPaid: "ABBV-1354 BPD (ABBV1354/A)",
@@ -590,6 +633,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1354",
     indication: "Migraine",
     subTherapeuticArea: "Migraine",
+    diseaseArea: "Migraine",
   },
   {
     projectPaid: "ABBV-1751 PD (ABBV1751/A)",
@@ -597,6 +641,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1751",
     indication: "Parkinson Disease",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Parkinson's Disease",
   },
   {
     projectPaid: "ABBV-1758 AD (ABBV1758/A)",
@@ -604,6 +649,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1758",
     indication: "Alzheimer Disease",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Alzheimer's Disease",
   },
   {
     projectPaid: "ABBV-1865 MDD (ABBV1865/A)",
@@ -611,6 +657,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1865",
     indication: "Major Depression",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Depression",
   },
   {
     projectPaid: "ABBV-1871 PD (ABBV1871/A)",
@@ -618,6 +665,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-1871",
     indication: "Parkinson Disease",
     subTherapeuticArea: "Neuroscience",
+    diseaseArea: "Parkinson's Disease",
   },
   {
     projectPaid: "ABBV-2002 migraine (ABBV2002/A)",
@@ -625,6 +673,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     assetNumber: "ABBV-2002",
     indication: "Migraine",
     subTherapeuticArea: "Migraine",
+    diseaseArea: "Migraine",
   },
   // Oncology
   {
@@ -634,6 +683,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Small Cell Lung Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Small Cell Lung Cancer",
   },
   {
     projectPaid: "ABBV-101 1L CLL (ABBV101/B)",
@@ -642,6 +692,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Chronic Lymphocytic Leukemia",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "1L",
+    diseaseArea: "Chronic Lymphocytic Leukemia",
   },
   {
     projectPaid: "ABBV-101 2L+ CLL (ABBV101/A)",
@@ -650,6 +701,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Chronic Lymphocytic Leukemia",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "2L+",
+    diseaseArea: "Chronic Lymphocytic Leukemia",
   },
   {
     projectPaid: "ABBV-154 NSCLC (ABBV154/A)",
@@ -658,6 +710,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Non-Small Cell Lung Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Non-Small Cell Lung Cancer",
   },
   {
     projectPaid: "ABBV-181 1L SQ NSCLC (ABBV181/A)",
@@ -666,6 +719,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Non-Small Cell Lung Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Non-Small Cell Lung Cancer",
   },
   {
     projectPaid: "ABBV-1480 1L SQ NSCLC (ABBV1480/A)",
@@ -674,6 +728,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Non-Small Cell Lung Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Non-Small Cell Lung Cancer",
   },
   {
     projectPaid: "ABBV-1484 1L MSS CRC (ABBV1484/C)",
@@ -682,6 +737,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Colorectal Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Colorectal Cancer",
   },
   {
     projectPaid: "ABBV-319 DLBCL (ABBV319/A)",
@@ -690,6 +746,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Diffuse Large B-Cell Lymphoma",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "1L",
+    diseaseArea: "Diffuse Large B-Cell Lymphoma",
   },
   {
     projectPaid: "ABBV-383 DLBCL (ABBV383/A)",
@@ -698,6 +755,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Diffuse Large B-Cell Lymphoma",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "1L",
+    diseaseArea: "Diffuse Large B-Cell Lymphoma",
   },
   {
     projectPaid: "ABBV-383 FL (ABBV383/B)",
@@ -714,6 +772,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Acute Myeloid Leukemia",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "1L",
+    diseaseArea: "Acute Myeloid Leukemia",
   },
   {
     projectPaid: "ABBV-2001 1L TE MM (ABBV2001/C)",
@@ -722,6 +781,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Multiple Myeloma",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "1L",
+    diseaseArea: "Multiple Myeloma",
   },
   {
     projectPaid: "ABBV-2001 2L+ MM (ABBV2001/B)",
@@ -730,6 +790,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Multiple Myeloma",
     subTherapeuticArea: "Hematology",
     lineOfTherapy: "2L+",
+    diseaseArea: "Multiple Myeloma",
   },
   {
     projectPaid: "ABBV-291 OC (ABBV291/A)",
@@ -738,6 +799,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Ovarian Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Ovarian Cancer",
   },
   {
     projectPaid: "ABBV-321 NSCLC (ABBV321/A)",
@@ -746,6 +808,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Non-Small Cell Lung Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Non-Small Cell Lung Cancer",
   },
   {
     projectPaid: "ABBV-399 prostate (ABBV399/A)",
@@ -754,6 +817,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     indication: "Prostate Cancer",
     subTherapeuticArea: "Solid Tumors",
     lineOfTherapy: "1L",
+    diseaseArea: "Prostate Cancer",
   },
   // Specialty
   {
@@ -785,6 +849,7 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
     therapeuticArea: "Specialty",
     assetNumber: "ABBV-295",
     indication: "Central Precocious Puberty",
+    diseaseArea: "Obesity",
   },
   {
     projectPaid: "ABBV-332 COVID-19 (ABBV332/A)",

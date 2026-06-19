@@ -8,9 +8,9 @@ import {
   getAllPaids,
   getDiseaseAreaStrategiesForTherapeuticArea,
 } from "../../utils/cascadingFilterHelper";
-import { DatePicker } from "@fluentui/react/lib/DatePicker";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
+import { DateRangePicker } from "../DateRangePicker/DateRangePicker";
 import styles from "../SPECTRA.module.scss";
 
 export interface IFilterPanelProps {
@@ -38,32 +38,6 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
   onReset,
 }) => {
   if (!isOpen) return null;
-
-  // ── Calendar day styles for blue selected/today state ────
-  const calendarDayStyles = {
-    daySelected: {
-      backgroundColor: "#0066F5",
-      color: "#ffffff",
-      selectors: {
-        "&:hover": {
-          backgroundColor: "#0052CC",
-          color: "#ffffff",
-        },
-        "& button": {
-          color: "#ffffff",
-        },
-      },
-    },
-    dayIsToday: {
-      backgroundColor: "#0066F5",
-      color: "#ffffff",
-      selectors: {
-        "& button": {
-          color: "#ffffff",
-        },
-      },
-    },
-  };
 
   const paidValues = getAllPaids(options.projectPaidRelationships);
   const indicationValues = React.useMemo(() => {
@@ -94,11 +68,12 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
     [options.diseaseAreaStrategyRelationships, filters.therapeuticArea],
   );
 
-  const effectiveDateValue = filters.effectiveDateFrom || undefined;
+  // Tracks the DAS cascade options at the last moment the DAS field was empty.
+  // Auto-select only fires when those options changed (TA changed), not on manual clears.
+  const dasCascadeRef = React.useRef<string[]>([]);
 
   React.useEffect(() => {
     if (filters.diseaseArea.length === 0) return;
-
     const validDiseaseAreas = filters.diseaseArea.filter((das) =>
       diseaseAreaStrategies.includes(das),
     );
@@ -106,6 +81,25 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
       onFilterChange("diseaseArea", validDiseaseAreas);
     }
   }, [diseaseAreaStrategies, filters.diseaseArea, onFilterChange]);
+
+  React.useEffect(() => {
+    const cascade = diseaseAreaStrategies;
+    if (filters.diseaseArea.length === 0) {
+      if (
+        filters.therapeuticArea.length > 0 &&
+        cascade.join(",") !== dasCascadeRef.current.join(",") &&
+        cascade.length === 1
+      ) {
+        onFilterChange("diseaseArea", [cascade[0]]);
+      }
+      dasCascadeRef.current = cascade;
+    }
+  }, [
+    diseaseAreaStrategies,
+    filters.diseaseArea,
+    filters.therapeuticArea,
+    onFilterChange,
+  ]);
 
   return (
     <>
@@ -153,8 +147,12 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
         </div>
 
         <div key={resetToken} className={styles.panelBody}>
-          <div className={styles.formNoticePlain} style={{ marginTop: 0, marginBottom: 12, color: "#636363" }}>
-            Filter dropdowns show current metadata values from source lists. Historical values on older documents may not appear here.
+          <div
+            className={styles.formNoticePlain}
+            style={{ marginTop: 0, marginBottom: 12, color: "#636363" }}
+          >
+            Filter dropdowns show current metadata values from source lists.
+            Historical values on older documents may not appear here.
           </div>
 
           {/* Document Type */}
@@ -223,29 +221,22 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
             multiSelect={true}
           />
 
-          {/* Effective Date */}
-          <div>
-            <div className={styles.formGroup}>
-              <DatePicker
-                label="Effective Date"
-                value={effectiveDateValue}
-                allowTextInput={true}
-                calendarProps={{
-                  calendarDayProps: {
-                    styles: calendarDayStyles,
-                  },
-                }}
-                onSelectDate={(date) => {
-                  onFilterChange("effectiveDateFrom", date || null);
-                  onFilterChange("effectiveDateTo", date || null);
-                }}
-                placeholder="Select effective date"
-                ariaLabel="Effective date"
-              />
-              <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
-                The date the document was aligned at TASC/AST.
-              </div>
-            </div>
+          {/* Date Range Filters */}
+          <div className={styles.dateRangeRow}>
+            <DateRangePicker
+              label="Effective Date Range"
+              fromDate={filters.effectiveDateFrom}
+              toDate={filters.effectiveDateTo}
+              onFromChange={(d) => onFilterChange("effectiveDateFrom", d)}
+              onToChange={(d) => onFilterChange("effectiveDateTo", d)}
+            />
+            <DateRangePicker
+              label="Uploaded Files Date Range"
+              fromDate={filters.uploadDateFrom}
+              toDate={filters.uploadDateTo}
+              onFromChange={(d) => onFilterChange("uploadDateFrom", d)}
+              onToChange={(d) => onFilterChange("uploadDateTo", d)}
+            />
           </div>
         </div>
 

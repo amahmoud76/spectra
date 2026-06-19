@@ -150,12 +150,7 @@ export class MetadataService {
   ): Promise<IMetadataOption[]> {
     const siteUrl = this.context.pageContext.web.absoluteUrl;
     const tokenColumnCandidates: string[] = includeSearchTokens
-      ? Array.from(
-          new Set([
-            searchTokensColumn,
-            "SEARCH_TOKENS",
-          ]),
-        )
+      ? Array.from(new Set([searchTokensColumn, "SEARCH_TOKENS"]))
       : [];
 
     const attempts: Array<string | null> = includeSearchTokens
@@ -377,6 +372,7 @@ export class MetadataService {
             "INDICATION",
             "SUB_TA",
             "LINE_OF_THERAPY",
+            "DISEASE_AREA",
           ],
           orderBy: "Title",
         },
@@ -388,16 +384,12 @@ export class MetadataService {
             "INDICATION",
             "SUB_TA",
             "LINE_OF_THERAPY",
+            "DISEASE_AREA",
           ],
           orderBy: "PROJECT_PAID",
         },
         {
-          select: [
-            "Title",
-            "THERAPEUTIC_AREA",
-            "ASSET_NUMBER",
-            "INDICATION",
-          ],
+          select: ["Title", "THERAPEUTIC_AREA", "ASSET_NUMBER", "INDICATION"],
           orderBy: "Title",
         },
         { select: ["Title"], orderBy: "Title" },
@@ -412,6 +404,7 @@ export class MetadataService {
         indication: this._readString(item, ["INDICATION"]),
         subTherapeuticArea: this._readString(item, ["SUB_TA"]),
         lineOfTherapy: this._readString(item, ["LINE_OF_THERAPY"]),
+        diseaseArea: this._readString(item, ["DISEASE_AREA"]) || undefined,
       }))
       .filter((item) => item.projectPaid);
   }

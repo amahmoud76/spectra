@@ -23,6 +23,7 @@ export interface IProjectPaidRelationship {
   indication: string; // INDICATION
   subTherapeuticArea?: string; // SUB_TA (optional, auto-populated from relationship)
   lineOfTherapy?: string; // LINE_OF_THERAPY (optional, auto-populated from relationship)
+  diseaseArea?: string; // DISEASE_AREA (optional, cascades with PAID selection)
 }
 
 // ─────────────────────────────────────────────────────────────────

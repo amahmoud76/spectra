@@ -41,7 +41,7 @@ export const RoleBadge: React.FC<IRoleBadgeProps> = ({
       className={`${styles.roleBadge} ${config.className} ${isInteractive ? styles.roleBadgeInteractive : ""}`}
       aria-label={
         isInteractive
-          ? `Role: ${config.label}. Click to switch role in dev mode`
+          ? `Role: ${config.label}. Click to preview a different role`
           : `Role: ${config.label}`
       }
       role={isInteractive ? "button" : undefined}
@@ -58,7 +58,17 @@ export const RoleBadge: React.FC<IRoleBadgeProps> = ({
           : undefined
       }
     >
-      <img src={config.icon} alt="" style={{ width: '12px', height: '12px', display: 'inline-block', marginRight: '4px' }} aria-hidden="true" />
+      <img
+        src={config.icon}
+        alt=""
+        style={{
+          width: "12px",
+          height: "12px",
+          display: "inline-block",
+          marginRight: "4px",
+        }}
+        aria-hidden="true"
+      />
       {config.label}
     </span>
   );

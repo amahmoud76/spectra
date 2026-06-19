@@ -83,7 +83,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   pageSize,
   title,
   userEmail,
-  enableDevRoleSwitch,
   documentLibrary,
   inactivityTimeoutMinutes,
   useMock,
@@ -187,14 +186,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       pendingUpdates: null,
     });
   // ── Hooks ───────────────────────────────────────────────────
-  const auth = useAuth(
-    context,
-    userEmail,
-    enableDevRoleSwitch,
-    useMock,
-    useAdGroups,
-    mockRole,
-  );
+  const auth = useAuth(context, userEmail, useMock, useAdGroups, mockRole);
   const metadata = useMetadata(context, useMock);
   const documents = useDocuments(
     context,
@@ -1132,10 +1124,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           userDisplayName={userDisplayName}
           userEmail={userEmail}
           siteUrl={siteUrl}
-          enableDevRoleSwitch={enableDevRoleSwitch}
+          enableDevRoleSwitch={auth.isDevRoleSwitchEnabled}
           helpEmail={helpEmail}
           helpGuideUrl={helpGuideUrl}
-          onRoleBadgeClick={() => undefined}
+          onRoleBadgeClick={auth.cycleDevRole}
           onSpectraClick={() => {
             setDeepLinkError(false);
             setPage("landing");
@@ -1221,26 +1213,22 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 onClear={handleClearSearch}
                 isError={noResults && !!searchText}
               />
-              {auth.effectiveRole === "admin" && (
-                <div className={styles.adminSearchControls}>
-                  <ViewFullLibraryButton
-                    onClick={handleViewFullLibrary}
-                    isActive={isFullLibraryView}
-                  />
-                </div>
-              )}
+              <div className={styles.adminSearchControls}>
+                <ViewFullLibraryButton
+                  onClick={handleViewFullLibrary}
+                  isActive={isFullLibraryView}
+                />
+              </div>
             </div>
 
             <div className={styles.landingWelcome}>
               <h2 className={styles.landingWelcomeTitle}>
+                Welcome to{" "}
                 <img
-                  src={require("../assets/icons/rainbow-half.svg")}
-                  alt=""
-                  className={styles.spectraRainbowIcon}
-                  style={{ display: "inline", width: "1em", height: "1em" }}
-                  aria-hidden="true"
+                  src={require("../assets/spectra/Spectra-Full-LightMode.svg")}
+                  alt="SPECTRA"
+                  className={styles.spectraFullLogoInline}
                 />
-                Welcome to SPECTRA
               </h2>
               <p className={styles.landingWelcomeSubline}>
                 Strategic Portfolio Enterprise Content Tracking Repository App
@@ -1280,7 +1268,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               <div className={styles.landingInfoPanel}>
                 <h3>
                   <img
-                    src={require("../assets/icons/rainbow-half.svg")}
+                    src={require("../assets/spectra/Spectra-Identifier-LightMode.svg")}
                     alt=""
                     className={styles.spectraRainbowIcon}
                     style={{ display: "inline", width: "1em", height: "1em" }}
@@ -1360,18 +1348,18 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 </div>
               )}
 
-              {auth.effectiveRole === "admin" && (
-                <div className={styles.adminSearchControls}>
+              <div className={styles.adminSearchControls}>
+                {auth.effectiveRole === "admin" && (
                   <ShowArchivedToggle
                     checked={showArchivedDocuments}
                     onChange={handleArchiveToggleChange}
                   />
-                  <ViewFullLibraryButton
-                    onClick={handleViewFullLibrary}
-                    isActive={isFullLibraryView}
-                  />
-                </div>
-              )}
+                )}
+                <ViewFullLibraryButton
+                  onClick={handleViewFullLibrary}
+                  isActive={isFullLibraryView}
+                />
+              </div>
 
               <Toolbar
                 role={auth.effectiveRole}
@@ -1401,7 +1389,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               >
                 {showArchivedDocuments
                   ? "Showing full document library including archived documents."
-                  : "Showing full document library (active documents only). Use the archive toggle to include archived documents."}
+                  : auth.effectiveRole === "admin"
+                    ? "Showing full document library (active documents only). Use the archive toggle to include archived documents."
+                    : "Showing full document library."}
               </div>
             )}
 

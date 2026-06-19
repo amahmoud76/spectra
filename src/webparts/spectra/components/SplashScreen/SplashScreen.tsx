@@ -80,17 +80,15 @@ const ElegantSplash: React.FC<ISplashScreenProps> = ({
     >
       <div className={styles.splashElegantDecor} aria-hidden="true" />
 
+      <span className={styles.splashReleaseTag}>Release 1.1</span>
+
       <div className={styles.splashElegantInner}>
         <div className={styles.splashElegantBrand}>
           <img
-            src={require("../../assets/icons/rainbow-half.svg")}
+            src={require("../../assets/spectra/Spectra-Stacked-LightMode.svg")}
             alt="SPECTRA logo"
             className={styles.splashElegantLogo}
           />
-          <h1 className={styles.splashElegantTitle}>{appName}</h1>
-          {subtitle && (
-            <p className={styles.splashElegantSubtitle}>{subtitle}</p>
-          )}
         </div>
 
         <div className={styles.splashElegantSteps}>
@@ -182,7 +180,7 @@ const ClassicSplash: React.FC<ISplashScreenProps> = ({
       <div className={styles.splashCard}>
         <div className={styles.splashBrandRow}>
           <img
-            src={require("../../assets/icons/rainbow-half.svg")}
+            src={require("../../assets/spectra/Spectra-Stacked-LightMode.svg")}
             alt="SPECTRA logo"
             className={styles.splashLogo}
           />
