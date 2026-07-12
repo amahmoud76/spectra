@@ -381,7 +381,12 @@ export const applyFiltersWithMeta = (
       if (!doc.diseaseArea.some((da) => filters.diseaseArea.includes(da)))
         return false;
     }
-
+    // ── Created By filter ─────────────────────────────
+    if (filters.createdBy.length > 0) {
+      const nameLower = doc.createdBy.toLowerCase();
+      if (!filters.createdBy.some((n) => n.toLowerCase() === nameLower))
+        return false;
+    }
     // ── Effective Date range (date-fns — timezone safe) ───
     if (filters.effectiveDateFrom || filters.effectiveDateTo) {
       const docDate = parseISO(doc.effectiveDate);
@@ -504,6 +509,7 @@ export const countActiveFilters = (filters: IFilterState): number => {
   if (filters.lineOfTherapy.length > 0) count++;
   if (filters.paid.length > 0) count++;
   if (filters.diseaseArea.length > 0) count++;
+  if (filters.createdBy.length > 0) count++;
   if (filters.effectiveDateFrom || filters.effectiveDateTo) count++;
   if (filters.uploadDateFrom || filters.uploadDateTo) count++;
   return count;

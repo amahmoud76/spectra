@@ -3,11 +3,13 @@ import * as ReactDom from "react-dom";
 import { Version } from "@microsoft/sp-core-library";
 import {
   IPropertyPaneConfiguration,
+  IPropertyPaneDropdownOption,
   PropertyPaneTextField,
   PropertyPaneDropdown,
   PropertyPaneToggle,
 } from "@microsoft/sp-property-pane";
 import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
+import { SPHttpClient } from "@microsoft/sp-http";
 import { initializeIcons } from "@fluentui/react/lib/Icons";
 import { SPECTRA } from "./components/SPECTRA";
 import { IWebPartProps } from "./interfaces/IWebPartProps";
@@ -23,8 +25,9 @@ import {
   HELP_EMAIL,
   HELP_GUIDE_URL,
 } from "./config/config";
+import { DEFAULT_USER_PREFS_LIST_NAME } from "./services/UserPreferencesService";
 
-export interface ISPECTRAWebPartProps {
+export interface ISpectraWebPartProps {
   title: string;
   pageSize: number;
   inactivityTimeoutMinutes: number;
@@ -38,24 +41,53 @@ export interface ISPECTRAWebPartProps {
   splashVariant: "classic" | "elegant";
   helpEmail: string;
   helpGuideUrl: string;
+  enableFavorites: boolean;
+  enableRecentlyViewed: boolean;
+  enableTilesView: boolean;
+  userPreferencesListName?: string;
+  testerEmails?: string;
 }
 
-export default class SPECTRAWebPart extends BaseClientSideWebPart<ISPECTRAWebPartProps> {
+export default class SpectraWebPart extends BaseClientSideWebPart<ISpectraWebPartProps> {
+  // Cached dropdown options for the user-prefs list picker
+  private _listOptions: IPropertyPaneDropdownOption[] = [];
+  private _listsLoaded = false;
+
+  protected async loadPropertyPaneResources(): Promise<void> {
+    if (this._listsLoaded) return;
+    try {
+      const url =
+        `${this.context.pageContext.web.absoluteUrl}/_api/web/lists` +
+        `?$select=Title&$filter=Hidden eq false and BaseTemplate eq 100&$orderby=Title`;
+      const resp = await this.context.spHttpClient.get(
+        url,
+        SPHttpClient.configurations.v1,
+        { headers: { Accept: "application/json;odata=nometadata" } },
+      );
+      if (resp.ok) {
+        const data = await resp.json();
+        this._listOptions = (data.value as { Title: string }[]).map((l) => ({
+          key: l.Title,
+          text: l.Title,
+        }));
+      }
+    } catch {
+      /* keep empty — dropdown shows default */
+    }
+    this._listsLoaded = true;
+  }
+
   protected onInit(): Promise<void> {
     initializeIcons();
     return super.onInit();
   }
 
   public render(): void {
-    // const urlParams = new URLSearchParams(window.location.search);
-    // const isSpectraDev = urlParams.get("spectraDev") === "1";
-
     const props: IWebPartProps = {
       context: this.context,
       pageSize: this.properties.pageSize || PAGE_SIZE_DEFAULT,
       title: this.properties.title || "SPECTRA Document Repository",
       userEmail: this.context.pageContext.user.email,
-      // enableDevRoleSwitch: isSpectraDev,
       documentLibrary: this.properties.documentLibrary || SP_DOCUMENT_LIBRARY,
       inactivityTimeoutMinutes:
         this.properties.inactivityTimeoutMinutes ||
@@ -71,6 +103,12 @@ export default class SPECTRAWebPart extends BaseClientSideWebPart<ISPECTRAWebPar
       splashVariant: this.properties.splashVariant || "elegant",
       helpEmail: this.properties.helpEmail || HELP_EMAIL,
       helpGuideUrl: this.properties.helpGuideUrl || HELP_GUIDE_URL,
+      enableFavorites: this.properties.enableFavorites ?? true,
+      enableRecentlyViewed: this.properties.enableRecentlyViewed ?? true,
+      enableTilesView: this.properties.enableTilesView ?? false,
+      userPreferencesListName:
+        this.properties.userPreferencesListName || DEFAULT_USER_PREFS_LIST_NAME,
+      testerEmails: this.properties.testerEmails || "",
     };
 
     ReactDom.render(React.createElement(SPECTRA, props), this.domElement);
@@ -186,6 +224,40 @@ export default class SPECTRAWebPart extends BaseClientSideWebPart<ISPECTRAWebPar
                 PropertyPaneTextField("helpGuideUrl", {
                   label: "Help guide URL",
                   value: HELP_GUIDE_URL,
+                }),
+                PropertyPaneToggle("enableFavorites", {
+                  label: "Enable Favorites",
+                  onText: "On",
+                  offText: "Off",
+                  checked: false,
+                }),
+                PropertyPaneToggle("enableRecentlyViewed", {
+                  label: "Enable Recently Viewed",
+                  onText: "On",
+                  offText: "Off",
+                  checked: false,
+                }),
+                PropertyPaneToggle("enableTilesView", {
+                  label: "Enable Tiles View (admins can switch)",
+                  onText: "On",
+                  offText: "Off",
+                  checked: false,
+                }),
+                PropertyPaneDropdown("userPreferencesListName", {
+                  label: "User Preferences list (favorites & recently viewed)",
+                  selectedKey:
+                    this.properties.userPreferencesListName ||
+                    DEFAULT_USER_PREFS_LIST_NAME,
+                  options:
+                    this._listOptions.length > 0
+                      ? this._listOptions
+                      : [
+                          {
+                            key: DEFAULT_USER_PREFS_LIST_NAME,
+                            text: `${DEFAULT_USER_PREFS_LIST_NAME} (default)`,
+                          },
+                        ],
+                  disabled: !this._listsLoaded,
                 }),
               ],
             },

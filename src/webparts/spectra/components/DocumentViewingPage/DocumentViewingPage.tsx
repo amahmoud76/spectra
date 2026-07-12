@@ -15,6 +15,9 @@ export interface IDocumentViewingPageProps {
   onArchiveClick: () => void;
   onDeleteClick: () => void;
   onArchiveReplaceClick: () => void;
+  showFavorites?: boolean;
+  isFavorite?: boolean;
+  onFavoriteToggle?: () => void;
 }
 
 export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
@@ -27,6 +30,9 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
   onArchiveClick,
   onDeleteClick,
   onArchiveReplaceClick,
+  showFavorites,
+  isFavorite,
+  onFavoriteToggle,
 }) => {
   return (
     <div className={styles.docViewPage}>
@@ -82,6 +88,40 @@ export const DocumentViewingPage: React.FC<IDocumentViewingPageProps> = ({
             Return
           </button>
         </TooltipHost>
+
+        {/* Favorite — all roles, when feature enabled */}
+        {showFavorites && (
+          <TooltipHost
+            content={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+          >
+            <button
+              className={styles.docViewActionButton}
+              onClick={onFavoriteToggle}
+              aria-label={
+                isFavorite ? "Remove from Favorites" : "Add to Favorites"
+              }
+              aria-pressed={isFavorite}
+              type="button"
+            >
+              <img
+                src={
+                  isFavorite
+                    ? require("../../assets/icons/star-full.svg")
+                    : require("../../assets/icons/star-empty.svg")
+                }
+                alt=""
+                style={{
+                  width: "16px",
+                  height: "16px",
+                  display: "inline-block",
+                  marginRight: "4px",
+                }}
+                aria-hidden="true"
+              />{" "}
+              Favorite
+            </button>
+          </TooltipHost>
+        )}
 
         {/* Admin actions */}
         {role === "admin" && (

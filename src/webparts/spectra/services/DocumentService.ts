@@ -187,13 +187,29 @@ export class DocumentService {
 
     const siteUrl = this.context.pageContext.web.absoluteUrl;
     const select = [
-      "Id", "Title", "FileLeafRef", "FileRef", "Created",
-      "Author/Title", "Author/EMail", "Editor/Title", "Editor/EMail",
-      "SpectraAsset", "SpectraDocumentType", "SpectraTherapeuticArea",
-      "SpectraSubTherapeuticArea", "SpectraIndication", "SpectraLineOfTherapy",
-      "SpectraPAID", "SpectraDiseaseArea", "SpectraEffectiveDate",
-      "SpectraStatus", "SpectraDescription", "SpectraComments",
-      "SpectraSearchTokens", "SpectraImmutableFileName",
+      "Id",
+      "Title",
+      "FileLeafRef",
+      "FileRef",
+      "Created",
+      "Author/Title",
+      "Author/EMail",
+      "Editor/Title",
+      "Editor/EMail",
+      "SpectraAsset",
+      "SpectraDocumentType",
+      "SpectraTherapeuticArea",
+      "SpectraSubTherapeuticArea",
+      "SpectraIndication",
+      "SpectraLineOfTherapy",
+      "SpectraPAID",
+      "SpectraDiseaseArea",
+      "SpectraEffectiveDate",
+      "SpectraStatus",
+      "SpectraDescription",
+      "SpectraComments",
+      "SpectraSearchTokens",
+      "SpectraImmutableFileName",
     ].join(",");
     const url = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${documentId})?$select=${select}&$expand=Author,Editor`;
 
@@ -207,6 +223,62 @@ export class DocumentService {
 
       const item = await response.json();
       return this._mapSharePointItemToDocument(item);
+    } catch {
+      return null;
+    }
+  }
+
+  public async getDocumentByFileName(fileName: string): Promise<IDocument | null> {
+    if (this.useMock) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return (
+        this.mockDocs.find(
+          (d) => d.fileName.toLowerCase() === fileName.toLowerCase(),
+        ) || null
+      );
+    }
+
+    const siteUrl = this.context.pageContext.web.absoluteUrl;
+    const select = [
+      "Id",
+      "Title",
+      "FileLeafRef",
+      "FileRef",
+      "Created",
+      "Author/Title",
+      "Author/EMail",
+      "Editor/Title",
+      "Editor/EMail",
+      "SpectraAsset",
+      "SpectraDocumentType",
+      "SpectraTherapeuticArea",
+      "SpectraSubTherapeuticArea",
+      "SpectraIndication",
+      "SpectraLineOfTherapy",
+      "SpectraPAID",
+      "SpectraDiseaseArea",
+      "SpectraEffectiveDate",
+      "SpectraStatus",
+      "SpectraDescription",
+      "SpectraComments",
+      "SpectraSearchTokens",
+      "SpectraImmutableFileName",
+    ].join(",");
+    const escapedName = fileName.replace(/'/g, "''");
+    const url = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items?$select=${select}&$expand=Author,Editor&$filter=FileLeafRef eq '${escapedName}'&$top=1`;
+
+    try {
+      const response = await this.context.spHttpClient.get(
+        url,
+        SPHttpClient.configurations.v1,
+      );
+      if (!response.ok) return null;
+      const data = await response.json();
+      const items = (data as { value: unknown[] }).value;
+      if (!items || items.length === 0) return null;
+      return this._mapSharePointItemToDocument(
+        items[0] as Record<string, unknown>,
+      );
     } catch {
       return null;
     }
@@ -237,7 +309,13 @@ export class DocumentService {
     requestDigest: string,
     onProgress: (percent: number) => void,
     cancelSignal: { abort: () => void },
-  ): Promise<{ ok: boolean; status: number; statusText: string; text: () => Promise<string>; json: () => Promise<unknown> }> {
+  ): Promise<{
+    ok: boolean;
+    status: number;
+    statusText: string;
+    text: () => Promise<string>;
+    json: () => Promise<unknown>;
+  }> {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.withCredentials = true;
@@ -263,7 +341,8 @@ export class DocumentService {
         });
       };
 
-      xhr.onerror = (): void => reject(new Error("Network error during file upload"));
+      xhr.onerror = (): void =>
+        reject(new Error("Network error during file upload"));
 
       const cancelError = new Error("Upload cancelled");
       (cancelError as Error & { cancelled: boolean }).cancelled = true;
@@ -289,7 +368,10 @@ export class DocumentService {
     },
   ): Promise<IUploadResult> {
     // Generate standardized filename from metadata (BRD Appendix H)
-    const generatedName = generateFileName(payload, payload.file.name.split(".").pop() || "pdf");
+    const generatedName = generateFileName(
+      payload,
+      payload.file.name.split(".").pop() || "pdf",
+    );
     // Preserve original filename for audit trail
     const originalFileName = payload.file.name;
     // Compute identity key for duplicate detection (excludes Effective Date and Comments)
@@ -327,7 +409,8 @@ export class DocumentService {
           generatedName.trim().toLowerCase();
 
       if (isInPlaceReplace && archiveTarget) {
-        archiveTarget.fileExtension = payload.file.name.split(".").pop() || "pdf";
+        archiveTarget.fileExtension =
+          payload.file.name.split(".").pop() || "pdf";
         archiveTarget.fileSize = payload.file.size;
         archiveTarget.modifiedBy = "Mock User";
         archiveTarget.modifiedByEmail = "mock.user@abbvie.com";
@@ -390,7 +473,9 @@ export class DocumentService {
 
       // Archive target if provided (after upload succeeds)
       if (archiveTargetId) {
-        const archiveTargetToArchive = this.mockDocs.find((d) => d.id === archiveTargetId);
+        const archiveTargetToArchive = this.mockDocs.find(
+          (d) => d.id === archiveTargetId,
+        );
         if (archiveTargetToArchive) {
           archiveTargetToArchive.status = "Archive";
         }
@@ -471,38 +556,46 @@ export class DocumentService {
           replaceUsingSameGeneratedName =
             targetFileName.trim().toLowerCase() ===
             generatedName.trim().toLowerCase();
-           // Archive the target document BEFORE uploading the replacement
-           // This prevents filename conflicts in SharePoint when the new file
-           // has the same name as the old one
-           if (replaceUsingSameGeneratedName) {
-             const archiveUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${archiveTargetId})`;
-             const preArchiveResponse = await this.context.spHttpClient.post(
-               archiveUrl,
-               SPHttpClient.configurations.v1,
-               {
-                 headers: {
-                   "Content-Type": "application/json;odata=nometadata",
-                   "IF-MATCH": "*",
-                   "X-HTTP-Method": "MERGE",
-                 },
-                 body: JSON.stringify({ SpectraStatus: "Archive" }),
-               },
-             );
-             if (!preArchiveResponse.ok) {
-               throw new Error(
-                 `Replace failed: could not archive the existing document before upload (status ${preArchiveResponse.status}). Please retry and contact support if the issue persists.`,
-               );
-             }
-           }
-         }
-       }
+          // Archive the target document BEFORE uploading the replacement
+          // This prevents filename conflicts in SharePoint when the new file
+          // has the same name as the old one
+          if (replaceUsingSameGeneratedName) {
+            const archiveUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${archiveTargetId})`;
+            const preArchiveResponse = await this.context.spHttpClient.post(
+              archiveUrl,
+              SPHttpClient.configurations.v1,
+              {
+                headers: {
+                  "Content-Type": "application/json;odata=nometadata",
+                  "IF-MATCH": "*",
+                  "X-HTTP-Method": "MERGE",
+                },
+                body: JSON.stringify({ SpectraStatus: "Archive" }),
+              },
+            );
+            if (!preArchiveResponse.ok) {
+              throw new Error(
+                `Replace failed: could not archive the existing document before upload (status ${preArchiveResponse.status}). Please retry and contact support if the issue persists.`,
+              );
+            }
+          }
+        }
+      }
 
       // Step 1: Upload the file with the STANDARDIZED filename
       const fileBuffer = await payload.file.arrayBuffer();
       const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/RootFolder/Files/add(url='${encodeURIComponent(generatedName)}',overwrite=${replaceUsingSameGeneratedName ? "true" : "false"})`;
 
-      const onFileProgress = options?.onFileProgress ?? ((): void => { /* no-op */ });
-      const cancelSignal = options?.cancelSignal ?? { abort: (): void => { /* no-op */ } };
+      const onFileProgress =
+        options?.onFileProgress ??
+        ((): void => {
+          /* no-op */
+        });
+      const cancelSignal = options?.cancelSignal ?? {
+        abort: (): void => {
+          /* no-op */
+        },
+      };
       const requestDigest = await this._getRequestDigest();
 
       const uploadResponse = await this._uploadFileWithProgress(
@@ -551,7 +644,8 @@ export class DocumentService {
       // Step 2: Get the list item ID via the file's ServerRelativeUrl.
       // Do not URL-encode the entire server-relative path inside the OData
       // function call; SharePoint expects the raw path string there.
-      const serverRelativeUrl: string = (uploadData as Record<string, unknown>).ServerRelativeUrl as string;
+      const serverRelativeUrl: string = (uploadData as Record<string, unknown>)
+        .ServerRelativeUrl as string;
       const escapedServerRelativeUrl = serverRelativeUrl.replace(/'/g, "''");
       const itemResponse = await this.context.spHttpClient.get(
         `${siteUrl}/_api/web/getfilebyserverrelativeurl('${escapedServerRelativeUrl}')/ListItemAllFields?$select=Id`,
@@ -600,25 +694,27 @@ export class DocumentService {
 
       // Step 4: If archiveTargetId provided, archive that document (after upload succeeds)
       if (archiveTargetId && String(itemId) !== String(archiveTargetId)) {
-         // Only archive here if filename changed (didn't archive before upload)
-         if (!replaceUsingSameGeneratedName) {
-           const archiveUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${archiveTargetId})`;
-           const archiveResponse = await this.context.spHttpClient.post(
-             archiveUrl,
-             SPHttpClient.configurations.v1,
-             {
-               headers: {
-                 "Content-Type": "application/json;odata=nometadata",
-                 "IF-MATCH": "*",
-                 "X-HTTP-Method": "MERGE",
-               },
-               body: JSON.stringify({ SpectraStatus: "Archive" }),
-             },
-           );
-           if (!archiveResponse.ok) {
-             throw new Error(`Archive target update failed: ${archiveResponse.status}`);
-           }
-         }
+        // Only archive here if filename changed (didn't archive before upload)
+        if (!replaceUsingSameGeneratedName) {
+          const archiveUrl = `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items(${archiveTargetId})`;
+          const archiveResponse = await this.context.spHttpClient.post(
+            archiveUrl,
+            SPHttpClient.configurations.v1,
+            {
+              headers: {
+                "Content-Type": "application/json;odata=nometadata",
+                "IF-MATCH": "*",
+                "X-HTTP-Method": "MERGE",
+              },
+              body: JSON.stringify({ SpectraStatus: "Archive" }),
+            },
+          );
+          if (!archiveResponse.ok) {
+            throw new Error(
+              `Archive target update failed: ${archiveResponse.status}`,
+            );
+          }
+        }
       }
 
       return {
@@ -670,7 +766,8 @@ export class DocumentService {
         );
         if (statusResponse.ok) {
           const statusData = await statusResponse.json();
-          if (statusData.SpectraStatus === "Archive") return { isDuplicate: false };
+          if (statusData.SpectraStatus === "Archive")
+            return { isDuplicate: false };
         }
       } catch {
         // If status fetch fails, continue with full duplicate check
@@ -746,7 +843,8 @@ export class DocumentService {
 
       const data = await response.json();
       const allDocs: IDocument[] = data.value.map(
-        (item: Record<string, unknown>) => this._mapSharePointItemToDocument(item),
+        (item: Record<string, unknown>) =>
+          this._mapSharePointItemToDocument(item),
       );
 
       const baseDoc = allDocs.find((d) => d.id === documentId);
@@ -841,7 +939,10 @@ export class DocumentService {
         SPHttpClient.configurations.v1,
       );
       if (!currentResponse.ok) return false;
-      const currentItem = await currentResponse.json() as Record<string, unknown>;
+      const currentItem = (await currentResponse.json()) as Record<
+        string,
+        unknown
+      >;
       const currentDoc = this._mapSharePointItemToDocument(currentItem);
 
       // Step 2: Update metadata (preserve lifecycle status)
@@ -876,18 +977,25 @@ export class DocumentService {
       const mergedPayload: Partial<IUploadPayload> = {
         documentType: updates.documentType ?? currentDoc.documentType,
         therapeuticArea: updates.therapeuticArea ?? currentDoc.therapeuticArea,
-        subTherapeuticArea: updates.subTherapeuticArea ?? currentDoc.subTherapeuticArea,
+        subTherapeuticArea:
+          updates.subTherapeuticArea ?? currentDoc.subTherapeuticArea,
         asset: updates.asset ?? currentDoc.asset,
         indication: updates.indication ?? currentDoc.indication,
         lineOfTherapy: updates.lineOfTherapy ?? currentDoc.lineOfTherapy,
         diseaseArea: updates.diseaseArea ?? currentDoc.diseaseArea,
       };
 
-      const newFileName = generateFileName(mergedPayload, currentDoc.fileExtension);
+      const newFileName = generateFileName(
+        mergedPayload,
+        currentDoc.fileExtension,
+      );
 
       if (newFileName.toLowerCase() !== currentDoc.fileName.toLowerCase()) {
         const currentFileRef = currentDoc.fileUrl;
-        const folderRef = currentFileRef.substring(0, currentFileRef.lastIndexOf("/"));
+        const folderRef = currentFileRef.substring(
+          0,
+          currentFileRef.lastIndexOf("/"),
+        );
         const newFileRef = `${folderRef}/${newFileName}`;
 
         const escapedCurrentRef = currentFileRef.replace(/'/g, "''");
@@ -997,7 +1105,10 @@ export class DocumentService {
     }
   }
 
-  public async reActivateDocument(documentId: string, newFileName?: string): Promise<boolean> {
+  public async reActivateDocument(
+    documentId: string,
+    newFileName?: string,
+  ): Promise<boolean> {
     if (this.useMock) {
       await new Promise((resolve) => setTimeout(resolve, 300));
       const doc = this.mockDocs.find((d) => d.id === documentId);
@@ -1024,10 +1135,18 @@ export class DocumentService {
 
       // Step 1: Fetch the target document's full metadata to build its identity key
       const identityFields = [
-        "Id", "FileLeafRef", "FileRef",
-        "SpectraDocumentType", "SpectraTherapeuticArea", "SpectraSubTherapeuticArea",
-        "SpectraIndication", "SpectraLineOfTherapy", "SpectraAsset",
-        "SpectraPAID", "SpectraDiseaseArea", "SpectraStatus",
+        "Id",
+        "FileLeafRef",
+        "FileRef",
+        "SpectraDocumentType",
+        "SpectraTherapeuticArea",
+        "SpectraSubTherapeuticArea",
+        "SpectraIndication",
+        "SpectraLineOfTherapy",
+        "SpectraAsset",
+        "SpectraPAID",
+        "SpectraDiseaseArea",
+        "SpectraStatus",
       ].join(",");
 
       const targetDocUrl = `${listUrl}(${documentId})?$select=${identityFields}`;
@@ -1037,7 +1156,10 @@ export class DocumentService {
       );
       if (!targetResponse.ok) return false;
 
-      const targetItem = await targetResponse.json() as Record<string, unknown>;
+      const targetItem = (await targetResponse.json()) as Record<
+        string,
+        unknown
+      >;
       const targetDoc = this._mapSharePointItemToDocument(targetItem);
       const identityKey = this._getDocumentIdentityKeyFromDoc(targetDoc);
 
@@ -1049,12 +1171,15 @@ export class DocumentService {
       );
       if (!currentResponse.ok) return false;
 
-      const currentData = await currentResponse.json() as { value: Array<Record<string, unknown>> };
+      const currentData = (await currentResponse.json()) as {
+        value: Array<Record<string, unknown>>;
+      };
       const docsToArchive = currentData.value
         .map((item) => this._mapSharePointItemToDocument(item))
-        .filter((doc) =>
-          doc.id !== documentId &&
-          this._getDocumentIdentityKeyFromDoc(doc) === identityKey,
+        .filter(
+          (doc) =>
+            doc.id !== documentId &&
+            this._getDocumentIdentityKeyFromDoc(doc) === identityKey,
         );
 
       // Step 3: Activate target + archive all matching Current docs in parallel
@@ -1083,7 +1208,7 @@ export class DocumentService {
               },
               body: JSON.stringify({ SpectraStatus: "Archive" }),
             },
-          )
+          ),
         ),
       ];
 
@@ -1091,9 +1216,15 @@ export class DocumentService {
       if (!results.every((r) => r.ok)) return false;
 
       // Rename the file if the caller requested a new name
-      if (newFileName && newFileName.toLowerCase() !== targetDoc.fileName.toLowerCase()) {
+      if (
+        newFileName &&
+        newFileName.toLowerCase() !== targetDoc.fileName.toLowerCase()
+      ) {
         const currentFileRef = targetDoc.fileUrl;
-        const folderRef = currentFileRef.substring(0, currentFileRef.lastIndexOf("/"));
+        const folderRef = currentFileRef.substring(
+          0,
+          currentFileRef.lastIndexOf("/"),
+        );
         const newFileRef = `${folderRef}/${newFileName}`;
         const escapedCurrentRef = currentFileRef.replace(/'/g, "''");
         const escapedNewRef = newFileRef.replace(/'/g, "''");

@@ -24,7 +24,11 @@ export const EmptyState: React.FC<IEmptyStateProps> = ({ type }) => {
       ) : type === "no-results" ? (
         <>
           <div className={styles.emptyStateIcon}>
-            <img src={require('../../assets/icons/no-results-found.svg')} alt="" style={{ width: '48px', height: '48px' }} />
+            <img
+              src={require("../../assets/icons/no-results-found.svg")}
+              alt=""
+              style={{ width: "48px", height: "48px" }}
+            />
           </div>
           <div className={styles.emptyStateTitle}>No Results Found</div>
           <div className={styles.emptyStateText}>

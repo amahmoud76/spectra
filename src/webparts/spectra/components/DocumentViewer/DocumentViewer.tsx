@@ -233,7 +233,9 @@ const OfficeViewer: React.FC<{ fileUrl: string; siteUrl: string }> = ({
       if (!iframeDoc || !iframeDoc.head) return;
 
       // Prevent duplicate style tags if iframe reloads.
-      const existingStyle = iframeDoc.getElementById("spectra-wopi-lockdown-style");
+      const existingStyle = iframeDoc.getElementById(
+        "spectra-wopi-lockdown-style",
+      );
       if (existingStyle) return;
 
       const style = iframeDoc.createElement("style");

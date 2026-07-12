@@ -16,5 +16,10 @@ export interface IWebPartProps {
   splashVariant: "classic" | "elegant"; // UI style of the startup splash screen
   helpEmail: string; // Support email value configurable from property pane
   helpGuideUrl: string; // Support guide URL configurable from property pane
+  enableFavorites: boolean; // Opt-in: show Favorites star + nav link
+  enableRecentlyViewed: boolean; // Opt-in: track recently viewed + nav link
+  enableTilesView: boolean; // Opt-in: tiles results layout (admin can toggle)
+  userPreferencesListName?: string; // Custom list for user prefs (favorites, recently viewed)
+  testerEmails?: string; // Comma-separated emails that can cycle roles for testing
   initialDocumentId?: number; // Deep-link: SP list item ID from ?spectraDoc= URL param
 }

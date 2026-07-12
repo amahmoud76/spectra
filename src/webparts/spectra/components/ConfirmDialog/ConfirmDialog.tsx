@@ -12,6 +12,12 @@ export interface IConfirmDialogProps {
   isDestructive?: boolean;
   variant?: "default" | "compact";
   anchorPosition?: { top: number; left: number };
+  /** Optional inline error shown inside the dialog (visible above the modal overlay). */
+  errorMessage?: string;
+  /** When true, the confirm/secondary actions are disabled (e.g. while an async action is in progress). */
+  confirmDisabled?: boolean;
+  /** When true, the dialog cannot be dismissed (Cancel, close, overlay click, Escape are all blocked). */
+  disableDismiss?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   onSecondary?: () => void;
@@ -27,18 +33,21 @@ export const ConfirmDialog: React.FC<IConfirmDialogProps> = ({
   isDestructive = false,
   variant = "default",
   anchorPosition,
+  errorMessage,
+  confirmDisabled = false,
+  disableDismiss = false,
   onConfirm,
   onCancel,
   onSecondary,
 }) => {
-  // Close on Escape key
+  // Close on Escape key (unless dismissal is locked while processing)
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === "Escape" && isOpen) onCancel();
+      if (e.key === "Escape" && isOpen && !disableDismiss) onCancel();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onCancel]);
+  }, [isOpen, onCancel, disableDismiss]);
 
   if (!isOpen) return null;
 
@@ -56,7 +65,7 @@ export const ConfirmDialog: React.FC<IConfirmDialogProps> = ({
   return (
     <div
       className={`${styles.modalOverlay} ${variant === "compact" ? styles.modalOverlayCompact : ""}`}
-      onClick={onCancel}
+      onClick={disableDismiss ? undefined : onCancel}
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
@@ -75,18 +84,43 @@ export const ConfirmDialog: React.FC<IConfirmDialogProps> = ({
               className={styles.panelClose}
               onClick={onCancel}
               aria-label="Close dialog"
+              disabled={disableDismiss}
             >
               <i className="fa fa-xmark" />
             </button>
           </TooltipHost>
         </div>
         <div className={styles.modalBody}>{message}</div>
+        {errorMessage && (
+          <div
+            role="alert"
+            style={{
+              margin: "0 24px 12px",
+              padding: "10px 12px",
+              borderRadius: "6px",
+              background: "#fdecea",
+              border: "1px solid #f5c2c0",
+              color: "#b42318",
+              fontSize: "13px",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
         <div className={styles.modalFooter}>
-          <button className={styles.btnSecondary} onClick={onCancel}>
+          <button
+            className={styles.btnSecondary}
+            onClick={onCancel}
+            disabled={disableDismiss}
+          >
             {cancelLabel}
           </button>
           {secondaryLabel && onSecondary && (
-            <button className={styles.btnSecondary} onClick={onSecondary}>
+            <button
+              className={styles.btnSecondary}
+              onClick={onSecondary}
+              disabled={confirmDisabled}
+            >
               {secondaryLabel}
             </button>
           )}
@@ -97,6 +131,7 @@ export const ConfirmDialog: React.FC<IConfirmDialogProps> = ({
                 : styles.btnPrimary
             }
             onClick={onConfirm}
+            disabled={confirmDisabled}
           >
             {confirmLabel}
           </button>

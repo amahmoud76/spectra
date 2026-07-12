@@ -1,4 +1,5 @@
 import * as React from "react";
+import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { IFilterState } from "../../interfaces/IFilterState";
 import {
   IMetadataOptions,
@@ -11,6 +12,7 @@ import {
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
 import { DateRangePicker } from "../DateRangePicker/DateRangePicker";
+import { usePeopleSearch } from "../../hooks/usePeopleSearch";
 import styles from "../SPECTRA.module.scss";
 
 export interface IFilterPanelProps {
@@ -18,6 +20,8 @@ export interface IFilterPanelProps {
   filters: IFilterState;
   resetToken: number;
   options: IMetadataOptions;
+  context: WebPartContext;
+  useMock: boolean;
   onFilterChange: <K extends keyof IFilterState>(
     field: K,
     value: IFilterState[K],
@@ -32,12 +36,34 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
   filters,
   resetToken,
   options,
+  context,
+  useMock,
   onFilterChange,
   onApply,
   onCancel,
   onReset,
 }) => {
-  if (!isOpen) return null;
+  const {
+    results: peopleResults,
+    isSearching: isPeopleSearching,
+    search: searchPeople,
+    clear: clearPeopleResults,
+  } = usePeopleSearch(context, useMock);
+  const [peopleQuery, setPeopleQuery] = React.useState("");
+
+  // Reset people query when panel closes or filters are reset
+  React.useEffect(() => {
+    if (!isOpen) {
+      setPeopleQuery("");
+      clearPeopleResults();
+    }
+  }, [isOpen, clearPeopleResults]);
+
+  React.useEffect(() => {
+    setPeopleQuery("");
+    clearPeopleResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetToken]);
 
   const paidValues = getAllPaids(options.projectPaidRelationships);
   const indicationValues = React.useMemo(() => {
@@ -100,6 +126,9 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
     filters.therapeuticArea,
     onFilterChange,
   ]);
+
+  // All hooks above — safe to do early return now
+  if (!isOpen) return null;
 
   return (
     <>
@@ -237,6 +266,89 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
               onFromChange={(d) => onFilterChange("uploadDateFrom", d)}
               onToChange={(d) => onFilterChange("uploadDateTo", d)}
             />
+          </div>
+
+          {/* Created By — async AD people search */}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Created By</label>
+
+            <div className={styles.peoplePickerWrap}>
+              <input
+                type="text"
+                className={styles.formInput}
+                placeholder="Type a name to search…"
+                value={peopleQuery}
+                onChange={(e) => {
+                  setPeopleQuery(e.target.value);
+                  searchPeople(e.target.value);
+                }}
+                onBlur={() => setTimeout(() => clearPeopleResults(), 200)}
+                aria-label="Search for document creator"
+              />
+
+              {(isPeopleSearching || peopleResults.length > 0) &&
+                peopleQuery.trim().length >= 2 && (
+                  <div className={styles.peoplePickerSuggestions}>
+                    {isPeopleSearching ? (
+                      <div className={styles.peoplePickerStatus}>
+                        Searching…
+                      </div>
+                    ) : (
+                      peopleResults
+                        .filter(
+                          (r) => !filters.createdBy.includes(r.displayName),
+                        )
+                        .map((person) => (
+                          <div
+                            key={person.email || person.displayName}
+                            className={styles.peoplePickerItem}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              onFilterChange("createdBy", [
+                                ...filters.createdBy,
+                                person.displayName,
+                              ]);
+                              setPeopleQuery("");
+                              clearPeopleResults();
+                            }}
+                          >
+                            <span className={styles.peoplePickerItemName}>
+                              {person.displayName}
+                            </span>
+                            {person.email && (
+                              <span className={styles.peoplePickerItemEmail}>
+                                {person.email}
+                              </span>
+                            )}
+                          </div>
+                        ))
+                    )}
+                  </div>
+                )}
+            </div>
+
+            {filters.createdBy.length > 0 && (
+              <div className={styles.nativeMultiSelectChips}>
+                {filters.createdBy.map((name) => (
+                  <span key={name} className={styles.chip}>
+                    {name}
+                    <button
+                      className={styles.chipRemove}
+                      onClick={() =>
+                        onFilterChange(
+                          "createdBy",
+                          filters.createdBy.filter((n) => n !== name),
+                        )
+                      }
+                      aria-label={`Remove ${name}`}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

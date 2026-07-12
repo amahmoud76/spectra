@@ -30,6 +30,9 @@ export interface IDataTableProps {
     anchorPosition?: { top: number; left: number },
   ) => void;
   onReActivateClick?: (doc: IDocument) => void;
+  onFavoriteToggle?: (doc: IDocument) => void;
+  favoriteIds?: Set<string>;
+  showFavorites?: boolean;
   isLoading: boolean;
   searchMatchKindByDocumentId?: Map<string, SearchMatchKind>;
   useEnhancedStyle?: boolean;
@@ -155,7 +158,7 @@ const COLUMNS: IColumnDef[] = [
   },
   {
     key: "modifiedBy",
-    label: "Last Modified By",
+    label: "Metadata Last Modified By",
     sortField: "modifiedBy",
     getValue: (d) => d.modifiedBy,
     truncate: true,
@@ -176,6 +179,43 @@ const COLUMNS: IColumnDef[] = [
   },
 ];
 
+const StarOutlineIcon: React.FC = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+      stroke="#6B7280"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const StarFilledIcon: React.FC = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+      fill="#0066f5"
+      stroke="#0066f5"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export const DataTable: React.FC<IDataTableProps> = ({
   documents,
   role,
@@ -187,6 +227,9 @@ export const DataTable: React.FC<IDataTableProps> = ({
   onDeleteClick,
   onArchiveReplaceClick,
   onReActivateClick,
+  onFavoriteToggle,
+  favoriteIds,
+  showFavorites,
   isLoading,
   searchMatchKindByDocumentId,
   useEnhancedStyle = false,
@@ -457,16 +500,16 @@ export const DataTable: React.FC<IDataTableProps> = ({
       >
         <thead>
           <tr>
-            {(role === "contributor" || role === "admin") && (
-              <th
-                className={
-                  role === "contributor"
-                    ? styles.leadingActionHeaderNarrow
-                    : styles.leadingActionHeader
-                }
-                aria-label="Actions"
-              />
-            )}
+            <th
+              className={
+                role === "admin"
+                  ? styles.leadingActionHeader
+                  : role === "contributor"
+                    ? styles.leadingActionHeaderCompact
+                    : styles.leadingActionHeaderNarrow
+              }
+              aria-label="Actions"
+            />
 
             {visibleColumns.map((col) => (
               <th
@@ -514,29 +557,28 @@ export const DataTable: React.FC<IDataTableProps> = ({
         <tbody>
           {documents.map((doc) => (
             <tr key={doc.id}>
-              {(role === "contributor" || role === "admin") && (
-                <td
-                  className={
-                    role === "contributor"
-                      ? styles.leadingActionCellNarrow
-                      : styles.leadingActionCell
-                  }
-                >
+              <td
+                className={
+                  role === "admin"
+                    ? styles.leadingActionCell
+                    : role === "contributor"
+                      ? styles.leadingActionCellCompact
+                      : styles.leadingActionCellNarrow
+                }
+              >
+                <div className={styles.rowActionsInline}>
+                  {/* Contributor-only: Archive & Replace */}
                   {role === "contributor" &&
                     doc.status === "Current" &&
                     onArchiveReplaceClick && (
                       <TooltipHost content="Archive and Replace">
-                        <span
-                          className={styles.actionIcon}
+                        <button
+                          className={styles.rowActionIconBtn}
                           onClick={(event) =>
                             onArchiveReplaceClick(doc, getAnchorPosition(event))
                           }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") onArchiveReplaceClick(doc);
-                          }}
-                          tabIndex={0}
-                          role="button"
                           aria-label={`Archive and replace ${doc.fileName}`}
+                          type="button"
                         >
                           <img
                             src={require("../../assets/icons/archive-replace.svg")}
@@ -548,12 +590,13 @@ export const DataTable: React.FC<IDataTableProps> = ({
                             }}
                             aria-hidden="true"
                           />
-                        </span>
+                        </button>
                       </TooltipHost>
                     )}
 
+                  {/* Admin-only actions */}
                   {role === "admin" && (
-                    <div className={styles.rowActionsInline}>
+                    <>
                       <TooltipHost content="Edit metadata">
                         <button
                           className={styles.rowActionIconBtn}
@@ -665,10 +708,41 @@ export const DataTable: React.FC<IDataTableProps> = ({
                           />
                         </button>
                       </TooltipHost>
-                    </div>
+                    </>
                   )}
-                </td>
-              )}
+
+                  {/* Star / favourite — all roles, when feature enabled */}
+                  {showFavorites && (
+                    <TooltipHost
+                      content={
+                        favoriteIds?.has(doc.id)
+                          ? "Remove from Favorites"
+                          : "Add to Favorites"
+                      }
+                    >
+                      <button
+                        className={styles.rowActionIconBtn}
+                        onClick={() =>
+                          onFavoriteToggle && onFavoriteToggle(doc)
+                        }
+                        aria-label={
+                          favoriteIds?.has(doc.id)
+                            ? `Remove ${doc.fileName} from Favorites`
+                            : `Add ${doc.fileName} to Favorites`
+                        }
+                        aria-pressed={favoriteIds?.has(doc.id)}
+                        type="button"
+                      >
+                        {favoriteIds?.has(doc.id) ? (
+                          <StarFilledIcon />
+                        ) : (
+                          <StarOutlineIcon />
+                        )}
+                      </button>
+                    </TooltipHost>
+                  )}
+                </div>
+              </td>
 
               {visibleColumns.map((col) => (
                 <td

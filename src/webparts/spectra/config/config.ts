@@ -43,6 +43,13 @@ export const AUTH_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 export const AUTH_DEBUG_LOGS = true;
 export const AUTH_LOG_PREFIX = "[SPECTRA AUTH]";
 
+// ── Role-preview tester mode ──────────────────────────────────
+// Visit any page with ?spectra=1 to activate role-cycling for that browser session.
+// Change TESTER_MODE_VALUE to invalidate existing links without a redeployment.
+export const TESTER_MODE_PARAM       = "spectra";
+export const TESTER_MODE_VALUE       = "1";
+export const TESTER_MODE_SESSION_KEY = "spectra.testerMode";
+
 export const HEADER_CONFIG_CACHE_KEY = "spectra_header_config";
 export const HEADER_CONFIG_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -251,6 +258,7 @@ export const SP_LIST_NAMES = {
   projectPaid: "SPECTRA_ProjectPAID",
   headerSettings: "SPECTRA_HeaderSettings",
   headerLinks: "SPECTRA_HeaderLinks",
+  userPreferences: "SPECTRA_UserPreferences",
 } as const;
 
 // Document library name

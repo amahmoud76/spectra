@@ -16,6 +16,7 @@ import { useNotification } from "../hooks/useNotification";
 import { useUpload } from "../hooks/useUpload";
 import { useArchiveReplace } from "../hooks/useArchiveReplace";
 import { useHeaderConfig } from "../hooks/useHeaderConfig";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 
 // Utilities
 import {
@@ -42,6 +43,7 @@ import { Footer } from "../components/Footer/Footer";
 import { SearchBar } from "../components/SearchBar/SearchBar";
 import { Toolbar } from "../components/Toolbar/Toolbar";
 import { DataTable } from "../components/DataTable/DataTable";
+import { TilesView } from "../components/TilesView/TilesView";
 import { Pagination } from "../components/Pagination/Pagination";
 
 // Components — Panels
@@ -58,13 +60,13 @@ import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 // Components — Pages
 import { DocumentViewingPage } from "../components/DocumentViewingPage/DocumentViewingPage";
 import { ShowArchivedToggle } from "./ShowArchivedToggle/ShowArchivedToggle";
-import { ViewFullLibraryButton } from "./ViewFullLibraryButton/ViewFullLibraryButton";
 import { ActiveFilterChips } from "./ActiveFilterChips/ActiveFilterChips";
 // Styles
 import styles from "./SPECTRA.module.scss";
 
 // Types
 type PageState = "landing" | "results" | "viewing";
+type ViewMode = "normal" | "favorites" | "recently-viewed";
 
 const hasValidCacheEntry = (cacheKey: string): boolean => {
   try {
@@ -95,9 +97,14 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   initialDocumentId,
   helpEmail,
   helpGuideUrl,
+  enableFavorites,
+  enableRecentlyViewed,
+  enableTilesView,
+  userPreferencesListName,
 }) => {
   // ── Page state ──────────────────────────────────────────────
   const [page, setPage] = React.useState<PageState>("landing");
+  const [viewMode, setViewMode] = React.useState<ViewMode>("normal");
   const [searchText, setSearchText] = React.useState("");
   const [showArchivedDocuments, setShowArchivedDocuments] =
     React.useState(false);
@@ -162,6 +169,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     existingFileName: string;
     pendingPayload: IUploadPayload | null;
     isReplace: boolean;
+    error?: string;
   }>({
     isOpen: false,
     existingDocId: "",
@@ -178,6 +186,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       existingDocId: string;
       existingFileName: string;
       pendingUpdates: Partial<IUploadPayload> | null;
+      error?: string;
+      isProcessing?: boolean;
     }>({
       isOpen: false,
       editingDocId: "",
@@ -185,6 +195,17 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       existingFileName: "",
       pendingUpdates: null,
     });
+
+  // ── File name conflict dialog ───────────────────────────────
+  const [fileNameConflictDialog, setFileNameConflictDialog] = React.useState<{
+    isOpen: boolean;
+    conflictFileName: string;
+    pendingPayload: IUploadPayload | null;
+  }>({
+    isOpen: false,
+    conflictFileName: "",
+    pendingPayload: null,
+  });
   // ── Hooks ───────────────────────────────────────────────────
   const auth = useAuth(context, userEmail, useMock, useAdGroups, mockRole);
   const metadata = useMetadata(context, useMock);
@@ -202,6 +223,12 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const upload = useUpload(context, documentLibrary, useMock);
   const archiveReplace = useArchiveReplace(context, documentLibrary, useMock);
   const headerConfig = useHeaderConfig(context, useMock);
+  const userPrefs = useUserPreferences(
+    context,
+    userEmail,
+    useMock,
+    userPreferencesListName,
+  );
 
   // ── Derived data ────────────────────────────────────────────
   // Helper: Create a map from metadata option value to searchTokens
@@ -287,10 +314,35 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
 
   const useEnhancedStyle = true;
 
-  const pagination = usePagination(sortedDocuments, pageSize);
+  // ── viewMode filtering (favorites / recently-viewed) ────────
+  const favoriteIdsSet = React.useMemo(
+    () => new Set(userPrefs.favorites),
+    [userPrefs.favorites],
+  );
+
+  const viewModeDocuments = React.useMemo(() => {
+    if (viewMode === "favorites") {
+      return sortedDocuments.filter((doc) => favoriteIdsSet.has(doc.id));
+    }
+    if (viewMode === "recently-viewed") {
+      const rvSet = new Set(userPrefs.recentlyViewed);
+      const matched = sortedDocuments.filter((doc) => rvSet.has(doc.id));
+      return userPrefs.recentlyViewed
+        .map((id) => matched.find((d) => d.id === id))
+        .filter((d): d is IDocument => d !== undefined);
+    }
+    return sortedDocuments;
+  }, [viewMode, sortedDocuments, favoriteIdsSet, userPrefs.recentlyViewed]);
+
+  const pagination = usePagination(viewModeDocuments, pageSize);
 
   // const noResults = !documents.isLoading && sortedDocuments.length === 0;
   const noResults = !documents.isLoading && sortedDocuments.length === 0;
+  const viewModeNoResults =
+    !documents.isLoading &&
+    !userPrefs.isLoading && // don't declare "no results" while prefs are still fetching
+    viewMode !== "normal" &&
+    viewModeDocuments.length === 0;
 
   // const hasPanelFilters = filters.activeFilterCount > 0;
   const hasPanelFilters = filters.activeFilterCount > 0;
@@ -309,7 +361,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     hasResultsContext &&
     !hasSearchApplied &&
     !hasPanelFilters &&
-    !isFullLibraryView;
+    !isFullLibraryView &&
+    viewMode === "normal"; // never show idle state when browsing Favorites or Recently Viewed
 
   const siteUrl = context.pageContext.web.absoluteUrl;
   const userDisplayName = context.pageContext.user.displayName;
@@ -431,14 +484,6 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     enableVerboseStartupStatus,
   ]);
 
-  const handleViewFullLibrary = React.useCallback(() => {
-    setShowArchivedDocuments(false);
-    setIsFullLibraryView(true);
-    setHasResultsContext(true);
-    setPage("results");
-    documents.refetch();
-  }, [documents]);
-
   const handleArchiveToggleChange = React.useCallback(
     (next: boolean) => {
       setShowArchivedDocuments(next);
@@ -457,6 +502,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     if (searchText || filters.hasActiveFilters) {
       documents.refetch();
       setHasResultsContext(true);
+      setViewMode("normal");
       setPage("results");
     }
   }, [searchText, filters, documents]);
@@ -498,6 +544,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     filters.setFilter("lineOfTherapy", draftFilters.lineOfTherapy);
     filters.setFilter("paid", draftFilters.paid);
     filters.setFilter("diseaseArea", draftFilters.diseaseArea);
+    filters.setFilter("createdBy", draftFilters.createdBy);
     filters.setFilter("effectiveDateFrom", draftFilters.effectiveDateFrom);
     filters.setFilter("effectiveDateTo", draftFilters.effectiveDateTo);
     filters.setFilter("uploadDateFrom", draftFilters.uploadDateFrom);
@@ -570,10 +617,60 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   );
 
   // ── Document click → viewing page ───────────────────────────
-  const handleDocumentClick = React.useCallback((doc: IDocument) => {
-    setViewingDocument(doc);
-    setPage("viewing");
-  }, []);
+  const handleDocumentClick = React.useCallback(
+    (doc: IDocument) => {
+      setViewingDocument(doc);
+      setPage("viewing");
+      if (enableRecentlyViewed) {
+        userPrefs.addRecentlyViewed(doc.id).catch(() => undefined);
+      }
+    },
+    [userPrefs, enableRecentlyViewed],
+  );
+
+  // ── Favorite toggle ─────────────────────────────────────────
+  const handleFavoriteToggle = React.useCallback(
+    async (doc: IDocument) => {
+      const { added } = await userPrefs.toggleFavorite(doc.id);
+      notification.showSuccess(
+        added
+          ? `"${doc.fileName}" added to Favorites.`
+          : `"${doc.fileName}" removed from Favorites.`,
+      );
+    },
+    [userPrefs, notification],
+  );
+
+  // ── View favorites / recently-viewed ────────────────────────
+  const handleViewFavorites = React.useCallback(() => {
+    setViewMode("favorites");
+    setHasResultsContext(true);
+    setPage("results");
+    documents.refetch();
+  }, [documents]);
+
+  const handleViewRecentlyViewed = React.useCallback(() => {
+    setViewMode("recently-viewed");
+    setHasResultsContext(true);
+    setPage("results");
+    documents.refetch();
+  }, [documents]);
+
+  // ── All Documents (header nav) — reset view mode, show full library ──
+  const handleViewAllDocuments = React.useCallback(() => {
+    setViewMode("normal");
+    setShowArchivedDocuments(false);
+    setIsFullLibraryView(true);
+    setHasResultsContext(true);
+    setPage("results");
+    documents.refetch();
+  }, [documents]);
+
+  // ── Results view toggle (admin only, when tiles enabled) ────
+  const handleToggleResultsView = React.useCallback(() => {
+    const next = userPrefs.resultsView === "tiles" ? "table" : "tiles";
+    userPrefs.setResultsView(next).catch(() => undefined);
+  }, [userPrefs]);
 
   // ── Back to results ─────────────────────────────────────────
   const handleBackToResults = React.useCallback(() => {
@@ -602,6 +699,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     setIsFullLibraryView(false);
     setShowArchivedDocuments(false);
     setSearchText("");
+    setViewMode("normal");
     filters.clearAllFilters();
   }, [filters]);
 
@@ -637,7 +735,12 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
         );
         documents.refetch();
       } else if (result.isFileNameConflict) {
-        notification.showError(result.message);
+        notification.clearNotification();
+        setFileNameConflictDialog({
+          isOpen: true,
+          conflictFileName: result.conflictFileName || "",
+          pendingPayload: payload,
+        });
       } else {
         notification.showError(GENERIC_ERROR_MESSAGE);
       }
@@ -794,26 +897,26 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const handleDuplicateConfirmArchive = React.useCallback(async () => {
     if (!duplicateConfirmation.pendingPayload) return;
 
-    // Re-upload with archiveTargetId
-    const result = duplicateConfirmation.isReplace
-      ? await upload.upload(
-          duplicateConfirmation.pendingPayload,
-          duplicateConfirmation.existingDocId,
-        )
-      : await upload.upload(
-          duplicateConfirmation.pendingPayload,
-          duplicateConfirmation.existingDocId,
-        );
+    // Clear any prior inline error before retrying.
+    setDuplicateConfirmation((prev) => ({ ...prev, error: undefined }));
 
-    setDuplicateConfirmation({
-      isOpen: false,
-      existingDocId: "",
-      existingFileName: "",
-      pendingPayload: null,
-      isReplace: false,
-    });
+    // Re-upload with archiveTargetId
+    const result = await upload.upload(
+      duplicateConfirmation.pendingPayload,
+      duplicateConfirmation.existingDocId,
+    );
 
     if (result.success) {
+      // Only close the dialog on success — preserving state on failure allows the
+      // user to retry without losing the archiveTargetId (important when the old
+      // document has already been archived but the file upload itself failed).
+      setDuplicateConfirmation({
+        isOpen: false,
+        existingDocId: "",
+        existingFileName: "",
+        pendingPayload: null,
+        isReplace: false,
+      });
       setUploadPanelOpen(false);
       upload.resetUpload();
       notification.showSuccess(
@@ -825,9 +928,21 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       documents.refetch();
       if (page === "viewing") setPage("results");
     } else if (result.isFileNameConflict) {
-      notification.showError(result.message);
-    } else if (!result.isDuplicateIdentity) {
-      notification.showError(GENERIC_ERROR_MESSAGE);
+      // Keep dialog open — user can retry; the old document may already be
+      // archived so a retry with the same archiveTargetId is safe.
+      setDuplicateConfirmation((prev) => ({
+        ...prev,
+        error: result.message,
+      }));
+    } else {
+      // Upload failed (network / metadata error). Keep dialog open so the user
+      // can retry. The archive step is idempotent so retrying is safe.
+      setDuplicateConfirmation((prev) => ({
+        ...prev,
+        error:
+          result.message ||
+          "The upload could not be completed. Please try again.",
+      }));
     }
   }, [duplicateConfirmation, upload, notification, documents, page]);
 
@@ -885,40 +1000,58 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const handleEditDuplicateConfirmArchive = React.useCallback(async () => {
     if (!editDuplicateConfirmation.pendingUpdates) return;
 
+    // Clear any prior error and mark as processing to disable buttons.
+    setEditDuplicateConfirmation((prev) => ({
+      ...prev,
+      error: undefined,
+      isProcessing: true,
+    }));
+
     // Archive the duplicate document first
     const service = new DocumentService(context, documentLibrary, useMock);
     const archiveSuccess = await service.archiveDocument(
       editDuplicateConfirmation.existingDocId,
     );
 
-    if (archiveSuccess) {
-      // Proceed with the edit
-      const success = await service.updateDocument(
-        editDuplicateConfirmation.editingDocId,
-        editDuplicateConfirmation.pendingUpdates,
-      );
-
-      if (success) {
-        setEditPanelOpen(false);
-        setEditTarget(null);
-        notification.showSuccess(
-          "Document updated and existing duplicate archived.",
-        );
-        documents.refetch();
-      } else {
-        notification.showError(GENERIC_ERROR_MESSAGE);
-      }
-    } else {
-      notification.showError(GENERIC_ERROR_MESSAGE);
+    if (!archiveSuccess) {
+      // Keep dialog open — archive failed, safe to retry.
+      setEditDuplicateConfirmation((prev) => ({
+        ...prev,
+        isProcessing: false,
+        error: "Could not archive the existing document. Please try again.",
+      }));
+      return;
     }
 
-    setEditDuplicateConfirmation({
-      isOpen: false,
-      editingDocId: "",
-      existingDocId: "",
-      existingFileName: "",
-      pendingUpdates: null,
-    });
+    // Archive succeeded — proceed with the metadata update.
+    const success = await service.updateDocument(
+      editDuplicateConfirmation.editingDocId,
+      editDuplicateConfirmation.pendingUpdates,
+    );
+
+    if (success) {
+      setEditDuplicateConfirmation({
+        isOpen: false,
+        editingDocId: "",
+        existingDocId: "",
+        existingFileName: "",
+        pendingUpdates: null,
+      });
+      setEditPanelOpen(false);
+      setEditTarget(null);
+      notification.showSuccess(
+        "Document updated and existing duplicate archived.",
+      );
+      documents.refetch();
+    } else {
+      // Archive already done (idempotent); keep dialog open so user can retry the update.
+      setEditDuplicateConfirmation((prev) => ({
+        ...prev,
+        isProcessing: false,
+        error:
+          "The duplicate was archived but the metadata update failed. Please try again.",
+      }));
+    }
   }, [
     editDuplicateConfirmation,
     context,
@@ -978,6 +1111,61 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     useMock,
     notification,
   ]);
+  // ── File name conflict dialog handlers ─────────────────────
+  const handleFileNameConflictReplace = React.useCallback(async () => {
+    const { conflictFileName } = fileNameConflictDialog;
+    setFileNameConflictDialog({
+      isOpen: false,
+      conflictFileName: "",
+      pendingPayload: null,
+    });
+
+    let doc =
+      documents.documents.find(
+        (d) => d.fileName.toLowerCase() === conflictFileName.toLowerCase(),
+      ) ?? null;
+
+    if (!doc) {
+      const service = new DocumentService(context, documentLibrary, useMock);
+      doc = await service.getDocumentByFileName(conflictFileName);
+    }
+
+    if (doc) {
+      setUploadPanelOpen(false);
+      upload.resetUpload();
+      archiveReplace.initiateArchiveReplace(doc);
+    } else {
+      notification.showError(GENERIC_ERROR_MESSAGE);
+    }
+  }, [
+    fileNameConflictDialog,
+    documents.documents,
+    context,
+    documentLibrary,
+    useMock,
+    upload,
+    archiveReplace,
+    notification,
+  ]);
+
+  const handleFileNameConflictAdjust = React.useCallback(() => {
+    setFileNameConflictDialog({
+      isOpen: false,
+      conflictFileName: "",
+      pendingPayload: null,
+    });
+  }, []);
+
+  const handleFileNameConflictCancel = React.useCallback(() => {
+    setFileNameConflictDialog({
+      isOpen: false,
+      conflictFileName: "",
+      pendingPayload: null,
+    });
+    setUploadPanelOpen(false);
+    upload.resetUpload();
+  }, [upload]);
+
   // ── Archive & Replace: confirm step ─────────────────────────
   const handleArchiveReplaceConfirm = React.useCallback(async () => {
     const success = await archiveReplace.confirmArchive();
@@ -1152,6 +1340,63 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     );
   }
 
+  // ── Header nav links (Favorites · Recently Viewed · All Documents) ──
+  const showHeaderNav = true;
+  const showTiles =
+    enableTilesView &&
+    (auth.effectiveRole === "admin" ? userPrefs.resultsView === "tiles" : true);
+  const headerNavLinks = showHeaderNav ? (
+    <nav className={styles.headerNavLinks} aria-label="Document views">
+      <button
+        type="button"
+        className={`${styles.headerNavLink} ${viewMode === "normal" && page === "results" ? styles.headerNavLinkActive : ""}`}
+        onClick={handleViewAllDocuments}
+      >
+        <img
+          src={require("../assets/icons/alldocs.svg")}
+          alt=""
+          aria-hidden="true"
+          className={styles.headerNavLinkIcon}
+        />
+        All Documents
+      </button>
+      {enableRecentlyViewed && (
+        <button
+          type="button"
+          className={`${styles.headerNavLink} ${viewMode === "recently-viewed" ? styles.headerNavLinkActive : ""}`}
+          onClick={handleViewRecentlyViewed}
+        >
+          <img
+            src={require("../assets/icons/recentlyviewed.svg")}
+            alt=""
+            aria-hidden="true"
+            className={styles.headerNavLinkIcon}
+          />
+          Recently Viewed
+        </button>
+      )}
+      {enableFavorites && (
+        <button
+          type="button"
+          className={`${styles.headerNavLink} ${viewMode === "favorites" ? styles.headerNavLinkActive : ""}`}
+          onClick={handleViewFavorites}
+        >
+          <img
+            src={
+              userPrefs.favorites.length > 0
+                ? require("../assets/icons/star-full.svg")
+                : require("../assets/icons/star-empty.svg")
+            }
+            alt=""
+            aria-hidden="true"
+            className={styles.headerNavLinkIcon}
+          />
+          Favorites
+        </button>
+      )}
+    </nav>
+  ) : null;
+
   // ── Render ──────────────────────────────────────────────────
   return (
     <ErrorBoundary>
@@ -1192,14 +1437,14 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           <div className={styles.landingPage}>
             <div className={styles.pageHeaderRow}>
               <h1 className={styles.pageTitle}>{repositoryTitle}</h1>
+              {headerNavLinks}
               <Toolbar
                 role={auth.effectiveRole}
                 activeFilterCount={filters.activeFilterCount}
-                onFilterClick={handleOpenFilterPanel}
-                onClearFiltersClick={handleClearFiltersQuick}
                 onUploadClick={handleOpenUploadPanel}
                 showUpload={true}
-                showFilter={true}
+                showFilter={false}
+                showClearFilters={false}
                 showExport={false}
               />
             </div>
@@ -1213,12 +1458,15 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 onClear={handleClearSearch}
                 isError={noResults && !!searchText}
               />
-              <div className={styles.adminSearchControls}>
-                <ViewFullLibraryButton
-                  onClick={handleViewFullLibrary}
-                  isActive={isFullLibraryView}
-                />
-              </div>
+              <Toolbar
+                role={auth.effectiveRole}
+                activeFilterCount={filters.activeFilterCount}
+                onFilterClick={handleOpenFilterPanel}
+                showUpload={false}
+                showFilter={true}
+                showClearFilters={false}
+                showExport={false}
+              />
             </div>
 
             <div className={styles.landingWelcome}>
@@ -1238,6 +1486,81 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 documents.
               </p>
             </div>
+
+            {/* ── Quick-access: Favorites & Recently Viewed ──
+                Hidden when header nav links provide the same entry points. */}
+            {!showHeaderNav && (
+              <div className={styles.landingQuickAccess}>
+                <button
+                  className={styles.quickAccessCard}
+                  onClick={handleViewFavorites}
+                  type="button"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill={userPrefs.favorites.length > 0 ? "#F59E0B" : "none"}
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                      stroke={
+                        userPrefs.favorites.length > 0 ? "#F59E0B" : "#6B7280"
+                      }
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className={styles.quickAccessLabel}>My Favorites</span>
+                  <span className={styles.quickAccessCount}>
+                    {userPrefs.favorites.length}{" "}
+                    {userPrefs.favorites.length === 1
+                      ? "document"
+                      : "documents"}
+                  </span>
+                </button>
+
+                <button
+                  className={styles.quickAccessCard}
+                  onClick={handleViewRecentlyViewed}
+                  type="button"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="#6B7280"
+                      strokeWidth="1.5"
+                    />
+                    <polyline
+                      points="12 6 12 12 16 14"
+                      stroke="#6B7280"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className={styles.quickAccessLabel}>
+                    Recently Viewed
+                  </span>
+                  <span className={styles.quickAccessCount}>
+                    {userPrefs.recentlyViewed.length}{" "}
+                    {userPrefs.recentlyViewed.length === 1
+                      ? "document"
+                      : "documents"}
+                  </span>
+                </button>
+              </div>
+            )}
 
             <div className={styles.landingSecondaryCard}>
               <div>
@@ -1314,6 +1637,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 </button>
                 <h1 className={styles.pageTitle}>{repositoryTitle}</h1>
               </div>
+              {headerNavLinks}
               <Toolbar
                 role={auth.effectiveRole}
                 activeFilterCount={filters.activeFilterCount}
@@ -1355,10 +1679,52 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                     onChange={handleArchiveToggleChange}
                   />
                 )}
-                <ViewFullLibraryButton
-                  onClick={handleViewFullLibrary}
-                  isActive={isFullLibraryView}
-                />
+                {enableTilesView && auth.effectiveRole === "admin" && (
+                  <div
+                    className={styles.viewToggle}
+                    role="group"
+                    aria-label="Results view"
+                  >
+                    <button
+                      type="button"
+                      title="Table view"
+                      className={`${styles.viewToggleBtn} ${userPrefs.resultsView === "table" ? styles.viewToggleBtnActive : ""}`}
+                      onClick={() => {
+                        if (userPrefs.resultsView !== "table")
+                          handleToggleResultsView();
+                      }}
+                      aria-pressed={userPrefs.resultsView === "table"}
+                      aria-label="Switch to table view"
+                    >
+                      <img
+                        src={require("../assets/icons/table.svg")}
+                        className={styles.viewToggleIcon}
+                        style={{ width: 36, height: 36 }}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      title="Tiles view"
+                      className={`${styles.viewToggleBtn} ${userPrefs.resultsView === "tiles" ? styles.viewToggleBtnActive : ""}`}
+                      onClick={() => {
+                        if (userPrefs.resultsView !== "tiles")
+                          handleToggleResultsView();
+                      }}
+                      aria-pressed={userPrefs.resultsView === "tiles"}
+                      aria-label="Switch to tiles view"
+                    >
+                      <img
+                        src={require("../assets/icons/tiles.svg")}
+                        className={styles.viewToggleIcon}
+                        style={{ width: 18, height: 18 }}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <Toolbar
@@ -1368,6 +1734,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 onClearFiltersClick={handleClearFiltersQuick}
                 showUpload={false}
                 showFilter={true}
+                showClearFilters={false}
                 showExport={false}
               />
             </div>
@@ -1381,7 +1748,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               />
             )}
 
-            {isFullLibraryView && (
+            {isFullLibraryView && viewMode === "normal" && (
               <div
                 className={styles.noResultsHint}
                 role="status"
@@ -1395,19 +1762,121 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
               </div>
             )}
 
+            {/* View-mode bar — visible when browsing Favorites or Recently Viewed */}
+            {viewMode !== "normal" && (
+              <div
+                className={styles.viewModeBar}
+                role="status"
+                aria-live="polite"
+              >
+                <span className={styles.viewModeLabel}>
+                  {viewMode === "favorites" ? (
+                    <>
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="#F59E0B"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                          stroke="#F59E0B"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      My Favorites
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#071d49"
+                          strokeWidth="1.5"
+                        />
+                        <polyline
+                          points="12 6 12 12 16 14"
+                          stroke="#071d49"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      Recently Viewed
+                    </>
+                  )}
+                </span>
+                <button
+                  className={styles.viewModeClearBtn}
+                  onClick={() => {
+                    setViewMode("normal");
+                    setHasResultsContext(true);
+                  }}
+                  type="button"
+                >
+                  ← Back to all results
+                </button>
+              </div>
+            )}
+
             {documents.isLoading ? (
-              <DataTable
-                documents={[]}
-                role={auth.effectiveRole}
-                sortState={sorting.sortState}
-                onSort={sorting.toggleSort}
-                onDocumentClick={handleDocumentClick}
-                onArchiveReplaceClick={(doc, anchorPosition) =>
-                  archiveReplace.initiateArchiveReplace(doc, anchorPosition)
-                }
-                isLoading={true}
-                useEnhancedStyle={useEnhancedStyle}
-              />
+              showTiles ? (
+                <TilesView
+                  documents={[]}
+                  role={auth.effectiveRole}
+                  onDocumentClick={handleDocumentClick}
+                  onFavoriteToggle={handleFavoriteToggle}
+                  favoriteIds={favoriteIdsSet}
+                  showFavorites={enableFavorites}
+                  onArchiveReplaceClick={(doc, anchorPosition) =>
+                    archiveReplace.initiateArchiveReplace(doc, anchorPosition)
+                  }
+                  isLoading={true}
+                />
+              ) : (
+                <DataTable
+                  documents={[]}
+                  role={auth.effectiveRole}
+                  sortState={sorting.sortState}
+                  onSort={sorting.toggleSort}
+                  onDocumentClick={handleDocumentClick}
+                  onFavoriteToggle={handleFavoriteToggle}
+                  favoriteIds={favoriteIdsSet}
+                  showFavorites={enableFavorites}
+                  onArchiveReplaceClick={(doc, anchorPosition) =>
+                    archiveReplace.initiateArchiveReplace(doc, anchorPosition)
+                  }
+                  isLoading={true}
+                  useEnhancedStyle={useEnhancedStyle}
+                />
+              )
+            ) : viewModeNoResults ? (
+              <div className={styles.viewModeEmptyState} role="status">
+                <div className={styles.viewModeEmptyIcon}>
+                  {viewMode === "favorites" ? "★" : "🕐"}
+                </div>
+                <strong>
+                  {viewMode === "favorites"
+                    ? "No favorites yet"
+                    : "No recently viewed documents"}
+                </strong>
+                <p>
+                  {viewMode === "favorites"
+                    ? "Click the star icon on any document to add it to your favorites."
+                    : "Documents you open will appear here."}
+                </p>
+              </div>
             ) : showResultsIdleEmptyState ? (
               <EmptyState type="results-idle" />
             ) : showFilteredEmptyState ? (
@@ -1428,54 +1897,111 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   />
                   No document found
                 </div>
-                <DataTable
-                  documents={[]}
-                  role={auth.effectiveRole}
-                  sortState={sorting.sortState}
-                  onSort={sorting.toggleSort}
-                  onDocumentClick={handleDocumentClick}
-                  onEditClick={(doc) => {
-                    setEditTarget(doc);
-                    setEditPanelOpen(true);
-                  }}
-                  onArchiveClick={(doc) => setArchiveTarget(doc)}
-                  onDeleteClick={(doc) => setDeleteTarget(doc)}
-                  onArchiveReplaceClick={(doc, anchorPosition) =>
-                    archiveReplace.initiateArchiveReplace(doc, anchorPosition)
-                  }
-                  onReActivateClick={(doc) =>
-                    triggerReActivateWithNamingCheck(doc, false)
-                  }
-                  isLoading={false}
-                  useEnhancedStyle={useEnhancedStyle}
-                />
+                {showTiles ? (
+                  <TilesView
+                    documents={[]}
+                    role={auth.effectiveRole}
+                    onDocumentClick={handleDocumentClick}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    favoriteIds={favoriteIdsSet}
+                    showFavorites={enableFavorites}
+                    onEditClick={(doc) => {
+                      setEditTarget(doc);
+                      setEditPanelOpen(true);
+                    }}
+                    onArchiveClick={(doc) => setArchiveTarget(doc)}
+                    onDeleteClick={(doc) => setDeleteTarget(doc)}
+                    onArchiveReplaceClick={(doc, anchorPosition) =>
+                      archiveReplace.initiateArchiveReplace(doc, anchorPosition)
+                    }
+                    onReActivateClick={(doc) =>
+                      triggerReActivateWithNamingCheck(doc, false)
+                    }
+                    isLoading={false}
+                  />
+                ) : (
+                  <DataTable
+                    documents={[]}
+                    role={auth.effectiveRole}
+                    sortState={sorting.sortState}
+                    onSort={sorting.toggleSort}
+                    onDocumentClick={handleDocumentClick}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    favoriteIds={favoriteIdsSet}
+                    showFavorites={enableFavorites}
+                    onEditClick={(doc) => {
+                      setEditTarget(doc);
+                      setEditPanelOpen(true);
+                    }}
+                    onArchiveClick={(doc) => setArchiveTarget(doc)}
+                    onDeleteClick={(doc) => setDeleteTarget(doc)}
+                    onArchiveReplaceClick={(doc, anchorPosition) =>
+                      archiveReplace.initiateArchiveReplace(doc, anchorPosition)
+                    }
+                    onReActivateClick={(doc) =>
+                      triggerReActivateWithNamingCheck(doc, false)
+                    }
+                    isLoading={false}
+                    useEnhancedStyle={useEnhancedStyle}
+                  />
+                )}
               </>
             ) : (
               <>
-                <DataTable
-                  documents={pagination.paginatedDocuments}
-                  role={auth.effectiveRole}
-                  sortState={sorting.sortState}
-                  onSort={sorting.toggleSort}
-                  onDocumentClick={handleDocumentClick}
-                  searchMatchKindByDocumentId={
-                    filteredResult.matchKindByDocumentId
-                  }
-                  onEditClick={(doc) => {
-                    setEditTarget(doc);
-                    setEditPanelOpen(true);
-                  }}
-                  onArchiveClick={(doc) => setArchiveTarget(doc)}
-                  onDeleteClick={(doc) => setDeleteTarget(doc)}
-                  onArchiveReplaceClick={(doc, anchorPosition) =>
-                    archiveReplace.initiateArchiveReplace(doc, anchorPosition)
-                  }
-                  onReActivateClick={(doc) =>
-                    triggerReActivateWithNamingCheck(doc, false)
-                  }
-                  isLoading={false}
-                  useEnhancedStyle={useEnhancedStyle}
-                />
+                {showTiles ? (
+                  <TilesView
+                    documents={pagination.paginatedDocuments}
+                    role={auth.effectiveRole}
+                    onDocumentClick={handleDocumentClick}
+                    searchMatchKindByDocumentId={
+                      filteredResult.matchKindByDocumentId
+                    }
+                    onFavoriteToggle={handleFavoriteToggle}
+                    favoriteIds={favoriteIdsSet}
+                    showFavorites={enableFavorites}
+                    onEditClick={(doc) => {
+                      setEditTarget(doc);
+                      setEditPanelOpen(true);
+                    }}
+                    onArchiveClick={(doc) => setArchiveTarget(doc)}
+                    onDeleteClick={(doc) => setDeleteTarget(doc)}
+                    onArchiveReplaceClick={(doc, anchorPosition) =>
+                      archiveReplace.initiateArchiveReplace(doc, anchorPosition)
+                    }
+                    onReActivateClick={(doc) =>
+                      triggerReActivateWithNamingCheck(doc, false)
+                    }
+                    isLoading={false}
+                  />
+                ) : (
+                  <DataTable
+                    documents={pagination.paginatedDocuments}
+                    role={auth.effectiveRole}
+                    sortState={sorting.sortState}
+                    onSort={sorting.toggleSort}
+                    onDocumentClick={handleDocumentClick}
+                    searchMatchKindByDocumentId={
+                      filteredResult.matchKindByDocumentId
+                    }
+                    onFavoriteToggle={handleFavoriteToggle}
+                    favoriteIds={favoriteIdsSet}
+                    showFavorites={enableFavorites}
+                    onEditClick={(doc) => {
+                      setEditTarget(doc);
+                      setEditPanelOpen(true);
+                    }}
+                    onArchiveClick={(doc) => setArchiveTarget(doc)}
+                    onDeleteClick={(doc) => setDeleteTarget(doc)}
+                    onArchiveReplaceClick={(doc, anchorPosition) =>
+                      archiveReplace.initiateArchiveReplace(doc, anchorPosition)
+                    }
+                    onReActivateClick={(doc) =>
+                      triggerReActivateWithNamingCheck(doc, false)
+                    }
+                    isLoading={false}
+                    useEnhancedStyle={useEnhancedStyle}
+                  />
+                )}
                 <Pagination
                   currentPage={pagination.currentPage}
                   totalPages={pagination.totalPages}
@@ -1483,7 +2009,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   pageSizeOptions={pagination.pageSizeOptions}
                   startIndex={pagination.startIndex}
                   endIndex={pagination.endIndex}
-                  totalCount={sortedDocuments.length}
+                  totalCount={viewModeDocuments.length}
                   canGoNext={pagination.canGoNext}
                   canGoPrevious={pagination.canGoPrevious}
                   onPageChange={pagination.goToPage}
@@ -1515,6 +2041,14 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
             onArchiveReplaceClick={() =>
               archiveReplace.initiateArchiveReplace(viewingDocument)
             }
+            showFavorites={enableFavorites}
+            isFavorite={
+              viewingDocument ? favoriteIdsSet.has(viewingDocument.id) : false
+            }
+            onFavoriteToggle={() => {
+              if (viewingDocument)
+                handleFavoriteToggle(viewingDocument).catch(() => undefined);
+            }}
           />
         )}
 
@@ -1544,6 +2078,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           filters={draftFilters}
           resetToken={filterPanelResetToken}
           options={metadata.options}
+          context={context}
+          useMock={useMock}
           onFilterChange={handleDraftFilterChange}
           onApply={handleFilterApply}
           onCancel={handleFilterCancel}
@@ -1609,6 +2145,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           onCancel={handleDuplicateConfirmCancel}
           secondaryLabel="View Existing"
           onSecondary={handleDuplicateConfirmView}
+          errorMessage={duplicateConfirmation.error}
+          confirmDisabled={upload.isUploading}
+          disableDismiss={upload.isUploading}
         />
 
         {/* Edit Duplicate Detection: Confirmation */}
@@ -1621,6 +2160,22 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           onCancel={handleEditDuplicateConfirmCancel}
           secondaryLabel="View Existing"
           onSecondary={handleEditDuplicateConfirmView}
+          errorMessage={editDuplicateConfirmation.error}
+          confirmDisabled={editDuplicateConfirmation.isProcessing}
+          disableDismiss={editDuplicateConfirmation.isProcessing}
+        />
+
+        {/* File Name Conflict: Confirmation */}
+        <ConfirmDialog
+          isOpen={fileNameConflictDialog.isOpen}
+          title="A document with this name already exists"
+          message={`"${fileNameConflictDialog.conflictFileName}" already exists in the library. To version up, use Replace to archive the existing file and upload the new one. Or adjust the metadata fields to generate a different name.`}
+          confirmLabel="Replace Existing"
+          secondaryLabel="Adjust Metadata"
+          cancelLabel="Cancel"
+          onConfirm={handleFileNameConflictReplace}
+          onSecondary={handleFileNameConflictAdjust}
+          onCancel={handleFileNameConflictCancel}
         />
 
         {/* Archive & Replace: Confirmation */}

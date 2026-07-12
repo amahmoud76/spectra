@@ -30,11 +30,11 @@ export const Toolbar: React.FC<IToolbarProps> = ({
 }) => {
   return (
     <div className={styles.toolbar}>
-      {/* Export CSV — Admin only (rendered before Upload so it sits to the left) */}
+      {/* Export CSV — Admin only */}
       {showExport && role === "admin" && (
         <TooltipHost content="Export documents to CSV">
           <button
-            className={styles.btnGhost}
+            className={styles.viewToggleBtn}
             onClick={onExportClick}
             aria-label="Export documents to CSV"
             type="button"
@@ -42,10 +42,9 @@ export const Toolbar: React.FC<IToolbarProps> = ({
             <img
               src={require("../../assets/icons/export.svg")}
               alt=""
-              style={{ width: "16px", height: "16px", display: "inline-block" }}
+              style={{ width: "18px", height: "18px", display: "block" }}
               aria-hidden="true"
             />
-            Export CSV
           </button>
         </TooltipHost>
       )}
@@ -111,7 +110,6 @@ export const Toolbar: React.FC<IToolbarProps> = ({
           </button>
         </TooltipHost>
       )}
-
     </div>
   );
 };

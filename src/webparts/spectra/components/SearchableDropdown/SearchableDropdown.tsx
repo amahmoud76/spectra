@@ -130,7 +130,13 @@ const SingleSelectPicker: React.FC<{
 
   return (
     <div className={styles.searchPickerWrap}>
-      <img src={require('../../assets/icons/search.svg')} alt="" className={styles.searchPickerIcon} aria-hidden="true" style={{ width: '16px', height: '16px', display: 'block' }} />
+      <img
+        src={require("../../assets/icons/search.svg")}
+        alt=""
+        className={styles.searchPickerIcon}
+        aria-hidden="true"
+        style={{ width: "16px", height: "16px", display: "block" }}
+      />
       <TagPicker
         key={pickerKey}
         onResolveSuggestions={onResolveSuggestions}
@@ -289,7 +295,13 @@ const MultiSelectNativeChipsSingle: React.FC<{
   return (
     <div ref={containerRef} className={styles.nativeMultiSelect}>
       <div className={styles.nativeMultiSelectInputWrap}>
-        <img src={require('../../assets/icons/search.svg')} alt="" className={styles.searchPickerIcon} aria-hidden="true" style={{ width: '16px', height: '16px', display: 'block' }} />
+        <img
+          src={require("../../assets/icons/search.svg")}
+          alt=""
+          className={styles.searchPickerIcon}
+          aria-hidden="true"
+          style={{ width: "16px", height: "16px", display: "block" }}
+        />
         <input
           ref={inputRef}
           type="text"
@@ -515,7 +527,13 @@ const MultiSelectNative: React.FC<{
     <div ref={containerRef} className={styles.nativeMultiSelect}>
       {/* Search input */}
       <div className={styles.nativeMultiSelectInputWrap}>
-        <img src={require('../../assets/icons/search.svg')} alt="" className={styles.searchPickerIcon} aria-hidden="true" style={{ width: '16px', height: '16px', display: 'block' }} />
+        <img
+          src={require("../../assets/icons/search.svg")}
+          alt=""
+          className={styles.searchPickerIcon}
+          aria-hidden="true"
+          style={{ width: "16px", height: "16px", display: "block" }}
+        />
         <input
           ref={inputRef}
           type="text"
@@ -650,7 +668,9 @@ export const SearchableDropdown: React.FC<ISearchableDropdownProps> = ({
           showChipsBelow={showChipsBelow}
         />
       )}
-      {errorMessage && <div className={styles.formErrorText}>{errorMessage}</div>}
+      {errorMessage && (
+        <div className={styles.formErrorText}>{errorMessage}</div>
+      )}
     </div>
   );
 };

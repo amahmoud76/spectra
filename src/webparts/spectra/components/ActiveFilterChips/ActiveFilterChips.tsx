@@ -18,7 +18,8 @@ type ArrayFilterField =
   | "indication"
   | "lineOfTherapy"
   | "paid"
-  | "diseaseArea";
+  | "diseaseArea"
+  | "createdBy";
 
 const FIELD_LABELS: Record<ArrayFilterField, string> = {
   documentType: "Doc Type",
@@ -29,6 +30,7 @@ const FIELD_LABELS: Record<ArrayFilterField, string> = {
   lineOfTherapy: "Line of Therapy",
   paid: "PAID",
   diseaseArea: "DAS",
+  createdBy: "Created By",
 };
 
 const ARRAY_FIELDS: ArrayFilterField[] = [
@@ -40,6 +42,7 @@ const ARRAY_FIELDS: ArrayFilterField[] = [
   "lineOfTherapy",
   "paid",
   "diseaseArea",
+  "createdBy",
 ];
 
 const formatDate = (date: Date): string => {

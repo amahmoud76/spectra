@@ -18,7 +18,10 @@ interface IUseUploadResult {
   uploadProgress: UploadProgressStage;
   uploadPercent: number;
   uploadResult: IUploadResult | null;
-  upload: (payload: IUploadPayload, archiveTargetId?: string) => Promise<IUploadResult>;
+  upload: (
+    payload: IUploadPayload,
+    archiveTargetId?: string,
+  ) => Promise<IUploadResult>;
   cancelUpload: () => void;
   resetUpload: () => void;
 }
@@ -41,7 +44,10 @@ export const useUpload = (
   }, []);
 
   const upload = useCallback(
-    async (payload: IUploadPayload, archiveTargetId?: string): Promise<IUploadResult> => {
+    async (
+      payload: IUploadPayload,
+      archiveTargetId?: string,
+    ): Promise<IUploadResult> => {
       let currentStage: UploadProgressStage = "Preparing";
       setIsUploading(true);
       setUploadProgress("Preparing");
@@ -49,7 +55,11 @@ export const useUpload = (
       setUploadResult(null);
 
       // cancelSignal is passed into DocumentService so it can wire the XHR abort.
-      const cancelSignal = { abort: (): void => { /* filled in by service */ } };
+      const cancelSignal = {
+        abort: (): void => {
+          /* filled in by service */
+        },
+      };
       cancelRef.current = () => cancelSignal.abort();
 
       try {
@@ -118,7 +128,10 @@ export const useUpload = (
           setUploadPercent(0);
           setIsUploading(false);
           cancelRef.current = null;
-          const cancelled: IUploadResult = { success: false, message: "Upload cancelled." };
+          const cancelled: IUploadResult = {
+            success: false,
+            message: "Upload cancelled.",
+          };
           setUploadResult(cancelled);
           return cancelled;
         }
@@ -130,7 +143,9 @@ export const useUpload = (
         // The browser throws a NotReadableError/DOMException when the file handle
         // is revoked after selection (e.g., user moved or deleted the file).
         const isFileUnreadable =
-          /could not be read|NotReadableError|permission.*file|file.*permission/i.test(rawMessage) ||
+          /could not be read|NotReadableError|permission.*file|file.*permission/i.test(
+            rawMessage,
+          ) ||
           (error instanceof DOMException && error.name === "NotReadableError");
         const errorMessage = isFileUnreadable
           ? "The file could not be read. Please re-select the file and try again."
@@ -178,5 +193,13 @@ export const useUpload = (
     setUploadResult(null);
   }, []);
 
-  return { isUploading, uploadProgress, uploadPercent, uploadResult, upload, cancelUpload, resetUpload };
+  return {
+    isUploading,
+    uploadProgress,
+    uploadPercent,
+    uploadResult,
+    upload,
+    cancelUpload,
+    resetUpload,
+  };
 };

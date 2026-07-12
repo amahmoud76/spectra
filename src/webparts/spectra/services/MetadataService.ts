@@ -150,7 +150,12 @@ export class MetadataService {
   ): Promise<IMetadataOption[]> {
     const siteUrl = this.context.pageContext.web.absoluteUrl;
     const tokenColumnCandidates: string[] = includeSearchTokens
-      ? Array.from(new Set([searchTokensColumn, "SEARCH_TOKENS"]))
+      ? Array.from(
+          new Set([
+            searchTokensColumn,
+            "SEARCH_TOKENS",
+          ]),
+        )
       : [];
 
     const attempts: Array<string | null> = includeSearchTokens
@@ -389,7 +394,12 @@ export class MetadataService {
           orderBy: "PROJECT_PAID",
         },
         {
-          select: ["Title", "THERAPEUTIC_AREA", "ASSET_NUMBER", "INDICATION"],
+          select: [
+            "Title",
+            "THERAPEUTIC_AREA",
+            "ASSET_NUMBER",
+            "INDICATION",
+          ],
           orderBy: "Title",
         },
         { select: ["Title"], orderBy: "Title" },

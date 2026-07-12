@@ -12,6 +12,7 @@ export interface IFilterState {
   effectiveDateTo: Date | null;
   uploadDateFrom: Date | null;
   uploadDateTo: Date | null;
+  createdBy: string[]; // display names of document creators (OR logic)
 }
 
 // Default state — all filters empty
@@ -29,4 +30,5 @@ export const defaultFilterState: IFilterState = {
   effectiveDateTo: null,
   uploadDateFrom: null,
   uploadDateTo: null,
+  createdBy: [],
 };

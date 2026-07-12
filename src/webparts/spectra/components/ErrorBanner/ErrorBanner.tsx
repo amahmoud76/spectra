@@ -15,7 +15,12 @@ export const ErrorBanner: React.FC<IErrorBannerProps> = ({
       <img
         src={require("../../assets/icons/ban.svg")}
         alt=""
-        style={{ width: "20px", height: "20px", display: "block", flexShrink: 0 }}
+        style={{
+          width: "20px",
+          height: "20px",
+          display: "block",
+          flexShrink: 0,
+        }}
         className={`${styles.bannerIcon} ${styles.bannerIconError}`}
       />
       <div className={styles.bannerContent}>
@@ -26,7 +31,20 @@ export const ErrorBanner: React.FC<IErrorBannerProps> = ({
         onClick={onDismiss}
         aria-label="Dismiss"
       >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/></svg>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M1 1L11 11M11 1L1 11"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+          />
+        </svg>
       </button>
     </div>
   );

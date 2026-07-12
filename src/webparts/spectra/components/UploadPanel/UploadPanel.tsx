@@ -28,6 +28,7 @@ import {
 import { Dropdown, IDropdownOption } from "@fluentui/react/lib/Dropdown";
 import { DatePicker } from "@fluentui/react/lib/DatePicker";
 import { TextField } from "@fluentui/react/lib/TextField";
+import { Checkbox } from "@fluentui/react/lib/Checkbox";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
 import { ErrorBanner } from "../ErrorBanner/ErrorBanner";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
@@ -206,6 +207,8 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   );
   const [submitError, setSubmitError] = React.useState("");
   const [constraintError, setConstraintError] = React.useState("");
+  const [firewallConfirmed, setFirewallConfirmed] = React.useState(false);
+  const [firewallError, setFirewallError] = React.useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const topErrorRef = React.useRef<HTMLDivElement>(null);
@@ -251,6 +254,8 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     setEffectiveDateError("");
     setCascadeErrors({});
     setSubmitError("");
+    setFirewallConfirmed(false);
+    setFirewallError(false);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -1229,6 +1234,11 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
       return;
     }
 
+    if (!firewallConfirmed) {
+      setFirewallError(true);
+      return;
+    }
+
     const searchTokens = buildDocumentSearchTokens(
       documentType ? [documentType] : [],
       asset,
@@ -1802,6 +1812,40 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
         </div>
 
         <div className={styles.panelFooter}>
+          {/* Firewalled Assets Attestation */}
+          <div style={{ width: "100%", marginBottom: "12px" }}>
+            <Checkbox
+              label="I confirm this document does not contain information related to firewalled assets."
+              checked={firewallConfirmed}
+              onChange={(_, checked) => {
+                setFirewallConfirmed(!!checked);
+                if (checked) setFirewallError(false);
+              }}
+              styles={{
+                label: {
+                  fontSize: "13px",
+                  color: "var(--spectra-text-primary)",
+                },
+                checkbox: firewallError
+                  ? { borderColor: "#dc2626" }
+                  : undefined,
+              }}
+            />
+            {firewallError && (
+              <div
+                role="alert"
+                style={{
+                  fontSize: "12px",
+                  color: "#dc2626",
+                  marginTop: "4px",
+                  marginLeft: "28px",
+                }}
+              >
+                You must confirm this before submitting.
+              </div>
+            )}
+          </div>
+
           {/* Upload Progress Indicator */}
           {uploadProgress && (
             <div style={{ width: "100%", marginBottom: "12px" }}>

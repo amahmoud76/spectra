@@ -80,15 +80,27 @@ export const AuthWarningStrip: React.FC<IAuthWarningStripProps> = ({
           className={styles.permStripIcon}
         />
         <span className={styles.permStripMessage}>
-          Permissions still could not be verified. Try signing out of Microsoft 365 and back in, or clear your browser cache and reload.
+          Permissions still could not be verified. Try signing out of Microsoft
+          365 and back in, or clear your browser cache and reload.
         </span>
         <button
           className={styles.permStripDismiss}
           onClick={() => setDismissed(true)}
           aria-label="Dismiss"
         >
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-            <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 10 10"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M1 1L9 9M9 1L1 9"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
         </button>
       </div>
@@ -117,8 +129,19 @@ export const AuthWarningStrip: React.FC<IAuthWarningStripProps> = ({
         onClick={() => setDismissed(true)}
         aria-label="Dismiss"
       >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M1 1L9 9M9 1L1 9"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       </button>
     </div>

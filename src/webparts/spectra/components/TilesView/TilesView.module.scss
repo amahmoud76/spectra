@@ -1,0 +1,258 @@
+/* TilesView — full-width labeled rows with optional expanded detail */
+
+.tilesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.tile {
+  background: var(--spectra-white);
+  border: 1px solid var(--spectra-border);
+  border-radius: var(--spectra-radius-lg);
+  box-shadow: var(--spectra-shadow-sm);
+  transition: box-shadow var(--spectra-transition-fast),
+    border-color var(--spectra-transition-fast);
+}
+
+.tile:hover {
+  box-shadow: var(--spectra-shadow-md);
+  border-color: rgba(0, 102, 245, 0.35);
+}
+
+.tileRow {
+  display: grid;
+  /* 36px = expand btn; 156px = actions (5 icons × 28px + 4 gaps × 4px); 1fr = body */
+  grid-template-columns: 36px 156px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.expandBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--spectra-radius-sm);
+  color: var(--spectra-action-blue);
+  transition: transform var(--spectra-transition-fast),
+    background var(--spectra-transition-fast);
+}
+
+.expandBtn:hover {
+  background: rgba(0, 102, 245, 0.08);
+}
+
+.expandBtnOpen .expandIcon {
+  transform: rotate(90deg);
+}
+
+.expandIcon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  transition: transform var(--spectra-transition-fast);
+}
+
+.tileActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.tileBody {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 2fr) /* Document Name */
+    minmax(90px, 1fr) /* Asset */
+    minmax(90px, 1fr) /* Type */
+    minmax(80px, 1fr) /* TA */
+    minmax(90px, 1fr) /* Indication */
+    minmax(100px, 1.2fr) /* PAID */
+    minmax(90px, 1fr) /* DAS */
+    minmax(100px, 1fr) /* Eff Date */
+    minmax(80px, 0.9fr); /* Status */
+  column-gap: 18px;
+  row-gap: 4px;
+  align-items: start;
+  min-width: 0;
+}
+
+.tileField {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tileFieldComment {
+  grid-column: 4 / -1;
+}
+
+/* Used in expanded row when Upload Date is hidden (non-admin) */
+.tileFieldCommentShort {
+  grid-column: 3 / -1;
+}
+
+.tileFieldComment .tileFieldValue,
+.tileFieldCommentShort .tileFieldValue {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.tileFieldLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--spectra-text-secondary);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-family: var(--spectra-font-body);
+}
+
+.tileFieldValue {
+  font-size: 14px;
+  color: var(--spectra-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--spectra-font-body);
+}
+
+.fileNameWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+}
+
+.fileTypeIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.fileNameLink {
+  display: block;
+  color: var(--spectra-action-blue);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  outline: none;
+  min-width: 0;
+}
+
+.fileNameLink:hover {
+  text-decoration: underline;
+}
+
+.fileNameLink:focus-visible {
+  outline: 2px solid var(--spectra-action-blue);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.statusActive {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 2px;
+  background: var(--spectra-success);
+  color: var(--spectra-white);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.statusArchive {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 2px;
+  background: var(--spectra-status-archived);
+  color: var(--spectra-white);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.commentIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 16px;
+  height: 16px;
+}
+
+.tileExpandedWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 160ms ease-out;
+}
+
+.tileExpandedWrapOpen {
+  grid-template-rows: 1fr;
+}
+
+.tileExpandedRow {
+  overflow: hidden;
+  display: grid;
+  /* 36px = expand btn space; 1fr = expanded content starts under action icons */
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.tileExpandedWrapOpen .tileExpandedRow {
+  padding: 0 16px 14px;
+}
+
+.tileExpanded {
+  display: grid;
+  /*
+   * 4-column grid — spans from action-icons area to right edge:
+   * col 1: Upload Date (admin) / Created By (non-admin)
+   * col 2: Created By (admin) / Metadata Last Modified By (non-admin)
+   * col 3: Metadata Last Modified By (admin) — comment starts here for non-admin (grid-column: 3/-1)
+   * col 4: Comment for admin (grid-column: 4/-1)
+   */
+  grid-template-columns:
+    minmax(130px, 1fr)
+    minmax(140px, 1fr)
+    minmax(190px, 1.5fr)
+    minmax(0px, 5fr);
+  column-gap: 18px;
+  row-gap: 4px;
+  padding-top: 4px;
+}
+
+.loadingState {
+  padding: 40px;
+  text-align: center;
+  color: var(--spectra-text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+  .tileBody {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .tileExpanded {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tileFieldComment {
+    grid-column: 1 / -1;
+  }
+}

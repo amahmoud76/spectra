@@ -51,7 +51,13 @@ export const SearchBar: React.FC<ISearchBarProps> = ({
           aria-label="Search documents"
           type="button"
         >
-          <img src={require('../../assets/icons/search.svg')} alt="" className={styles.searchBarIcon} aria-hidden="true" style={{ width: '16px', height: '16px', display: 'block' }} />
+          <img
+            src={require("../../assets/icons/search.svg")}
+            alt=""
+            className={styles.searchBarIcon}
+            aria-hidden="true"
+            style={{ width: "16px", height: "16px", display: "block" }}
+          />
         </button>
       </TooltipHost>
       <input
@@ -71,8 +77,19 @@ export const SearchBar: React.FC<ISearchBarProps> = ({
             aria-label="Clear search"
             type="button"
           >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M1 1L11 11M11 1L1 11"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </TooltipHost>

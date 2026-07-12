@@ -699,6 +699,96 @@
   font-weight: 600;
 }
 
+.headerNavLinks {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.headerNavLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  font-family: var(--spectra-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--spectra-navy);
+  border-radius: var(--spectra-radius-sm);
+  transition:
+    background var(--spectra-transition-fast),
+    color var(--spectra-transition-fast);
+}
+
+.headerNavLink:hover {
+  background: rgba(0, 102, 245, 0.08);
+  color: var(--spectra-action-blue);
+}
+
+.headerNavLink:focus-visible {
+  outline: 2px solid var(--spectra-action-blue);
+  outline-offset: 2px;
+}
+
+.headerNavLinkActive {
+  color: var(--spectra-action-blue);
+  background: rgba(0, 102, 245, 0.1);
+}
+
+.headerNavLinkIcon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.viewToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.viewToggleBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition:
+    background var(--spectra-transition-fast),
+    border-color var(--spectra-transition-fast);
+}
+
+.viewToggleBtn:hover {
+  background: #e8f1ff;
+  border-color: #bcd4ff;
+}
+
+.viewToggleBtnActive {
+  background: #e8f1ff;
+  border-color: #bcd4ff;
+}
+
+.viewToggleBtnActive:hover {
+  background: #dce9ff;
+  border-color: #8fb4ff;
+}
+
+.viewToggleIcon {
+  display: block;
+  flex-shrink: 0;
+}
+
 .landingWelcome {
   text-align: center;
   margin-bottom: 20px;
@@ -744,6 +834,108 @@
   font-family: var(--spectra-font-heading);
   font-size: 22px;
   margin: 0;
+}
+
+/* ── Landing quick-access (Favorites & Recently Viewed) ─────── */
+
+.landingQuickAccess {
+  display: flex;
+  gap: 16px;
+  margin: 0 0 24px;
+  flex-wrap: wrap;
+}
+
+.quickAccessCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--spectra-white);
+  border: 1px solid var(--spectra-border);
+  border-radius: var(--spectra-radius-lg);
+  padding: 12px 20px;
+  cursor: pointer;
+  font-family: var(--spectra-font-body);
+  font-size: 14px;
+  color: var(--spectra-text-primary);
+  transition:
+    box-shadow var(--spectra-transition-fast),
+    border-color var(--spectra-transition-fast);
+  box-shadow: var(--spectra-shadow-sm);
+
+  &:hover {
+    border-color: var(--spectra-action-blue);
+    box-shadow: var(--spectra-shadow-md);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--spectra-action-blue);
+    outline-offset: 2px;
+  }
+}
+
+.quickAccessLabel {
+  font-weight: 600;
+}
+
+.quickAccessCount {
+  color: var(--spectra-text-secondary);
+  font-size: 13px;
+}
+
+/* ── View-mode bar (shown above DataTable in results page) ──── */
+
+.viewModeBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 4px;
+  font-size: 14px;
+  color: var(--spectra-text-secondary);
+}
+
+.viewModeLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--spectra-text-primary);
+}
+
+.viewModeClearBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--spectra-action-blue);
+  padding: 2px 6px;
+  border-radius: var(--spectra-radius-sm);
+  font-family: var(--spectra-font-body);
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--spectra-action-blue);
+    outline-offset: 2px;
+  }
+}
+
+.viewModeEmptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--spectra-text-secondary);
+  font-size: 15px;
+
+  p {
+    margin: 8px 0 0;
+    font-size: 14px;
+  }
+}
+
+.viewModeEmptyIcon {
+  font-size: 36px;
+  margin-bottom: 12px;
 }
 
 .landingSecondaryCard {
@@ -1303,6 +1495,14 @@
 .leadingActionCell {
   width: 110px;
   max-width: 110px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.leadingActionHeaderCompact,
+.leadingActionCellCompact {
+  width: 68px;
+  max-width: 68px;
   text-align: center;
   white-space: nowrap;
 }
@@ -2204,6 +2404,68 @@
   font-size: 11px;
   font-weight: 700;
   margin-left: var(--spectra-sp-1);
+}
+
+/* ── People Picker (async "Created By" filter) ──────────────────── */
+
+.peoplePickerWrap {
+  position: relative;
+}
+
+.peoplePickerInput {
+  // extends .formInput visually; use formInput class on the element
+}
+
+.peoplePickerSuggestions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: var(--spectra-white);
+  border: 1px solid var(--spectra-border);
+  border-radius: var(--spectra-radius-sm);
+  box-shadow: var(--spectra-shadow-md);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.peoplePickerItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background var(--spectra-transition-fast);
+
+  &:hover {
+    background: rgba(0, 102, 245, 0.07);
+  }
+
+  & + & {
+    border-top: 1px solid var(--spectra-border);
+  }
+}
+
+.peoplePickerItemName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--spectra-text-primary);
+  font-family: var(--spectra-font-body);
+}
+
+.peoplePickerItemEmail {
+  font-size: 11px;
+  color: var(--spectra-text-secondary);
+  font-family: var(--spectra-font-body);
+}
+
+.peoplePickerStatus {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--spectra-text-secondary);
+  font-style: italic;
+  font-family: var(--spectra-font-body);
 }
 
 /* ── Active Filter Chips Bar ────────────────────────────────────── */

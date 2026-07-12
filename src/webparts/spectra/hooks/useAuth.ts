@@ -9,7 +9,8 @@ import {
 import { AuthService } from "../services/AuthService";
 import { captureAndLogError } from "../services/errorLogService";
 import { getCachedAuth, setCachedAuth } from "../utils/cacheHelper";
-import { AUTH_DEBUG_LOGS, AUTH_LOG_PREFIX } from "../config/config";
+import { AUTH_DEBUG_LOGS, AUTH_LOG_PREFIX,
+         TESTER_MODE_PARAM, TESTER_MODE_VALUE, TESTER_MODE_SESSION_KEY } from "../config/config";
 
 interface IAuthFetchState {
   effectiveRole: EffectiveRole;
@@ -71,6 +72,28 @@ export const useAuth = (
   const [devOverrideRole, setDevOverrideRole] = useState<
     EffectiveRole | undefined
   >(undefined);
+
+  // ── Tester mode: ?spectra=1 activates role-cycling for the session ──
+  const [isTester, setIsTester] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(TESTER_MODE_SESSION_KEY) === "1"; }
+    catch { return false; }
+  });
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get(TESTER_MODE_PARAM) === TESTER_MODE_VALUE) {
+        sessionStorage.setItem(TESTER_MODE_SESSION_KEY, "1");
+        setIsTester(true);
+        params.delete(TESTER_MODE_PARAM);
+        const clean =
+          window.location.pathname +
+          (params.toString() ? `?${params.toString()}` : "") +
+          window.location.hash;
+        window.history.replaceState(null, "", clean);
+      }
+    } catch { /* ignore in sandboxed environments */ }
+  }, []);
   const [startupStage, setStartupStage] = useState<AuthStartupStage>("idle");
   const [authRefreshToken, setAuthRefreshToken] = useState(0);
   const autoRetryCountRef = useRef(0);
@@ -111,7 +134,7 @@ export const useAuth = (
 
   useEffect(() => {
     if (state.isLoading) return;
-    if (state.effectiveRole !== "admin") {
+    if (state.effectiveRole !== "admin" && !isTester) {
       setDevOverrideRole(undefined);
       return;
     }
@@ -285,7 +308,7 @@ export const useAuth = (
   }, [state.isLoading, state.effectiveRole, devOverrideRole, logAuth]);
 
   const cycleDevRole = useCallback(() => {
-    if (state.effectiveRole !== "admin") return;
+    if (state.effectiveRole !== "admin" && !isTester) return;
 
     setDevOverrideRole((previousRole) => {
       const baseRole = previousRole ?? state.effectiveRole;
@@ -305,7 +328,7 @@ export const useAuth = (
   }, [state.effectiveRole]);
 
   const clearDevRoleOverride = useCallback(() => {
-    if (state.effectiveRole !== "admin") return;
+    if (state.effectiveRole !== "admin" && !isTester) return;
 
     try {
       localStorage.removeItem(DEV_ROLE_OVERRIDE_KEY);
@@ -316,7 +339,8 @@ export const useAuth = (
     setDevOverrideRole(undefined);
   }, [state.effectiveRole]);
 
-  const isAdminRoleSwitch = state.effectiveRole === "admin" && !state.isLoading;
+  const isAdminRoleSwitch =
+    (state.effectiveRole === "admin" || isTester) && !state.isLoading;
 
   return {
     ...state,
