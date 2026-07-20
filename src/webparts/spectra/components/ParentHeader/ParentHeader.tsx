@@ -14,6 +14,8 @@ export interface IParentHeaderProps {
   enableDevRoleSwitch: boolean;
   helpEmail?: string;
   helpGuideUrl?: string;
+  isAdmin?: boolean;
+  onBatchUpdateClick?: () => void;
   onRoleBadgeClick: () => void;
   onSpectraClick: () => void;
 }
@@ -27,6 +29,8 @@ export const ParentHeader: React.FC<IParentHeaderProps> = ({
   enableDevRoleSwitch,
   helpEmail,
   helpGuideUrl,
+  isAdmin = false,
+  onBatchUpdateClick,
   onRoleBadgeClick,
   onSpectraClick,
 }) => {
@@ -36,6 +40,22 @@ export const ParentHeader: React.FC<IParentHeaderProps> = ({
   const [userPhotoError, setUserPhotoError] = React.useState(false);
   const [helpMenuOpen, setHelpMenuOpen] = React.useState(false);
   const helpMenuRef = React.useRef<HTMLDivElement>(null);
+  const [adminMenuOpen, setAdminMenuOpen] = React.useState(false);
+  const adminMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!adminMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        adminMenuRef.current &&
+        !adminMenuRef.current.contains(e.target as Node)
+      ) {
+        setAdminMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [adminMenuOpen]);
 
   React.useEffect(() => {
     if (!helpMenuOpen) return;
@@ -206,6 +226,50 @@ export const ParentHeader: React.FC<IParentHeaderProps> = ({
       </nav>
 
       <div className={styles.parentHeaderRight}>
+        {isAdmin && onBatchUpdateClick && (
+          <div className={styleClassMap.parentHeaderHelpMenu} ref={adminMenuRef}>
+            <button
+              className={styleClassMap.parentHeaderSupportLink}
+              aria-label="Admin tools"
+              aria-expanded={adminMenuOpen}
+              aria-haspopup="true"
+              type="button"
+              onClick={() => setAdminMenuOpen((prev) => !prev)}
+            >
+              <img
+                src={require("../../assets/icons/metadata.svg")}
+                alt=""
+                className={styleClassMap.parentHeaderSupportIcon}
+                aria-hidden="true"
+              />
+            </button>
+            {adminMenuOpen && (
+              <div
+                className={styleClassMap.parentHeaderHelpDropdown}
+                role="menu"
+              >
+                <button
+                  className={styleClassMap.parentHeaderHelpDropdownItem}
+                  role="menuitem"
+                  type="button"
+                  onClick={() => {
+                    setAdminMenuOpen(false);
+                    onBatchUpdateClick();
+                  }}
+                >
+                  <img
+                    src={require("../../assets/icons/metadata.svg")}
+                    alt=""
+                    className={styleClassMap.parentHeaderHelpDropdownItemIcon}
+                    aria-hidden="true"
+                  />
+                  Batch Update Metadata
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className={styleClassMap.parentHeaderHelpMenu} ref={helpMenuRef}>
           <button
             className={styleClassMap.parentHeaderSupportLink}

@@ -39,6 +39,8 @@ import { setupGlobalErrorHandler } from "../services/errorLogService";
 // Components — Core
 import { ErrorBoundary } from "./ErrorBoundary/ErrorBoundary";
 import { ParentHeader } from "../components/ParentHeader/ParentHeader";
+import { BatchUpdatePanel } from "../components/BatchUpdatePanel/BatchUpdatePanel";
+import { useBatchUpdate } from "../hooks/useBatchUpdate";
 import { Footer } from "../components/Footer/Footer";
 import { SearchBar } from "../components/SearchBar/SearchBar";
 import { Toolbar } from "../components/Toolbar/Toolbar";
@@ -122,6 +124,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const [uploadPanelSession, setUploadPanelSession] = React.useState(0);
   const [editPanelOpen, setEditPanelOpen] = React.useState(false);
   const [editTarget, setEditTarget] = React.useState<IDocument | null>(null);
+  const [batchPanelOpen, setBatchPanelOpen] = React.useState(false);
 
   // ── Delete confirmation ─────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = React.useState<IDocument | null>(
@@ -222,6 +225,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   const notification = useNotification();
   const upload = useUpload(context, documentLibrary, useMock);
   const archiveReplace = useArchiveReplace(context, documentLibrary, useMock);
+  const batch = useBatchUpdate(context, documentLibrary, useMock);
   const headerConfig = useHeaderConfig(context, useMock);
   const userPrefs = useUserPreferences(
     context,
@@ -555,6 +559,29 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     setHasResultsContext(true);
     setPage("results");
   }, [documents, draftFilters, filters]);
+
+  // Preview List from the Batch Update panel: apply the batch criteria to the
+  // main filters and show the data table (batch state persists in the hook).
+  const handleBatchPreview = React.useCallback(() => {
+    const c = batch.criteria;
+    filters.setFilter("documentType", c.documentType);
+    filters.setFilter("therapeuticArea", c.therapeuticArea);
+    filters.setFilter("subTherapeuticArea", c.subTherapeuticArea);
+    filters.setFilter("asset", c.asset);
+    filters.setFilter("indication", c.indication);
+    filters.setFilter("lineOfTherapy", c.lineOfTherapy);
+    filters.setFilter("paid", c.paid);
+    filters.setFilter("diseaseArea", c.diseaseArea);
+    filters.setFilter("createdBy", c.createdBy);
+    filters.setFilter("effectiveDateFrom", c.effectiveDateFrom);
+    filters.setFilter("effectiveDateTo", c.effectiveDateTo);
+    filters.setFilter("uploadDateFrom", c.uploadDateFrom);
+    filters.setFilter("uploadDateTo", c.uploadDateTo);
+    setBatchPanelOpen(false);
+    documents.refetch();
+    setHasResultsContext(true);
+    setPage("results");
+  }, [batch.criteria, filters, documents]);
 
   const handleOpenFilterPanel = React.useCallback(() => {
     setDraftFilters(filters.filters);
@@ -1410,6 +1437,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           enableDevRoleSwitch={auth.isDevRoleSwitchEnabled}
           helpEmail={helpEmail}
           helpGuideUrl={helpGuideUrl}
+          isAdmin={auth.effectiveRole === "admin"}
+          onBatchUpdateClick={() => setBatchPanelOpen(true)}
           onRoleBadgeClick={auth.cycleDevRole}
           onSpectraClick={handleLogoClick}
         />
@@ -2084,6 +2113,21 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
           onApply={handleFilterApply}
           onCancel={handleFilterCancel}
           onReset={handleFilterReset}
+        />
+
+        {/* Batch Update Metadata Panel (Admin only) */}
+        <BatchUpdatePanel
+          isOpen={batchPanelOpen}
+          options={metadata.options}
+          context={context}
+          useMock={useMock}
+          batch={batch}
+          onClose={() => setBatchPanelOpen(false)}
+          onCancel={() => {
+            batch.reset();
+            setBatchPanelOpen(false);
+          }}
+          onPreviewList={handleBatchPreview}
         />
 
         {/* Edit Panel (Admin only) */}

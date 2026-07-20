@@ -12,6 +12,7 @@ import {
 } from "../config/config";
 import { mockDocuments } from "../mocks/mockDocuments";
 import { generateFileName } from "../utils/fileNamingHelper";
+import { IBatchPlan, IBatchResult } from "../utils/batchUpdateHelper";
 import { formatISO, getTime } from "date-fns";
 
 export class DocumentService {
@@ -1103,6 +1104,65 @@ export class DocumentService {
       console.error("DocumentService.archiveDocument:", error);
       return false;
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BATCH UPDATE METADATA
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Execute a pre-computed batch plan against CURRENT documents.
+   * Applies updates in place (MERGE + conditional rename) and archives
+   * duplicate "losers". Items are processed sequentially; a failure (e.g. a
+   * locked/checked-out file) is skipped and reported rather than aborting the
+   * whole run. "no-op" items are ignored.
+   */
+  public async applyBatchPlan(
+    plan: IBatchPlan,
+    onProgress?: (done: number, total: number, currentFileName: string) => void,
+  ): Promise<IBatchResult> {
+    const actionable = plan.items.filter((i) => i.action !== "no-op");
+    const total = actionable.length;
+    let done = 0;
+    let updated = 0;
+    let archived = 0;
+    const failures: IBatchResult["failures"] = [];
+
+    for (const item of actionable) {
+      onProgress?.(done, total, item.doc.fileName);
+      try {
+        let ok = false;
+        if (item.action === "archive-loser") {
+          ok = await this.archiveDocument(item.doc.id);
+          if (ok) archived++;
+        } else {
+          // "update" or "keep-with-date"
+          ok = await this.updateDocument(
+            item.doc.id,
+            item.targetPayload || {},
+          );
+          if (ok) updated++;
+        }
+        if (!ok) {
+          failures.push({
+            id: item.doc.id,
+            fileName: item.doc.fileName,
+            reason:
+              "Update failed — the file may be locked or open by another user.",
+          });
+        }
+      } catch (error) {
+        failures.push({
+          id: item.doc.id,
+          fileName: item.doc.fileName,
+          reason: (error as Error).message || "Unexpected error.",
+        });
+      }
+      done++;
+      onProgress?.(done, total, item.doc.fileName);
+    }
+
+    return { updated, archived, failed: failures.length, failures };
   }
 
   public async reActivateDocument(
