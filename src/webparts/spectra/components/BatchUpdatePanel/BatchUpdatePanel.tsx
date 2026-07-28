@@ -18,6 +18,7 @@ import {
 import {
   BatchMetadataField,
   IBatchChangeSet,
+  IBatchResult,
 } from "../../utils/batchUpdateHelper";
 import { IUseBatchUpdateResult } from "../../hooks/useBatchUpdate";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
@@ -38,6 +39,8 @@ export interface IBatchUpdatePanelProps {
   onCancel: () => void;
   /** Navigate to the data table with the current criteria applied. */
   onPreviewList: () => void;
+  /** Fired after a batch apply actually changed documents, so the caller can refresh the data table. */
+  onApplyComplete?: (result: IBatchResult) => void;
 }
 
 // Criteria (Step 1) metadata fields, in display order. Sub-TA omitted from Find.
@@ -130,6 +133,7 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
   onClose,
   onCancel,
   onPreviewList,
+  onApplyComplete,
 }) => {
   const {
     stage,
@@ -336,9 +340,12 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
   const handleApply = React.useCallback(async () => {
     if (!canApply) return;
     const freshPlan = computePlan();
-    await applyPlan(freshPlan);
+    const outcome = await applyPlan(freshPlan);
     prepareNextRun();
-  }, [canApply, computePlan, applyPlan, prepareNextRun]);
+    if (outcome.updated > 0 || outcome.archived > 0) {
+      onApplyComplete?.(outcome);
+    }
+  }, [canApply, computePlan, applyPlan, prepareNextRun, onApplyComplete]);
 
   // ── Criteria summary chips (Step 2) ────────────────────────
   const criteriaChips = React.useMemo((): string[] => {

@@ -2267,6 +2267,7 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
             setBatchPanelOpen(false);
           }}
           onPreviewList={handleBatchPreview}
+          onApplyComplete={() => documents.refetch()}
         />
 
         {/* Edit Panel (Admin only) */}
