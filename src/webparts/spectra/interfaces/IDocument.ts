@@ -36,4 +36,7 @@ export interface IDocument {
   // ── System-generated fields ───────────────────────────────────
   searchTokens: string[]; // SPECTRASearchTokens — comma-separated synonyms, parsed to array
   immutableFileName: string; // SPECTRAImmutableFileName — original filename, never changed
+
+  // ── Client-derived (not a SharePoint column) ──────────────────
+  assetSearchTokens?: string[]; // SPECTRA_SearchTokens list synonyms for this doc's asset(s), for Data Table display
 }

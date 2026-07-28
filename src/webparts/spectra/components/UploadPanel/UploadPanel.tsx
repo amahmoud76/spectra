@@ -12,6 +12,7 @@ import {
   // ICascadeSelection,
 } from "../../utils/cascadingFilterHelper";
 import { buildDocumentSearchTokens } from "../../utils/searchTokenHelper";
+import { buildAssetSearchAliases } from "../../utils/assetSearchAliasHelper";
 import { validateFile } from "../../utils/fileHelper";
 import {
   ADMIN_ONLY_DOC_TYPES,
@@ -257,6 +258,12 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     setFirewallConfirmed(false);
     setFirewallError(false);
 
+    assetManuallyClearedRef.current = false;
+    indicationManuallyClearedRef.current = false;
+    paidManuallyClearedRef.current = false;
+    diseaseAreaManuallyClearedRef.current = false;
+    taManuallyClearedRef.current = false;
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -452,6 +459,13 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     },
   );
 
+  // Synonym search — typing any SEARCH_TOKEN keyword (e.g. "emraclidine")
+  // matches the asset it belongs to (e.g. "ABBV-132").
+  const assetSearchAliases = React.useMemo(
+    () => buildAssetSearchAliases(options.searchTokenRows),
+    [options.searchTokenRows],
+  );
+
   // Cascade for PAID options — filter by TA, Asset, Indication (NOT PAID)
   const cascadeForPaids = getCascadedOptionsMulti(
     options.projectPaidRelationships,
@@ -527,8 +541,11 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     const fromPaidRels = cascadeForDiseaseAreas.availableDiseaseAreas;
     if (fromPaidRels.length === 0) return fromTA;
     if (fromTA.length === 0) return fromPaidRels;
-    const paidSet = new Set(fromPaidRels);
-    return fromTA.filter((v) => paidSet.has(v));
+    // Normalize case/whitespace: SPECTRA_ProjectPAID.DISEASE_AREA and
+    // SPECTRA_DAS.Title are separate lists — a mismatch here (e.g. trailing
+    // space, differing case) would otherwise silently intersect to nothing.
+    const paidSet = new Set(fromPaidRels.map(normalizeCascadeValue));
+    return fromTA.filter((v) => paidSet.has(normalizeCascadeValue(v)));
   }, [
     options.diseaseAreaStrategyRelationships,
     selectedTherapeuticArea,
@@ -644,11 +661,12 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   // Prune Asset if current selection is no longer valid for cascade (TA/Indication/PAID)
   React.useEffect(() => {
     if (fieldVisibility.asset && asset.length > 0) {
-      const invalidAssets = asset.filter(
-        (value) => !cascadeForAssets.availableAssets.includes(value),
-      );
-      if (invalidAssets.length > 0) {
-        setAsset([]);
+      const cascade = cascadeForAssets.availableAssets;
+      if (cascade.length > 0) {
+        const invalidAssets = asset.filter((value) => !cascade.includes(value));
+        if (invalidAssets.length > 0) {
+          setAsset([]);
+        }
       }
     }
   }, [fieldVisibility.asset, asset, cascadeForAssets.availableAssets]);
@@ -711,13 +729,59 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   const indicationCascadeRef = React.useRef<string[]>([]);
   const paidCascadeRef = React.useRef<string[]>([]);
   const dasCascadeRef = React.useRef<string[]>([]);
+  const taCascadeRef = React.useRef<string[]>([]);
+
+  // Tracks whether the user explicitly cleared a field. Suppresses the
+  // single-option auto-select below until the cascade options actually
+  // change (i.e. a sibling field changed) — otherwise clearing a field
+  // whose cascade still resolves to one option gets immediately undone.
+  const assetManuallyClearedRef = React.useRef(false);
+  const indicationManuallyClearedRef = React.useRef(false);
+  const paidManuallyClearedRef = React.useRef(false);
+  const diseaseAreaManuallyClearedRef = React.useRef(false);
+  const taManuallyClearedRef = React.useRef(false);
+
+  const handleAssetChange = React.useCallback((selected: string[]) => {
+    assetManuallyClearedRef.current = selected.length === 0;
+    setAsset(selected);
+  }, []);
+
+  const handleIndicationChange = React.useCallback((selected: string[]) => {
+    indicationManuallyClearedRef.current = selected.length === 0;
+    setIndication(selected);
+  }, []);
+
+  const handlePaidChange = React.useCallback((selected: string[]) => {
+    paidManuallyClearedRef.current = selected.length === 0;
+    setPaid(selected);
+  }, []);
+
+  const handleDiseaseAreaChange = React.useCallback((selected: string[]) => {
+    diseaseAreaManuallyClearedRef.current = selected.length === 0;
+    setDiseaseArea(selected);
+  }, []);
+
+  const handleTherapeuticAreaChange = React.useCallback(
+    (_: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
+      const selected = item ? [item.key as string] : [];
+      taManuallyClearedRef.current = selected.length === 0;
+      setTherapeuticArea(selected);
+    },
+    [],
+  );
 
   React.useEffect(() => {
     const cascade = cascadeForAssets.availableAssets;
     if (asset.length === 0) {
+      const cascadeChanged =
+        cascade.join(",") !== assetCascadeRef.current.join(",");
+      if (assetManuallyClearedRef.current && cascadeChanged) {
+        assetManuallyClearedRef.current = false;
+      }
       if (
         fieldVisibility.asset &&
-        cascade.join(",") !== assetCascadeRef.current.join(",") &&
+        !assetManuallyClearedRef.current &&
+        cascadeChanged &&
         cascade.length === 1
       ) {
         setAsset([cascade[0]]);
@@ -729,9 +793,15 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   React.useEffect(() => {
     const cascade = cascadeForIndicationsFull.availableIndications;
     if (indication.length === 0) {
+      const cascadeChanged =
+        cascade.join(",") !== indicationCascadeRef.current.join(",");
+      if (indicationManuallyClearedRef.current && cascadeChanged) {
+        indicationManuallyClearedRef.current = false;
+      }
       if (
         fieldVisibility.indication &&
-        cascade.join(",") !== indicationCascadeRef.current.join(",") &&
+        !indicationManuallyClearedRef.current &&
+        cascadeChanged &&
         cascade.length === 1
       ) {
         setIndication([cascade[0]]);
@@ -747,9 +817,15 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   React.useEffect(() => {
     const cascade = cascadeForPaidsStructural.availablePaids;
     if (paid.length === 0) {
+      const cascadeChanged =
+        cascade.join(",") !== paidCascadeRef.current.join(",");
+      if (paidManuallyClearedRef.current && cascadeChanged) {
+        paidManuallyClearedRef.current = false;
+      }
       if (
         fieldVisibility.paid &&
-        cascade.join(",") !== paidCascadeRef.current.join(",") &&
+        !paidManuallyClearedRef.current &&
+        cascadeChanged &&
         cascade.length === 1
       ) {
         setPaid([cascade[0]]);
@@ -761,9 +837,15 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
   React.useEffect(() => {
     const cascade = filteredDiseaseAreaStrategies;
     if (diseaseArea.length === 0) {
+      const cascadeChanged =
+        cascade.join(",") !== dasCascadeRef.current.join(",");
+      if (diseaseAreaManuallyClearedRef.current && cascadeChanged) {
+        diseaseAreaManuallyClearedRef.current = false;
+      }
       if (
         fieldVisibility.diseaseArea &&
-        cascade.join(",") !== dasCascadeRef.current.join(",") &&
+        !diseaseAreaManuallyClearedRef.current &&
+        cascadeChanged &&
         cascade.length === 1
       ) {
         setDiseaseArea([cascade[0]]);
@@ -772,13 +854,18 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
     }
   }, [fieldVisibility.diseaseArea, filteredDiseaseAreaStrategies, diseaseArea]);
 
-  const taCascadeRef = React.useRef<string[]>([]);
   React.useEffect(() => {
     const cascade = cascadeForTAs.availableTAs;
     if (therapeuticArea.length === 0) {
+      const cascadeChanged =
+        cascade.join(",") !== taCascadeRef.current.join(",");
+      if (taManuallyClearedRef.current && cascadeChanged) {
+        taManuallyClearedRef.current = false;
+      }
       if (
         !shouldLockContributorTaAndAsset &&
-        cascade.join(",") !== taCascadeRef.current.join(",") &&
+        !taManuallyClearedRef.current &&
+        cascadeChanged &&
         cascade.length === 1
       ) {
         setTherapeuticArea([cascade[0]]);
@@ -1248,6 +1335,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
       options.assets,
       options.therapeuticAreas,
       options.indications,
+      assetSearchAliases,
     );
 
     const payload: IUploadPayload = {
@@ -1550,9 +1638,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                         ? therapeuticArea[0]
                         : undefined
                     }
-                    onChange={(_, item) =>
-                      setTherapeuticArea(item ? [item.key as string] : [])
-                    }
+                    onChange={handleTherapeuticAreaChange}
                     placeholder={
                       fieldRequirements.therapeuticArea
                         ? "Select therapeutic area (required)"
@@ -1591,7 +1677,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                   required={fieldRequirements.diseaseArea}
                   options={filteredDiseaseAreaStrategies}
                   selectedKeys={diseaseArea}
-                  onChange={setDiseaseArea}
+                  onChange={handleDiseaseAreaChange}
                   errorMessage={cascadeErrors.diseaseArea}
                   placeholder={
                     fieldRequirements.diseaseArea
@@ -1615,7 +1701,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                       : toValueArray(options.assets)
                   }
                   selectedKeys={asset}
-                  onChange={setAsset}
+                  onChange={handleAssetChange}
                   errorMessage={cascadeErrors.asset}
                   placeholder={
                     fieldRequirements.asset
@@ -1624,6 +1710,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                   }
                   multiSelect={false}
                   showChipsBelow={true}
+                  searchAliases={assetSearchAliases}
                 />
               )}
 
@@ -1638,7 +1725,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                       : toValueArray(options.indications)
                   }
                   selectedKeys={indication}
-                  onChange={setIndication}
+                  onChange={handleIndicationChange}
                   errorMessage={cascadeErrors.indication}
                   placeholder={
                     fieldRequirements.indication
@@ -1679,7 +1766,7 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
                       : allPaids
                   }
                   selectedKeys={paid}
-                  onChange={setPaid}
+                  onChange={handlePaidChange}
                   errorMessage={cascadeErrors.paid}
                   placeholder={
                     fieldRequirements.paid
@@ -1973,6 +2060,14 @@ export const UploadPanel: React.FC<IUploadPanelProps> = ({
               width: "100%",
             }}
           >
+            {!isUploading && !archiveTargetDocument && (
+              <button
+                className={styles.btnSecondary}
+                onClick={() => resetFormState()}
+              >
+                Reset
+              </button>
+            )}
             {isUploading ? (
               <button
                 className={styles.btnSecondary}

@@ -32,7 +32,7 @@ export const INACTIVITY_TEST_MODE_MAX_MINUTES = 2;
 // CACHE
 // MetadataService caches reference list data in localStorage
 // ─────────────────────────────────────────────────────────────────
-export const METADATA_CACHE_KEY = "spectra_metadata_v2";
+export const METADATA_CACHE_KEY = "spectra_metadata_v4";
 export const METADATA_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export const AUTH_CACHE_KEY_PREFIX = "spectra_auth_v2_";
@@ -256,6 +256,7 @@ export const SP_LIST_NAMES = {
   indications: "SPECTRA_Indications",
   lineOfTherapy: "SPECTRA_LineOfTherapy",
   projectPaid: "SPECTRA_ProjectPAID",
+  searchTokens: "SPECTRA_SearchTokens",
   headerSettings: "SPECTRA_HeaderSettings",
   headerLinks: "SPECTRA_HeaderLinks",
   userPreferences: "SPECTRA_UserPreferences",
@@ -313,6 +314,17 @@ export const MULTI_VALUE_SEPARATOR = "; ";
 
 // Search tokens use comma separator (different from other multi-value fields)
 export const SEARCH_TOKENS_SEPARATOR = ", ";
+
+// ─────────────────────────────────────────────────────────────────
+// BATCH UPDATE — per-file pacing
+// A deliberate pause applied after each document in a batch run so the
+// admin can watch the progress bar advance and monitor which file is being
+// processed. A random value in this range is used per file.
+// NOTE: this makes large batches take (files × ~6s); intended for the
+// controlled admin batch tool, not high-volume automation.
+// ─────────────────────────────────────────────────────────────────
+export const BATCH_UPDATE_ITEM_DELAY_MIN_MS = 5000;
+export const BATCH_UPDATE_ITEM_DELAY_MAX_MS = 7000;
 
 // ─────────────────────────────────────────────────────────────────
 // HELP

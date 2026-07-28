@@ -11,6 +11,7 @@ import {
   truncateFileNameForDisplay,
 } from "../../utils/fileHelper";
 import { DOCUMENT_TYPE_FULL_NAMES } from "../../config/config";
+import { formatAssetWithSynonyms } from "../../utils/assetSearchAliasHelper";
 import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
@@ -115,7 +116,12 @@ const COLUMNS: IColumnDef[] = [
     getValue: (d) => d.fileName,
     truncate: true,
   },
-  { key: "asset", label: "Asset", getValue: (d) => d.asset.join("; ") },
+  {
+    key: "asset",
+    label: "Asset",
+    getValue: (d) => formatAssetWithSynonyms(d.asset, d.assetSearchTokens),
+    truncate: true,
+  },
   {
     key: "type",
     label: "Type",
@@ -178,6 +184,20 @@ const COLUMNS: IColumnDef[] = [
     adminOnly: true,
   },
 ];
+
+const KebabIcon: React.FC = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="5" r="2" fill="#0066F5" />
+    <circle cx="12" cy="12" r="2" fill="#0066F5" />
+    <circle cx="12" cy="19" r="2" fill="#0066F5" />
+  </svg>
+);
 
 const StarOutlineIcon: React.FC = () => (
   <svg
@@ -244,6 +264,24 @@ export const DataTable: React.FC<IDataTableProps> = ({
     },
     [],
   );
+
+  // ── Admin actions overflow menu (single menu open at a time) ──
+  const [openMenuDocId, setOpenMenuDocId] = React.useState<string | null>(null);
+  const openMenuRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (!openMenuDocId) return;
+    const handler = (e: MouseEvent): void => {
+      if (
+        openMenuRef.current &&
+        !openMenuRef.current.contains(e.target as Node)
+      ) {
+        setOpenMenuDocId(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [openMenuDocId]);
 
   const visibleColumns = COLUMNS.filter((col) => {
     if (col.adminOnly && role !== "admin") return false;
@@ -594,121 +632,135 @@ export const DataTable: React.FC<IDataTableProps> = ({
                       </TooltipHost>
                     )}
 
-                  {/* Admin-only actions */}
+                  {/* Admin-only actions — collapsed into a single overflow menu */}
                   {role === "admin" && (
-                    <>
-                      <TooltipHost content="Edit metadata">
-                        <button
-                          className={styles.rowActionIconBtn}
-                          onClick={() => onEditClick && onEditClick(doc)}
-                          aria-label={`Edit ${doc.fileName}`}
-                          type="button"
+                    <div
+                      className={styles.rowActionsMenuWrap}
+                      ref={openMenuDocId === doc.id ? openMenuRef : undefined}
+                    >
+                      <button
+                        className={styles.rowActionsMenuTrigger}
+                        onClick={() =>
+                          setOpenMenuDocId(
+                            openMenuDocId === doc.id ? null : doc.id,
+                          )
+                        }
+                        aria-label={`Actions for ${doc.fileName}`}
+                        aria-haspopup="menu"
+                        aria-expanded={openMenuDocId === doc.id}
+                        type="button"
+                      >
+                        <KebabIcon />
+                      </button>
+
+                      {openMenuDocId === doc.id && (
+                        <div
+                          className={styles.rowActionsMenu}
+                          role="menu"
+                          aria-label={`Actions for ${doc.fileName}`}
                         >
-                          <img
-                            src={require("../../assets/icons/edit.svg")}
-                            alt=""
-                            style={{
-                              width: "17px",
-                              height: "17px",
-                              display: "block",
+                          <button
+                            className={styles.rowActionsMenuItem}
+                            role="menuitem"
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuDocId(null);
+                              onEditClick && onEditClick(doc);
                             }}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </TooltipHost>
-                      {doc.status === "Current" && onArchiveReplaceClick && (
-                        <TooltipHost content="Replace file and metadata">
-                          <button
-                            className={styles.rowActionIconBtn}
-                            onClick={(event) =>
-                              onArchiveReplaceClick(
-                                doc,
-                                getAnchorPosition(event),
-                              )
-                            }
-                            aria-label={`Replace ${doc.fileName}`}
-                            type="button"
                           >
+                            <span>Edit</span>
                             <img
-                              src={require("../../assets/icons/archive-replace.svg")}
+                              src={require("../../assets/icons/edit.svg")}
                               alt=""
-                              style={{
-                                width: "16px",
-                                height: "16px",
-                                display: "block",
-                              }}
+                              className={styles.rowActionsMenuItemIcon}
                               aria-hidden="true"
                             />
                           </button>
-                        </TooltipHost>
-                      )}
-                      {doc.status === "Current" && (
-                        <TooltipHost content="Archive document">
-                          <button
-                            className={styles.rowActionIconBtn}
-                            onClick={() =>
-                              onArchiveClick && onArchiveClick(doc)
-                            }
-                            aria-label={`Archive ${doc.fileName}`}
-                            type="button"
-                          >
-                            <img
-                              src={require("../../assets/icons/archive.svg")}
-                              alt=""
-                              style={{
-                                width: "16px",
-                                height: "16px",
-                                display: "block",
+
+                          {doc.status === "Current" &&
+                            onArchiveReplaceClick && (
+                              <button
+                                className={styles.rowActionsMenuItem}
+                                role="menuitem"
+                                type="button"
+                                onClick={(event) => {
+                                  setOpenMenuDocId(null);
+                                  onArchiveReplaceClick(
+                                    doc,
+                                    getAnchorPosition(event),
+                                  );
+                                }}
+                              >
+                                <span>Replace</span>
+                                <img
+                                  src={require("../../assets/icons/archive-replace.svg")}
+                                  alt=""
+                                  className={styles.rowActionsMenuItemIcon}
+                                  aria-hidden="true"
+                                />
+                              </button>
+                            )}
+
+                          {doc.status === "Current" && (
+                            <button
+                              className={styles.rowActionsMenuItem}
+                              role="menuitem"
+                              type="button"
+                              onClick={() => {
+                                setOpenMenuDocId(null);
+                                onArchiveClick && onArchiveClick(doc);
                               }}
-                              aria-hidden="true"
-                            />
-                          </button>
-                        </TooltipHost>
-                      )}
-                      {doc.status === "Archive" && (
-                        <TooltipHost content="Re-activate document">
-                          <button
-                            className={styles.rowActionIconBtn}
-                            onClick={() =>
-                              onReActivateClick && onReActivateClick(doc)
-                            }
-                            aria-label={`Re-activate ${doc.fileName}`}
-                            type="button"
-                          >
-                            <img
-                              src={require("../../assets/icons/re-activate.svg")}
-                              alt=""
-                              style={{
-                                width: "16px",
-                                height: "16px",
-                                display: "block",
+                            >
+                              <span>Archive</span>
+                              <img
+                                src={require("../../assets/icons/archive.svg")}
+                                alt=""
+                                className={styles.rowActionsMenuItemIcon}
+                                aria-hidden="true"
+                              />
+                            </button>
+                          )}
+
+                          {doc.status === "Archive" && (
+                            <button
+                              className={styles.rowActionsMenuItem}
+                              role="menuitem"
+                              type="button"
+                              onClick={() => {
+                                setOpenMenuDocId(null);
+                                onReActivateClick && onReActivateClick(doc);
                               }}
-                              aria-hidden="true"
-                            />
-                          </button>
-                        </TooltipHost>
-                      )}
-                      <TooltipHost content="Delete document">
-                        <button
-                          className={styles.rowActionIconBtn}
-                          onClick={() => onDeleteClick && onDeleteClick(doc)}
-                          aria-label={`Delete ${doc.fileName}`}
-                          type="button"
-                          style={{ color: "#DC2626" }}
-                        >
-                          <img
-                            src={require("../../assets/icons/delete.svg")}
-                            alt=""
-                            style={{
-                              width: "16px",
-                              height: "16px",
-                              display: "block",
+                            >
+                              <span>Re-activate</span>
+                              <img
+                                src={require("../../assets/icons/re-activate.svg")}
+                                alt=""
+                                className={styles.rowActionsMenuItemIcon}
+                                aria-hidden="true"
+                              />
+                            </button>
+                          )}
+
+                          <button
+                            className={styles.rowActionsMenuItem}
+                            role="menuitem"
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuDocId(null);
+                              onDeleteClick && onDeleteClick(doc);
                             }}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </TooltipHost>
-                    </>
+                          >
+                            <span>Delete</span>
+                            <img
+                              src={require("../../assets/icons/delete.svg")}
+                              alt=""
+                              className={styles.rowActionsMenuItemIcon}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Star / favourite — all roles, when feature enabled */}

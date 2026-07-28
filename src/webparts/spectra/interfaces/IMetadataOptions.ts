@@ -36,6 +36,24 @@ export interface IDiseaseAreaStrategyRelationship {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Search-token row — one row from SPECTRA_SearchTokens list
+// Same shape as IProjectPaidRelationship plus a row-level list of
+// searchTokens (semicolon-separated keywords in the SEARCH_TOKEN
+// column). Powers token-driven document search and Smart Fill
+// autofill in the Upload/Edit/Batch panels.
+// ─────────────────────────────────────────────────────────────────
+export interface ISearchTokenRow {
+  searchTokens: string[]; // Keywords from SEARCH_TOKEN, split on ';'
+  projectPaid: string; // PROJECT_PAID
+  assetNumber: string; // ASSET_NUMBER
+  diseaseArea: string; // DISEASE_AREA
+  therapeuticArea: string; // THERAPEUTIC_AREA
+  subTherapeuticArea: string; // SUB_TA
+  indication: string; // INDICATION
+  lineOfTherapy: string; // LINE_OF_THERAPY
+}
+
+// ─────────────────────────────────────────────────────────────────
 // All metadata options — loaded by MetadataService, cached 24hrs
 // ─────────────────────────────────────────────────────────────────
 export interface IMetadataOptions {
@@ -48,6 +66,7 @@ export interface IMetadataOptions {
   indications: IMetadataOption[]; // From SPECTRA_Indications list
   lineOfTherapy: IMetadataOption[]; // From SPECTRA_LineOfTherapy list
   projectPaidRelationships: IProjectPaidRelationship[]; // From SPECTRA_ProjectPAID list
+  searchTokenRows: ISearchTokenRow[]; // From SPECTRA_SearchTokens list
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -63,6 +82,7 @@ export const EMPTY_METADATA: IMetadataOptions = {
   indications: [],
   lineOfTherapy: [],
   projectPaidRelationships: [],
+  searchTokenRows: [],
 };
 
 // ─────────────────────────────────────────────────────────────────

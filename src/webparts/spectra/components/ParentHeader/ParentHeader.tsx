@@ -227,7 +227,10 @@ export const ParentHeader: React.FC<IParentHeaderProps> = ({
 
       <div className={styles.parentHeaderRight}>
         {isAdmin && onBatchUpdateClick && (
-          <div className={styleClassMap.parentHeaderHelpMenu} ref={adminMenuRef}>
+          <div
+            className={styleClassMap.parentHeaderHelpMenu}
+            ref={adminMenuRef}
+          >
             <button
               className={styleClassMap.parentHeaderSupportLink}
               aria-label="Admin tools"

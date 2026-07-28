@@ -3,7 +3,7 @@ import { IWebPartProps } from "../interfaces/IWebPartProps";
 import { IDocument } from "../interfaces/IDocument";
 import { IUploadPayload } from "../interfaces/IUploadPayload";
 import { IFilterState, defaultFilterState } from "../interfaces/IFilterState";
-import { IMetadataOption } from "../interfaces/IMetadataOptions";
+import { IMetadataOption, toValueArray } from "../interfaces/IMetadataOptions";
 
 // Hooks
 import { useAuth } from "../hooks/useAuth";
@@ -17,6 +17,7 @@ import { useUpload } from "../hooks/useUpload";
 import { useArchiveReplace } from "../hooks/useArchiveReplace";
 import { useHeaderConfig } from "../hooks/useHeaderConfig";
 import { useUserPreferences } from "../hooks/useUserPreferences";
+import { useDocumentSummary } from "../hooks/useDocumentSummary";
 
 // Utilities
 import {
@@ -25,6 +26,7 @@ import {
 } from "../utils/filterHelper";
 import { exportDocumentsToCSV } from "../utils/exportHelper";
 import { generateFileName } from "../utils/fileNamingHelper";
+import { buildAssetSearchAliases } from "../utils/assetSearchAliasHelper";
 import {
   AUTH_CACHE_KEY_PREFIX,
   METADATA_CACHE_KEY,
@@ -43,6 +45,7 @@ import { BatchUpdatePanel } from "../components/BatchUpdatePanel/BatchUpdatePane
 import { useBatchUpdate } from "../hooks/useBatchUpdate";
 import { Footer } from "../components/Footer/Footer";
 import { SearchBar } from "../components/SearchBar/SearchBar";
+import { SearchSuggestions } from "../components/SearchBar/SearchSuggestions";
 import { Toolbar } from "../components/Toolbar/Toolbar";
 import { DataTable } from "../components/DataTable/DataTable";
 import { TilesView } from "../components/TilesView/TilesView";
@@ -63,6 +66,7 @@ import { SplashScreen } from "../components/SplashScreen/SplashScreen";
 import { DocumentViewingPage } from "../components/DocumentViewingPage/DocumentViewingPage";
 import { ShowArchivedToggle } from "./ShowArchivedToggle/ShowArchivedToggle";
 import { ActiveFilterChips } from "./ActiveFilterChips/ActiveFilterChips";
+import { DocumentSummaryTable } from "./DocumentSummaryTable/DocumentSummaryTable";
 // Styles
 import styles from "./SPECTRA.module.scss";
 
@@ -234,6 +238,25 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     userPreferencesListName,
   );
 
+  // ── Document Summary axis lists (derived from cached metadata) ──
+  const taValues = React.useMemo(
+    () => toValueArray(metadata.options.therapeuticAreas),
+    [metadata.options.therapeuticAreas],
+  );
+  const docTypeValues = React.useMemo(
+    () => toValueArray(metadata.options.documentTypes),
+    [metadata.options.documentTypes],
+  );
+  // Live counts — never cached; refetched whenever the landing page is shown
+  const docSummary = useDocumentSummary(
+    context,
+    documentLibrary,
+    taValues,
+    docTypeValues,
+    useMock,
+  );
+  const { refetch: refetchDocSummary } = docSummary;
+
   // ── Derived data ────────────────────────────────────────────
   // Helper: Create a map from metadata option value to searchTokens
   const tokenMapFromOptions = (
@@ -264,27 +287,44 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     ],
   );
 
+  // Asset -> SPECTRA_SearchTokens synonyms, for the Data Table's Search Tokens column
+  const assetSearchAliasMap = React.useMemo(
+    () => buildAssetSearchAliases(metadata.options.searchTokenRows),
+    [metadata.options.searchTokenRows],
+  );
+
   // Memoized enriched documents with merged search tokens
   const enrichedDocuments = React.useMemo(() => {
     return documents.documents.map((doc) => ({
       ...doc,
       searchTokens: [
-        ...doc.searchTokens,
+        ...(doc.searchTokens || []),
         ...(metadataTokenMaps.documentTypeMap.get(doc.documentType) || []),
-        ...doc.asset.flatMap((a) => metadataTokenMaps.assetMap.get(a) || []),
-        ...doc.therapeuticArea.flatMap(
+        ...(doc.asset || []).flatMap(
+          (a) => metadataTokenMaps.assetMap.get(a) || [],
+        ),
+        ...(doc.therapeuticArea || []).flatMap(
           (ta) => metadataTokenMaps.therapeuticAreaMap.get(ta) || [],
         ),
-        ...doc.indication.flatMap(
+        ...(doc.indication || []).flatMap(
           (i) => metadataTokenMaps.indicationMap.get(i) || [],
         ),
       ],
+      assetSearchTokens: Array.from(
+        new Set((doc.asset || []).flatMap((a) => assetSearchAliasMap[a] || [])),
+      ).filter(
+        (token) =>
+          !(doc.asset || []).some(
+            (a) => a.toLowerCase() === token.toLowerCase(),
+          ),
+      ),
     }));
-  }, [documents.documents, metadataTokenMaps]);
+  }, [documents.documents, metadataTokenMaps, assetSearchAliasMap]);
 
   const filteredResult = applyFiltersWithMeta(
     enrichedDocuments,
     filters.filters,
+    metadata.options.searchTokenRows,
   );
   const filteredDocuments = filteredResult.documents;
 
@@ -367,6 +407,10 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     !hasPanelFilters &&
     !isFullLibraryView &&
     viewMode === "normal"; // never show idle state when browsing Favorites or Recently Viewed
+  // Catches the gap that showResultsIdleEmptyState misses: full-library-view where
+  // the library becomes empty (e.g. after the last document is deleted).
+  const showLibraryEmptyState =
+    noResults && !hasPanelFilters && !hasSearchApplied && viewMode === "normal";
 
   const siteUrl = context.pageContext.web.absoluteUrl;
   const userDisplayName = context.pageContext.user.displayName;
@@ -501,15 +545,24 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
   );
 
   // ── Search handler ──────────────────────────────────────────
+  const commitSearch = React.useCallback(
+    (text: string) => {
+      setSearchText(text);
+      setIsSearchInputFocused(false);
+      filters.setFilter("searchText", text);
+      if (text || filters.hasActiveFilters) {
+        documents.refetch();
+        setHasResultsContext(true);
+        setViewMode("normal");
+        setPage("results");
+      }
+    },
+    [filters, documents],
+  );
+
   const handleSearch = React.useCallback(() => {
-    filters.setFilter("searchText", searchText);
-    if (searchText || filters.hasActiveFilters) {
-      documents.refetch();
-      setHasResultsContext(true);
-      setViewMode("normal");
-      setPage("results");
-    }
-  }, [searchText, filters, documents]);
+    commitSearch(searchText);
+  }, [searchText, commitSearch]);
 
   const handleClearSearch = React.useCallback(() => {
     setSearchText("");
@@ -535,6 +588,60 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
       setPage("results");
     },
     [filters],
+  );
+
+  // ── Search type-ahead ─────────────────────────────────────────
+  const [isSearchInputFocused, setIsSearchInputFocused] = React.useState(false);
+  const [debouncedSearchText, setDebouncedSearchText] = React.useState("");
+  const typeaheadFetchTriggeredRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [searchText]);
+
+  // Documents aren't fetched until the first real search (search-first home
+  // page). Type-ahead needs them loaded, so trigger one silent background
+  // fetch the first time the user types enough to search — but only if
+  // nothing has been loaded yet (a real search may have already done this).
+  React.useEffect(() => {
+    if (
+      debouncedSearchText.trim().length >= 3 &&
+      !typeaheadFetchTriggeredRef.current &&
+      !hasResultsContext &&
+      documents.documents.length === 0 &&
+      !documents.isLoading
+    ) {
+      typeaheadFetchTriggeredRef.current = true;
+      documents.refetch();
+    }
+  }, [debouncedSearchText, hasResultsContext, documents]);
+
+  const typeaheadResults = React.useMemo(() => {
+    const query = debouncedSearchText.trim();
+    if (query.length < 3) return [];
+    const result = applyFiltersWithMeta(
+      enrichedDocuments,
+      { ...filters.filters, searchText: query },
+      metadata.options.searchTokenRows,
+    );
+    return result.documents.slice(0, 8);
+  }, [
+    debouncedSearchText,
+    enrichedDocuments,
+    filters.filters,
+    metadata.options.searchTokenRows,
+  ]);
+
+  const showTypeahead = isSearchInputFocused && searchText.trim().length >= 3;
+
+  const handleSuggestionSelect = React.useCallback(
+    (doc: IDocument) => {
+      commitSearch(doc.fileName);
+    },
+    [commitSearch],
   );
 
   // ── Filter apply ────────────────────────────────────────────
@@ -728,7 +835,9 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
     setSearchText("");
     setViewMode("normal");
     filters.clearAllFilters();
-  }, [filters]);
+    // Re-fetch live counts every time the user returns to the landing page
+    refetchDocSummary();
+  }, [filters, refetchDocSummary]);
 
   const handleOpenUploadPanel = React.useCallback(() => {
     setUploadPanelSession((prev) => prev + 1);
@@ -1485,8 +1594,18 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 onChange={handleSearchTextChange}
                 onSearch={handleSearch}
                 onClear={handleClearSearch}
+                onFocus={() => setIsSearchInputFocused(true)}
+                onBlur={() => setIsSearchInputFocused(false)}
                 isError={noResults && !!searchText}
-              />
+              >
+                {showTypeahead && (
+                  <SearchSuggestions
+                    documents={typeaheadResults}
+                    isLoading={documents.isLoading}
+                    onSelect={handleSuggestionSelect}
+                  />
+                )}
+              </SearchBar>
               <Toolbar
                 role={auth.effectiveRole}
                 activeFilterCount={filters.activeFilterCount}
@@ -1592,31 +1711,14 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
             )}
 
             <div className={styles.landingSecondaryCard}>
-              <div>
-                <p>
-                  SPECTRA, AbbVie&apos;s centralized repository for strategic
-                  documents, provides a single, reliable location to organize,
-                  search, and access key portfolio materials.
-                </p>
-                <p>
-                  SPECTRA supports efficient document retrieval, consistent
-                  classification, and streamlined management of current content
-                  across teams.
-                </p>
-                <p>
-                  SPECTRA includes the following approved document types
-                  (additional document types to be added in future releases.)
-                </p>
-                <ul>
-                  <li>Disease Area Strategies (DAS)</li>
-                  <li>Target Product Profiles (TPP)</li>
-                  <li>Target Product Claims (TPC)</li>
-                  <li>Integrated Evidence Plans (IEP)</li>
-                  <li>Early Brand Plans (EBP)</li>
-                  <li>Early Integrated Value Propositions (EIVP)</li>
-                  <li>Integrated Access Strategies (IAS)</li>
-                </ul>
-              </div>
+              <DocumentSummaryTable
+                taValues={taValues}
+                docTypeValues={docTypeValues}
+                summary={docSummary.summary}
+                isLoading={docSummary.isLoading}
+                isError={docSummary.isError}
+                onRetry={docSummary.refetch}
+              />
               <div className={styles.landingInfoPanel}>
                 <h3>
                   <img
@@ -1638,6 +1740,31 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   reporting, and portfolio decision-making.
                 </p>
               </div>
+            </div>
+            <div className={styles.landingBodyText}>
+              <p>
+                SPECTRA, AbbVie&apos;s centralized repository for strategic
+                documents, provides a single, reliable location to organize,
+                search, and access key portfolio materials.
+              </p>
+              <p>
+                SPECTRA supports efficient document retrieval, consistent
+                classification, and streamlined management of current content
+                across teams.
+              </p>
+              <p>
+                SPECTRA includes the following approved document types
+                (additional document types to be added in future releases.)
+              </p>
+              <ul>
+                <li>Disease Area Strategies (DAS)</li>
+                <li>Target Product Profiles (TPP)</li>
+                <li>Target Product Claims (TPC)</li>
+                <li>Integrated Evidence Plans (IEP)</li>
+                <li>Early Brand Plans (EBP)</li>
+                <li>Early Integrated Value Propositions (EIVP)</li>
+                <li>Integrated Access Strategies (IAS)</li>
+              </ul>
             </div>
           </div>
         )}
@@ -1686,8 +1813,18 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                 onChange={handleSearchTextChange}
                 onSearch={handleSearch}
                 onClear={handleClearSearch}
+                onFocus={() => setIsSearchInputFocused(true)}
+                onBlur={() => setIsSearchInputFocused(false)}
                 isError={noResults && !!searchText}
-              />
+              >
+                {showTypeahead && (
+                  <SearchSuggestions
+                    documents={typeaheadResults}
+                    isLoading={documents.isLoading}
+                    onSelect={handleSuggestionSelect}
+                  />
+                )}
+              </SearchBar>
 
               {useEnhancedStyle && hasSearchApplied && (
                 <div className={styles.exactMatchLegend}>
@@ -1975,6 +2112,8 @@ export const SPECTRA: React.FC<IWebPartProps> = ({
                   />
                 )}
               </>
+            ) : showLibraryEmptyState ? (
+              <EmptyState type="library-empty" />
             ) : (
               <>
                 {showTiles ? (

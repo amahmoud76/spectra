@@ -23,8 +23,8 @@
 
 .tileRow {
   display: grid;
-  /* 36px = expand btn; 156px = actions (5 icons × 28px + 4 gaps × 4px); 1fr = body */
-  grid-template-columns: 36px 156px 1fr;
+  /* 36px = expand btn; action column width set inline per role; 1fr = body */
+  grid-template-columns: 36px 72px 1fr;
   align-items: center;
   gap: 12px;
   padding: 14px 16px;

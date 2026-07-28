@@ -9,6 +9,9 @@ import {
   SP_DOCUMENT_LIBRARY,
   MULTI_VALUE_SEPARATOR,
   SEARCH_TOKENS_SEPARATOR,
+  TA_INCLUDES_SUB_TA,
+  BATCH_UPDATE_ITEM_DELAY_MIN_MS,
+  BATCH_UPDATE_ITEM_DELAY_MAX_MS,
 } from "../config/config";
 import { mockDocuments } from "../mocks/mockDocuments";
 import { generateFileName } from "../utils/fileNamingHelper";
@@ -30,8 +33,15 @@ export class DocumentService {
    */
   private _getDocumentIdentityKey(payload: Partial<IUploadPayload>): string {
     const docType = payload.documentType || "";
-    const ta = (payload.therapeuticArea || []).sort().join(";");
-    const subTA = (payload.subTherapeuticArea || []).sort().join(";");
+    const taList = payload.therapeuticArea || [];
+    const ta = [...taList].sort().join(";");
+    // Sub-TA only participates in identity when the TA actually uses it
+    // (mirrors generateFileName). Otherwise a stale Sub-TA value would make
+    // two otherwise-identical documents look like distinct records.
+    const usesSubTA = taList.some((t) => TA_INCLUDES_SUB_TA.includes(t));
+    const subTA = usesSubTA
+      ? [...(payload.subTherapeuticArea || [])].sort().join(";")
+      : "";
 
     if (docType === "DAS") {
       const diseaseArea = (payload.diseaseArea || []).sort().join(";");
@@ -50,7 +60,11 @@ export class DocumentService {
   private _getDocumentIdentityKeyFromDoc(doc: IDocument): string {
     const docType = doc.documentType;
     const ta = [...doc.therapeuticArea].sort().join(";");
-    const subTA = [...doc.subTherapeuticArea].sort().join(";");
+    // See _getDocumentIdentityKey — Sub-TA only counts for TAs that use it.
+    const usesSubTA = doc.therapeuticArea.some((t) =>
+      TA_INCLUDES_SUB_TA.includes(t),
+    );
+    const subTA = usesSubTA ? [...doc.subTherapeuticArea].sort().join(";") : "";
 
     if (docType === "DAS") {
       const diseaseArea = [...doc.diseaseArea].sort().join(";");
@@ -229,7 +243,9 @@ export class DocumentService {
     }
   }
 
-  public async getDocumentByFileName(fileName: string): Promise<IDocument | null> {
+  public async getDocumentByFileName(
+    fileName: string,
+  ): Promise<IDocument | null> {
     if (this.useMock) {
       await new Promise((resolve) => setTimeout(resolve, 200));
       return (
@@ -1001,7 +1017,11 @@ export class DocumentService {
 
         const escapedCurrentRef = currentFileRef.replace(/'/g, "''");
         const escapedNewRef = newFileRef.replace(/'/g, "''");
-        const moveUrl = `${siteUrl}/_api/web/getFileByServerRelativeUrl('${escapedCurrentRef}')/MoveTo(newurl='${escapedNewRef}',flags=1)`;
+        // flags=0 → do NOT overwrite an existing file. The plan builder should
+        // have resolved any filename collision before reaching this point; if
+        // one slips through, failing here is safer than silently destroying
+        // another document (which flags=1 would do).
+        const moveUrl = `${siteUrl}/_api/web/getFileByServerRelativeUrl('${escapedCurrentRef}')/MoveTo(newurl='${escapedNewRef}',flags=0)`;
 
         const moveResponse = await this.context.spHttpClient.post(
           moveUrl,
@@ -1137,10 +1157,7 @@ export class DocumentService {
           if (ok) archived++;
         } else {
           // "update" or "keep-with-date"
-          ok = await this.updateDocument(
-            item.doc.id,
-            item.targetPayload || {},
-          );
+          ok = await this.updateDocument(item.doc.id, item.targetPayload || {});
           if (ok) updated++;
         }
         if (!ok) {
@@ -1160,6 +1177,16 @@ export class DocumentService {
       }
       done++;
       onProgress?.(done, total, item.doc.fileName);
+
+      // Deliberate per-file pause so the admin can watch progress advance and
+      // see which document is being processed. Skipped after the final item.
+      if (done < total) {
+        const delayMs =
+          BATCH_UPDATE_ITEM_DELAY_MIN_MS +
+          Math.random() *
+            (BATCH_UPDATE_ITEM_DELAY_MAX_MS - BATCH_UPDATE_ITEM_DELAY_MIN_MS);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
 
     return { updated, archived, failed: failures.length, failures };
@@ -1448,5 +1475,61 @@ export class DocumentService {
     // SpectraImmutableFileName is set by the upload flow with the original filename
 
     return metadata;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // GET DOCUMENT SUMMARY ROWS
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Fetch a minimal projection of all Current documents for the landing-page
+   * Document Summary table (TA × Document Type counts).
+   *
+   * Returns only the two fields needed for aggregation so the payload is as
+   * small as possible.  Results are NEVER cached — the caller always gets live
+   * counts straight from SharePoint.
+   */
+  public async getDocumentSummaryRows(): Promise<
+    Array<{ documentType: string; therapeuticArea: string[] }>
+  > {
+    if (this.useMock) {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      return this.mockDocs
+        .filter((d) => d.status === "Current")
+        .map((d) => ({
+          documentType: d.documentType,
+          therapeuticArea: [...d.therapeuticArea],
+        }));
+    }
+
+    const siteUrl = this.context.pageContext.web.absoluteUrl;
+    const url =
+      `${siteUrl}/_api/web/lists/getbytitle('${this._documentLibrary}')/items` +
+      `?$select=SpectraDocumentType,SpectraTherapeuticArea` +
+      `&$filter=SpectraStatus eq 'Current'&$top=5000`;
+
+    try {
+      const response = await this.context.spHttpClient.get(
+        url,
+        SPHttpClient.configurations.v1,
+      );
+      if (!response.ok) {
+        console.error(
+          `DocumentService.getDocumentSummaryRows: ${response.status}`,
+        );
+        return [];
+      }
+      const data = await response.json();
+      return (data.value as Record<string, unknown>[]).map((item) => ({
+        documentType: String(item.SpectraDocumentType || ""),
+        therapeuticArea: String(item.SpectraTherapeuticArea || "")
+          .split(MULTI_VALUE_SEPARATOR)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+      }));
+    } catch (error) {
+      console.error("DocumentService.getDocumentSummaryRows:", error);
+      return [];
+    }
   }
 }

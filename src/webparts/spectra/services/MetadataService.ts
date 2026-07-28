@@ -5,6 +5,7 @@ import {
   IMetadataOption,
   IDiseaseAreaStrategyRelationship,
   IProjectPaidRelationship,
+  ISearchTokenRow,
   EMPTY_METADATA,
 } from "../interfaces/IMetadataOptions";
 import {
@@ -76,6 +77,7 @@ export class MetadataService {
         indications,
         lineOfTherapy,
         projectPaidRelationships,
+        searchTokenRows,
       ] = await Promise.all([
         this._withMetadataFallback("assets", () => this._fetchAssets(), []),
         this._withMetadataFallback(
@@ -113,6 +115,11 @@ export class MetadataService {
           () => this._fetchProjectPaidRelationships(),
           [],
         ),
+        this._withMetadataFallback(
+          "searchTokenRows",
+          () => this._fetchSearchTokenRows(),
+          [],
+        ),
       ]);
 
       const options: IMetadataOptions = {
@@ -125,6 +132,7 @@ export class MetadataService {
         indications,
         lineOfTherapy,
         projectPaidRelationships,
+        searchTokenRows,
       };
 
       this._writeCache(options);
@@ -419,6 +427,51 @@ export class MetadataService {
       .filter((item) => item.projectPaid);
   }
 
+  /**
+   * Fetch SPECTRA_SearchTokens — the centralized token/relationship table.
+   * Columns: SEARCH_TOKEN (semicolon-separated keywords), PROJECT_PAID,
+   * ASSET_NUMBER, DISEASE_AREA, THERAPEUTIC_AREA, SUB_TA, INDICATION,
+   * LINE_OF_THERAPY. All plain text; only SEARCH_TOKEN holds multiple values.
+   * Orders by Title (multi-line columns cannot be used in $orderby).
+   */
+  private async _fetchSearchTokenRows(): Promise<ISearchTokenRow[]> {
+    const responses = await this._fetchListItemsWithFallback(
+      SP_LIST_NAMES.searchTokens,
+      [
+        // Fetch all readable columns. Columns in this list vary between
+        // environments, so an explicit $select would 400 (and drop every
+        // field) whenever one expected column is missing.
+        { select: [], orderBy: "Title" },
+        { select: ["Title", "SEARCH_TOKEN"], orderBy: "Title" },
+      ],
+    );
+
+    return responses
+      .map((item) => {
+        const rawTokens = this._readString(item, ["SEARCH_TOKEN"]);
+        const searchTokens = Array.from(
+          new Set(
+            rawTokens
+              .split(";")
+              .map((t) => t.trim())
+              .filter(Boolean),
+          ),
+        );
+
+        return {
+          searchTokens,
+          projectPaid: this._readString(item, ["PROJECT_PAID", "Title"]),
+          assetNumber: this._readString(item, ["ASSET_NUMBER"]),
+          diseaseArea: this._readString(item, ["DISEASE_AREA"]),
+          therapeuticArea: this._readString(item, ["THERAPEUTIC_AREA"]),
+          subTherapeuticArea: this._readString(item, ["SUB_TA"]),
+          indication: this._readString(item, ["INDICATION"]),
+          lineOfTherapy: this._readString(item, ["LINE_OF_THERAPY"]),
+        };
+      })
+      .filter((row) => row.searchTokens.length > 0);
+  }
+
   private async _withMetadataFallback<T>(
     label: string,
     load: () => Promise<T>,
@@ -440,8 +493,15 @@ export class MetadataService {
     let lastStatus: number | null = null;
 
     for (const attempt of attempts) {
-      const select = Array.from(new Set(attempt.select)).join(",");
-      const url = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$select=${select}&$orderby=${attempt.orderBy}&$top=5000`;
+      // An empty select array means "no $select" — fetch all readable
+      // columns. This is resilient to lists that are missing one or more
+      // of the expected columns (a bad $select field name returns HTTP 400
+      // and would otherwise discard every column in that attempt).
+      const selectClause =
+        attempt.select.length > 0
+          ? `$select=${Array.from(new Set(attempt.select)).join(",")}&`
+          : "";
+      const url = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?${selectClause}$orderby=${attempt.orderBy}&$top=5000`;
 
       const response = await this.context.spHttpClient.get(
         url,

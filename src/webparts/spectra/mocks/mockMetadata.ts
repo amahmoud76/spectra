@@ -3,6 +3,7 @@ import {
   IDiseaseAreaStrategyRelationship,
   IMetadataOption,
   IProjectPaidRelationship,
+  ISearchTokenRow,
 } from "../interfaces/IMetadataOptions";
 
 // ── Assets (from SPECTRA_Assets.csv) ────────────────────────────
@@ -152,10 +153,7 @@ const mockDiseaseAreaStrategyRelationships: IDiseaseAreaStrategyRelationship[] =
     { value: "Hair", therapeuticArea: "Aesthetics" },
     { value: "Medical Weight Loss", therapeuticArea: "Aesthetics" },
     { value: "Other", therapeuticArea: "Aesthetics" },
-    {
-      value: "Plastics & Regenerative Medicine",
-      therapeuticArea: "Aesthetics",
-    },
+    { value: "Plastics & Regenerative Medicine", therapeuticArea: "Aesthetics" },
     { value: "Research & Other", therapeuticArea: "Aesthetics" },
     { value: "Skincare", therapeuticArea: "Aesthetics" },
     { value: "Toxins", therapeuticArea: "Aesthetics" },
@@ -170,8 +168,7 @@ const mockDiseaseAreaStrategyRelationships: IDiseaseAreaStrategyRelationship[] =
     { value: "Atopic Dermatitis", therapeuticArea: "Immunology" },
     { value: "Hidradenitis Suppurativa", therapeuticArea: "Immunology" },
     {
-      value:
-        "Inflammatory Bowel Disease (Crohn's Disease & Ulcerative Colitis)",
+      value: "Inflammatory Bowel Disease (Crohn's Disease & Ulcerative Colitis)",
       therapeuticArea: "Immunology",
     },
     { value: "Other", therapeuticArea: "Immunology" },
@@ -339,19 +336,13 @@ const mockIndications: IMetadataOption[] = [
   // Oncology Indications
   { value: "Acute Myeloid Leukemia", searchTokens: ["AML", "leukemia"] },
   { value: "Amyloidosis", searchTokens: ["amyloid", "oncology"] },
-  {
-    value: "Blastic Plasmacytoid Dendritic Cell Neoplasm",
-    searchTokens: ["BPDCN"],
-  },
+  { value: "Blastic Plasmacytoid Dendritic Cell Neoplasm", searchTokens: ["BPDCN"] },
   { value: "Breast Cancer", searchTokens: ["mammalian", "HER2"] },
   { value: "Cancers", searchTokens: ["malignant", "tumor"] },
   { value: "Chronic Lymphocytic Leukemia", searchTokens: ["CLL", "leukemia"] },
   { value: "Chronic Graft Versus Host Disease", searchTokens: ["GvHD"] },
   { value: "Colorectal Cancer", searchTokens: ["CRC", "colon"] },
-  {
-    value: "Diffuse Large B-Cell Lymphoma",
-    searchTokens: ["DLBCL", "lymphoma"],
-  },
+  { value: "Diffuse Large B-Cell Lymphoma", searchTokens: ["DLBCL", "lymphoma"] },
   { value: "Follicular Lymphoma", searchTokens: ["FL", "lymphoma"] },
   { value: "Glioblastoma", searchTokens: ["GBM", "brain"] },
   { value: "Hematologic Cancer", searchTokens: ["heme", "blood"] },
@@ -369,18 +360,9 @@ const mockIndications: IMetadataOption[] = [
   { value: "Solid Tumor", searchTokens: ["solid", "carcinoma"] },
   { value: "Urothelial Carcinoma", searchTokens: ["UCC", "bladder"] },
   // Specialty Indications
-  {
-    value: "Acute Bacterial Skin and Skin Structure Infection",
-    searchTokens: ["ABSSSI"],
-  },
-  {
-    value: "Acute Exacerbations of Chronic Bronchitis",
-    searchTokens: ["AECB"],
-  },
-  {
-    value: "Autosomal Dominant Polycystic Kidney Disease",
-    searchTokens: ["ADPKD"],
-  },
+  { value: "Acute Bacterial Skin and Skin Structure Infection", searchTokens: ["ABSSSI"] },
+  { value: "Acute Exacerbations of Chronic Bronchitis", searchTokens: ["AECB"] },
+  { value: "Autosomal Dominant Polycystic Kidney Disease", searchTokens: ["ADPKD"] },
   { value: "Bacterial Pneumonia", searchTokens: ["pneumonia", "bacterial"] },
   { value: "Central Precocious Puberty", searchTokens: ["CPP"] },
   { value: "Chronic Idiopathic Constipation", searchTokens: ["CIC"] },
@@ -388,10 +370,7 @@ const mockIndications: IMetadataOption[] = [
   { value: "Cystic Fibrosis", searchTokens: ["CF", "lung"] },
   { value: "Complicated Urinary Tract Infection", searchTokens: ["cUTI"] },
   { value: "Endometriosis", searchTokens: ["endo", "women's"] },
-  {
-    value: "Exocrine Pancreatic Insufficiency",
-    searchTokens: ["EPI", "pancrease"],
-  },
+  { value: "Exocrine Pancreatic Insufficiency", searchTokens: ["EPI", "pancrease"] },
   { value: "Hepatitis C", searchTokens: ["HCV", "viral"] },
   { value: "HIV Infection", searchTokens: ["HIV", "virology"] },
   { value: "Hypothyroidism", searchTokens: ["thyroid", "endo"] },
@@ -865,6 +844,22 @@ const mockProjectPaidRelationships: IProjectPaidRelationship[] = [
   },
 ];
 
+// ── Search tokens (from SPECTRA_SearchTokens list) ──────────────
+// Centralized token/relationship table. SEARCH_TOKEN keywords are
+// semicolon-separated in SharePoint; here they are pre-split.
+const mockSearchTokenRows: ISearchTokenRow[] = [
+  {
+    searchTokens: ["706COMBO", "ABBV-706 + ZG006 (Zelgen)"],
+    projectPaid: "ZG006 (Zelgen) 1L ES-SCLC atezo 706 combo (706COMBO/A)",
+    assetNumber: "706COMBO",
+    diseaseArea: "Small Cell Lung Cancer",
+    therapeuticArea: "Oncology",
+    subTherapeuticArea: "Solid Tumors",
+    indication: "Small Cell Lung Cancer",
+    lineOfTherapy: "1L",
+  },
+];
+
 // ── Combined export ─────────────────────────────────────────────
 export const mockMetadataOptions: IMetadataOptions = {
   assets: mockAssets,
@@ -875,5 +870,4 @@ export const mockMetadataOptions: IMetadataOptions = {
   subTherapeuticAreas: mockSubTherapeuticAreas,
   indications: mockIndications,
   lineOfTherapy: mockLineOfTherapy,
-  projectPaidRelationships: mockProjectPaidRelationships,
-};
+  projectPaidRelationships: mockProjectPaidRelationships,  searchTokenRows: mockSearchTokenRows,};

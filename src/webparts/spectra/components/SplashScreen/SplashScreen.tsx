@@ -80,7 +80,7 @@ const ElegantSplash: React.FC<ISplashScreenProps> = ({
     >
       <div className={styles.splashElegantDecor} aria-hidden="true" />
 
-      <span className={styles.splashReleaseTag}>Release 1.2</span>
+      <span className={styles.splashReleaseTag}>Release 1.3</span>
 
       <div className={styles.splashElegantInner}>
         <div className={styles.splashElegantBrand}>

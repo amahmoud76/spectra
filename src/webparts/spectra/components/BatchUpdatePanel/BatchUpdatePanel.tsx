@@ -1,6 +1,9 @@
 import * as React from "react";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
-import { IMetadataOptions, toValueArray } from "../../interfaces/IMetadataOptions";
+import {
+  IMetadataOptions,
+  toValueArray,
+} from "../../interfaces/IMetadataOptions";
 import { IFilterState } from "../../interfaces/IFilterState";
 import {
   FIELD_NAMES,
@@ -18,9 +21,8 @@ import {
 } from "../../utils/batchUpdateHelper";
 import { IUseBatchUpdateResult } from "../../hooks/useBatchUpdate";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
+import { buildAssetSearchAliases } from "../../utils/assetSearchAliasHelper";
 import { DateRangePicker } from "../DateRangePicker/DateRangePicker";
-import { ConfirmDialog } from "../ConfirmDialog/ConfirmDialog";
-import { ErrorBanner } from "../ErrorBanner/ErrorBanner";
 import { usePeopleSearch } from "../../hooks/usePeopleSearch";
 import styles from "../SPECTRA.module.scss";
 
@@ -148,7 +150,6 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
     clearResult,
   } = batch;
 
-  const [showConfirm, setShowConfirm] = React.useState(false);
   const {
     results: peopleResults,
     isSearching: isPeopleSearching,
@@ -167,11 +168,20 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
     return Array.from(
       new Set(
         options.projectPaidRelationships
-          .map((r) => (typeof r.indication === "string" ? r.indication.trim() : ""))
+          .map((r) =>
+            typeof r.indication === "string" ? r.indication.trim() : "",
+          )
           .filter((v) => v.length > 0),
       ),
     ).sort((a, b) => a.localeCompare(b));
   }, [options.indications, options.projectPaidRelationships]);
+
+  // Synonym search — typing any SEARCH_TOKEN keyword (e.g. "emraclidine")
+  // matches the asset it belongs to (e.g. "ABBV-132").
+  const assetSearchAliases = React.useMemo(
+    () => buildAssetSearchAliases(options.searchTokenRows),
+    [options.searchTokenRows],
+  );
 
   const optionsForField = React.useCallback(
     (fieldName: string): string[] => {
@@ -321,17 +331,14 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
     hasSelectedChange && validationErrors.length === 0 && !isProcessing;
 
   // ── Apply flow ─────────────────────────────────────────────
-  const handleApplyClick = React.useCallback(() => {
+  // Applies directly — the plan's conflict/archive impact is already shown
+  // inline in Step 2, so no extra confirmation modal is needed.
+  const handleApply = React.useCallback(async () => {
     if (!canApply) return;
-    setShowConfirm(true);
-  }, [canApply]);
-
-  const handleConfirm = React.useCallback(async () => {
     const freshPlan = computePlan();
     await applyPlan(freshPlan);
-    setShowConfirm(false);
     prepareNextRun();
-  }, [computePlan, applyPlan, prepareNextRun]);
+  }, [canApply, computePlan, applyPlan, prepareNextRun]);
 
   // ── Criteria summary chips (Step 2) ────────────────────────
   const criteriaChips = React.useMemo((): string[] => {
@@ -351,14 +358,10 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
 
   if (!isOpen) return null;
 
-  const confirmMessage = plan.hasConflicts
-    ? `${plan.toUpdateCount} document(s) will be updated and ${plan.toArchiveCount} older duplicate(s) will be archived (keeping the most recent effective date). This action cannot be undone. Do you want to proceed?`
-    : `${plan.toUpdateCount} document(s) will be updated. This action cannot be undone. Do you want to proceed?`;
-
   return (
     <>
       <div className={styles.panelOverlay} onClick={onClose} />
-      <div className={styles.panel}>
+      <div className={`${styles.panel} ${styles.panelWhiteBg}`}>
         <div className={styles.panelToggleBar}>
           <button
             className={styles.panelToggleBtn}
@@ -381,17 +384,17 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
             style={{
               border: "1px solid #0F67E8",
               color: "#0F67E8",
-              borderRadius: 4,
+              borderRadius: 0,
               padding: "2px 10px",
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 300,
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
             }}
           >
             <img
-              src={require("../../assets/icons/metadata.svg")}
+              src={require("../../assets/icons/shield.svg")}
               alt=""
               style={{ width: 14, height: 14 }}
               aria-hidden="true"
@@ -412,7 +415,12 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
                 src={require("../../assets/icons/check.svg")}
                 alt=""
                 aria-hidden="true"
-                style={{ width: 18, height: 18, display: "block", flexShrink: 0 }}
+                style={{
+                  width: 18,
+                  height: 18,
+                  display: "block",
+                  flexShrink: 0,
+                }}
               />
               <span>
                 {result.updated} document(s) have been updated
@@ -424,12 +432,13 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
             </div>
           )}
 
-          {stage === "criteria"
-            ? renderCriteria()
-            : renderValues()}
+          {stage === "criteria" ? renderCriteria() : renderValues()}
         </div>
 
-        <div className={styles.panelFooter} style={{ justifyContent: "space-between" }}>
+        <div
+          className={styles.panelFooter}
+          style={{ justifyContent: "space-between" }}
+        >
           <button className={styles.btnSecondary} onClick={onCancel}>
             Cancel
           </button>
@@ -439,37 +448,76 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
               onClick={handleFind}
               disabled={!documentType || isFinding}
             >
+              <img
+                src={require("../../assets/icons/magnifying-glass.svg")}
+                alt=""
+                aria-hidden="true"
+                style={{
+                  width: 14,
+                  height: 14,
+                  filter: "brightness(0) invert(1)",
+                }}
+              />
               {isFinding ? "Finding…" : "Find Documents"}
             </button>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-              <button
-                className={styles.btnPrimary}
-                onClick={handleApplyClick}
-                disabled={!canApply}
-              >
-                ⚠ Apply Update
-              </button>
-              <div style={{ fontSize: 12, color: "#6b7280" }}>
-                This action cannot be undone. Verify selections before applying.
-              </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 6,
+                flex: 1,
+              }}
+            >
+              {isProcessing ? (
+                <div className={styles.batchProgress} aria-live="polite">
+                  <div className={styles.batchProgressHeader}>
+                    <span className={styles.spinner} />
+                    <span>
+                      Updating {progress ? progress.done : 0} of{" "}
+                      {progress ? progress.total : 0}…
+                    </span>
+                  </div>
+                  <div className={styles.batchProgressTrack}>
+                    <div
+                      className={styles.batchProgressFill}
+                      style={{
+                        width:
+                          progress && progress.total > 0
+                            ? `${Math.round((progress.done / progress.total) * 100)}%`
+                            : "0%",
+                      }}
+                    />
+                  </div>
+                  {progress?.currentFileName && (
+                    <div
+                      className={styles.batchProgressFile}
+                      title={progress.currentFileName}
+                    >
+                      {progress.currentFileName}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <button
+                    className={styles.btnPrimary}
+                    onClick={() => void handleApply()}
+                    disabled={!canApply}
+                  >
+                    ⚠ Apply Update
+                  </button>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>
+                    This action cannot be undone. Verify selections before
+                    applying.
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
       </div>
-
-      <ConfirmDialog
-        isOpen={showConfirm}
-        title="Apply Batch Update"
-        message={confirmMessage}
-        confirmLabel="Apply Update"
-        cancelLabel="Cancel"
-        isDestructive={plan.hasConflicts}
-        confirmDisabled={isProcessing}
-        disableDismiss={isProcessing}
-        onConfirm={() => void handleConfirm()}
-        onCancel={() => setShowConfirm(false)}
-      />
     </>
   );
 
@@ -521,6 +569,11 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
                 placeholder={f.placeholder}
                 multiSelect={true}
                 showChipsBelow={true}
+                searchAliases={
+                  f.fieldName === FIELD_NAMES.ASSET
+                    ? assetSearchAliases
+                    : undefined
+                }
               />
             </div>
           ))}
@@ -564,10 +617,14 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
                   peopleQuery.trim().length >= 2 && (
                     <div className={styles.peoplePickerSuggestions}>
                       {isPeopleSearching ? (
-                        <div className={styles.peoplePickerStatus}>Searching…</div>
+                        <div className={styles.peoplePickerStatus}>
+                          Searching…
+                        </div>
                       ) : (
                         peopleResults
-                          .filter((r) => !criteria.createdBy.includes(r.displayName))
+                          .filter(
+                            (r) => !criteria.createdBy.includes(r.displayName),
+                          )
                           .map((person) => (
                             <div
                               key={person.email || person.displayName}
@@ -642,7 +699,12 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
           <button
             className={styles.btnSecondary}
             onClick={backToCriteria}
-            style={{ marginBottom: 12, minHeight: 28, padding: "0 14px", fontSize: 13 }}
+            style={{
+              marginBottom: 12,
+              minHeight: 28,
+              padding: "0 14px",
+              fontSize: 13,
+            }}
           >
             ← Back
           </button>
@@ -672,7 +734,7 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
               style={{
                 background: "none",
                 border: "none",
-                color: "#5B3FD4",
+                color: "var(--spectra-action-blue)",
                 cursor: "pointer",
                 fontWeight: 600,
               }}
@@ -706,15 +768,6 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
           <strong>STEP 2: APPLY METADATA CHANGE</strong>
         </div>
 
-        {validationErrors.length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            <ErrorBanner
-              message={validationErrors.join(" ")}
-              onDismiss={() => undefined}
-            />
-          </div>
-        )}
-
         {/* Document Type — always disabled */}
         {renderFieldRow(
           "documentType-row",
@@ -728,7 +781,11 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
         {EDITABLE_FIELDS.map((f) => {
           const applicable = isApplicable(f.fieldName, f.probeTA);
           const checked = isFieldChanged(f.key);
-          const multi = isFieldMultiSelect(f.fieldName, documentType, f.probeTA);
+          const multi = isFieldMultiSelect(
+            f.fieldName,
+            documentType,
+            f.probeTA,
+          );
           return renderFieldRow(
             f.key,
             f.label,
@@ -755,6 +812,11 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
                   placeholder="Select value(s)…"
                   multiSelect={multi}
                   showChipsBelow={true}
+                  searchAliases={
+                    f.fieldName === FIELD_NAMES.ASSET
+                      ? assetSearchAliases
+                      : undefined
+                  }
                 />
               </div>
             ) : null,
@@ -787,7 +849,10 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
                 max={new Date().toISOString().split("T")[0]}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (val && new Date(val) > new Date(new Date().toDateString())) {
+                  if (
+                    val &&
+                    new Date(val) > new Date(new Date().toDateString())
+                  ) {
                     return; // silently block future dates (browser enforces max attr)
                   }
                   setEffectiveDate(val);
@@ -816,7 +881,16 @@ export const BatchUpdatePanel: React.FC<IBatchUpdatePanelProps> = ({
             }}
             role={plan.hasConflicts ? "alert" : "status"}
           >
-            <span aria-hidden="true">{plan.hasConflicts ? "⚠" : "ⓘ"}</span>
+            {plan.hasConflicts ? (
+              <span aria-hidden="true">⚠</span>
+            ) : (
+              <img
+                src={require("../../assets/icons/Information.svg")}
+                alt=""
+                aria-hidden="true"
+                style={{ width: 16, height: 16, flexShrink: 0 }}
+              />
+            )}
             {plan.hasConflicts
               ? `Of the selected ${matchedDocs.length} documents, ${plan.toArchiveCount} will be archived based on duplicate metadata.`
               : `${plan.toUpdateCount} document(s) will be updated.`}

@@ -20,6 +20,7 @@ export const buildDocumentSearchTokens = (
   assetOptions: IMetadataOption[],
   taOptions: IMetadataOption[],
   indicationOptions: IMetadataOption[],
+  assetSearchAliases?: Record<string, string[]>,
 ): string[] => {
   const tokens = new Set<string>();
 
@@ -37,6 +38,13 @@ export const buildDocumentSearchTokens = (
     if (option) {
       option.searchTokens.forEach((t) => tokens.add(t.toLowerCase()));
     }
+  });
+
+  // Collect tokens from SPECTRA_SearchTokens rows matching selected assets
+  selectedAssets.forEach((assetValue) => {
+    (assetSearchAliases?.[assetValue] || []).forEach((t) =>
+      tokens.add(t.toLowerCase()),
+    );
   });
 
   // Collect tokens from selected TAs

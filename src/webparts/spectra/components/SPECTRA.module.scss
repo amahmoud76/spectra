@@ -252,7 +252,8 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 200px;
+  min-width: 260px;
+  width: max-content;
   background: #fff;
   border: 1px solid #d0daf5;
   border-radius: 8px;
@@ -277,6 +278,7 @@
   font-size: 14px;
   color: var(--spectra-navy);
   text-decoration: none;
+  white-space: nowrap;
   transition: background-color var(--spectra-transition-fast);
 
   &:hover,
@@ -950,8 +952,9 @@
   border-radius: 0;
   padding: 28px 32px;
   display: grid;
-  grid-template-columns: 1.7fr 1fr;
-  gap: 24px;
+  grid-template-columns: 68% 29%;
+  column-gap: 3%;
+  align-items: start;
 }
 
 .landingSecondaryCard p {
@@ -971,6 +974,23 @@
   background: var(--spectra-white);
   border: 1px solid var(--spectra-border);
   padding: 20px;
+}
+
+.landingBodyText {
+  padding: 0 32px 28px;
+}
+
+.landingBodyText p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-family: var(--spectra-font-heading);
+}
+
+.landingBodyText ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+  font-family: var(--spectra-font-heading);
 }
 
 .landingInfoPanel h3 {
@@ -1003,7 +1023,205 @@
   margin-bottom: 0;
 }
 
+/* ── Document Summary Table (landing page) ─────────────────────── */
+
+.docSummarySection {
+  padding: 0;
+}
+
+.docSummaryLoading {
+  display: flex;
+  align-items: center;
+  gap: var(--spectra-sp-3);
+  padding: var(--spectra-sp-5) 0;
+  color: var(--spectra-text-secondary);
+  font-size: 15px;
+}
+
+.docSummaryError {
+  display: flex;
+  align-items: center;
+  gap: var(--spectra-sp-3);
+  padding: var(--spectra-sp-4) 0;
+  color: var(--spectra-error);
+  font-size: 15px;
+}
+
+.docSummaryRetryBtn {
+  background: none;
+  border: 1px solid var(--spectra-action-blue);
+  border-radius: var(--spectra-radius-sm);
+  color: var(--spectra-action-blue);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 3px 12px;
+  transition: background var(--spectra-transition-fast);
+}
+
+.docSummaryRetryBtn:hover {
+  background: var(--spectra-row-hover);
+}
+
+.docSummaryScroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.docSummaryTable {
+  border-collapse: collapse;
+  font-size: 15px;
+  font-family: var(--spectra-font-body);
+  width: 100%;
+}
+
+.docSummaryTable th,
+.docSummaryTable td {
+  padding: 10px 18px;
+  border: 1px solid var(--spectra-border);
+  white-space: nowrap;
+}
+
+/* Base th — white, dark, bold */
+.docSummaryTable th {
+  background: var(--spectra-white);
+  color: var(--spectra-text-primary);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Base td — white, centered */
+.docSummaryTable td {
+  background: var(--spectra-white);
+  color: var(--spectra-text-primary);
+  text-align: center;
+}
+
+/* "DOCUMENT SUMMARY" — top-left spanning cell; bold black on white */
+.docSummarySectionLabel {
+  text-align: left !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--spectra-white) !important;
+  color: var(--spectra-text-primary) !important;
+  vertical-align: bottom;
+  padding-bottom: 12px !important;
+}
+
+/* "Document Types" colspan label — lighter gray on white */
+.docSummaryColGroupHeader {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.04em;
+  background: var(--spectra-white) !important;
+  color: var(--spectra-text-secondary) !important;
+  text-align: center !important;
+}
+
+/* Individual column-name headers: DAS, TPP … Total */
+.docSummaryColHeader {
+  background: var(--spectra-panel-bg) !important;
+  color: var(--spectra-text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-align: center !important;
+}
+
+/* Rotated "Therapeutic Area" axis label */
+.docSummaryTaAxisCell {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.04em;
+  color: var(--spectra-text-secondary) !important;
+  background: var(--spectra-panel-bg) !important;
+  width: 26px;
+  min-width: 26px;
+  max-width: 26px;
+  padding: 10px 4px !important;
+}
+
+/* TA name cells — bold, left-aligned */
+.docSummaryTaNameCell {
+  text-align: left !important;
+  font-weight: 700 !important;
+  background: var(--spectra-panel-bg) !important;
+  color: var(--spectra-text-primary) !important;
+  min-width: 130px;
+}
+
+/* Row-total cells (rightmost data column) */
+.docSummaryTotalCell {
+  font-weight: 700 !important;
+  background: var(--spectra-white) !important;
+}
+
+/* Total Documents footer row — bold with top separator */
+.docSummaryTable tfoot td {
+  font-weight: 700;
+  background: var(--spectra-white);
+  border-top: 2px solid var(--spectra-navy);
+}
+
+.docSummaryTotalLabel {
+  text-align: left;
+}
+
+/* ── Batch Update progress bar ─────────────────────────────────── */
+
+.batchProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.batchProgressHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--spectra-text-primary);
+}
+
+.batchProgressTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--spectra-border);
+}
+
+.batchProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--spectra-navy),
+    var(--spectra-action-blue)
+  );
+  transition: width 300ms ease;
+}
+
+.batchProgressFile {
+  font-size: 12px;
+  color: var(--spectra-text-secondary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Search Bar ────────────────────────────────────────────────── */
+
+.searchBarWrap {
+  position: relative;
+}
 
 .searchBar {
   display: flex;
@@ -1077,6 +1295,59 @@
   margin-left: 2px;
   font-size: 13px;
   transition: color var(--spectra-transition-fast);
+}
+
+.searchSuggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--spectra-white);
+  border: 1px solid var(--spectra-border);
+  border-radius: 4px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: var(--spectra-shadow-md);
+  z-index: 100;
+}
+
+.searchSuggestionItem {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  border-bottom: 1px solid var(--spectra-panel-bg);
+}
+
+.searchSuggestionItem:last-child {
+  border-bottom: none;
+}
+
+.searchSuggestionItem:hover,
+.searchSuggestionItemHighlight {
+  background: var(--spectra-panel-bg);
+}
+
+.searchSuggestionTitle {
+  font-size: 13px;
+  color: var(--spectra-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searchSuggestionMeta {
+  font-size: 12px;
+  color: var(--spectra-text-placeholder);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searchSuggestionEmpty {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--spectra-text-placeholder);
 }
 
 .searchBarClear:hover {
@@ -1500,8 +1771,8 @@
 
 .leadingActionHeader,
 .leadingActionCell {
-  width: 110px;
-  max-width: 110px;
+  width: 96px;
+  max-width: 96px;
   text-align: center;
   white-space: nowrap;
 }
@@ -1650,6 +1921,84 @@
 .rowActionIconBtn:disabled {
   color: #9ca3af;
   cursor: not-allowed;
+}
+
+.rowActionsMenuWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.rowActionsMenuTrigger {
+  background: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  transition: background var(--spectra-transition-fast);
+}
+
+.rowActionsMenuTrigger:hover {
+  background: #eef2ff;
+}
+
+.rowActionsMenuTrigger:focus-visible {
+  outline: none;
+  background: #eef2ff;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.rowActionsMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 300;
+  min-width: 176px;
+  background: var(--spectra-white);
+  border: 1px solid var(--spectra-border);
+  border-radius: 10px;
+  box-shadow: var(--spectra-shadow-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowActionsMenuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--spectra-font-body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--spectra-text-primary);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--spectra-transition-fast);
+}
+
+.rowActionsMenuItem:hover,
+.rowActionsMenuItem:focus-visible {
+  outline: none;
+  background: #f3f4fd;
+}
+
+.rowActionsMenuItemIcon {
+  width: 17px;
+  height: 17px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .cellLink {
@@ -1936,6 +2285,12 @@
   animation: slideInRight var(--spectra-transition-normal);
 }
 
+/* Batch Update Metadata uses a white background to stand apart from the
+   Filter/Replace/Upload/Edit panels, which all share --spectra-panel-bg. */
+.panelWhiteBg {
+  background: var(--spectra-white);
+}
+
 .panelCurrent {
   border-top: 4px solid var(--spectra-status-current, #107c10);
 }
@@ -2183,6 +2538,7 @@
 
 .formInput {
   width: 100%;
+  box-sizing: border-box;
   padding: var(--spectra-sp-2) var(--spectra-sp-3);
   border: 1px solid var(--spectra-border);
   border-radius: var(--spectra-radius-md);
@@ -2365,10 +2721,10 @@
   padding: 4px 10px;
   border-radius: 0;
   background: var(--spectra-white);
-  color: #5B3FD4;
+  color: #5b3fd4;
   font-size: 13px;
   font-weight: 500;
-  border: 1px solid #5B3FD4;
+  border: 1px solid #5b3fd4;
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;

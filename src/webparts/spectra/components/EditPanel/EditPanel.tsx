@@ -10,6 +10,7 @@ import {
   getCascadedOptionsMulti,
 } from "../../utils/cascadingFilterHelper";
 import { buildDocumentSearchTokens } from "../../utils/searchTokenHelper";
+import { buildAssetSearchAliases } from "../../utils/assetSearchAliasHelper";
 import {
   COMMENTS_MAX_LENGTH,
   DOCUMENT_TYPE_FULL_NAMES,
@@ -415,6 +416,13 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
     [options.projectPaidRelationships, therapeuticArea, indication, paid],
   );
 
+  // Synonym search — typing any SEARCH_TOKEN keyword (e.g. "emraclidine")
+  // matches the asset it belongs to (e.g. "ABBV-132").
+  const assetSearchAliases = React.useMemo(
+    () => buildAssetSearchAliases(options.searchTokenRows),
+    [options.searchTokenRows],
+  );
+
   // Cascade for PAID options — filter by TA, Asset, Indication (NOT PAID)
   const cascadeForPaids = React.useMemo(
     () =>
@@ -514,11 +522,12 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
   // Prune Asset if current selection is no longer valid for cascade (TA/Indication/PAID)
   React.useEffect(() => {
     if (fieldVisibility.asset && asset.length > 0) {
-      const invalidAssets = asset.filter(
-        (value) => !cascadeForAssets.availableAssets.includes(value),
-      );
-      if (invalidAssets.length > 0) {
-        setAsset([]);
+      const cascade = cascadeForAssets.availableAssets;
+      if (cascade.length > 0) {
+        const invalidAssets = asset.filter((value) => !cascade.includes(value));
+        if (invalidAssets.length > 0) {
+          setAsset([]);
+        }
       }
     }
   }, [fieldVisibility.asset, asset, cascadeForAssets.availableAssets]);
@@ -961,6 +970,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
       options.assets,
       options.therapeuticAreas,
       options.indications,
+      assetSearchAliases,
     );
 
     onSave(doc.id, {
@@ -1265,6 +1275,7 @@ export const EditPanel: React.FC<IEditPanelProps> = ({
               placeholder="Select asset"
               multiSelect={false}
               showChipsBelow={true}
+              searchAliases={assetSearchAliases}
             />
           )}
 

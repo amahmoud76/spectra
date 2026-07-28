@@ -22,10 +22,10 @@
       "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
       "group": { "default": "Advanced" },
       "title": { "default": "S.P.E.C.T.R.A" },
-      "description": { "default": "S.P.E.C.T.R.A description" },
+      "description": { "default": "AbbVie centralized repository for strategic documents, provides a single, reliable location to organize, search, and access key portfolio materials." },
       "iconImageUrl": "https://abbvie.sharepoint.com/teams/SPECTRA/SiteAssets/spectra.png",
       "properties": {
-        "description": "S.P.E.C.T.R.A"
+        "description": "AbbViecentralized repository for strategic documents, provides a single, reliable location to organize, search, and access key portfolio materials."
       }
     }
   ]

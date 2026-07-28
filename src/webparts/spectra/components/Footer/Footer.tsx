@@ -105,7 +105,7 @@ export const Footer: React.FC<IFooterProps> = ({
             </span>
           )}
           <span>Copyright © {format(new Date(), "yyyy")} AbbVie Inc.</span>
-          <span>v1.0</span>
+          <span>v1.3</span>
         </div>
       </footer>
 

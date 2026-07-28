@@ -27,7 +27,7 @@ import {
 } from "./config/config";
 import { DEFAULT_USER_PREFS_LIST_NAME } from "./services/UserPreferencesService";
 
-export interface ISpectraWebPartProps {
+export interface ISPECTRAWebPartProps {
   title: string;
   pageSize: number;
   inactivityTimeoutMinutes: number;
@@ -48,7 +48,7 @@ export interface ISpectraWebPartProps {
   testerEmails?: string;
 }
 
-export default class SpectraWebPart extends BaseClientSideWebPart<ISpectraWebPartProps> {
+export default class SPECTRAWebPart extends BaseClientSideWebPart<ISPECTRAWebPartProps> {
   // Cached dropdown options for the user-prefs list picker
   private _listOptions: IPropertyPaneDropdownOption[] = [];
   private _listsLoaded = false;
@@ -71,9 +71,7 @@ export default class SpectraWebPart extends BaseClientSideWebPart<ISpectraWebPar
           text: l.Title,
         }));
       }
-    } catch {
-      /* keep empty — dropdown shows default */
-    }
+    } catch { /* keep empty — dropdown shows default */ }
     this._listsLoaded = true;
   }
 
@@ -106,8 +104,7 @@ export default class SpectraWebPart extends BaseClientSideWebPart<ISpectraWebPar
       enableFavorites: this.properties.enableFavorites ?? true,
       enableRecentlyViewed: this.properties.enableRecentlyViewed ?? true,
       enableTilesView: this.properties.enableTilesView ?? false,
-      userPreferencesListName:
-        this.properties.userPreferencesListName || DEFAULT_USER_PREFS_LIST_NAME,
+      userPreferencesListName: this.properties.userPreferencesListName || DEFAULT_USER_PREFS_LIST_NAME,
       testerEmails: this.properties.testerEmails || "",
     };
 
@@ -251,12 +248,7 @@ export default class SpectraWebPart extends BaseClientSideWebPart<ISpectraWebPar
                   options:
                     this._listOptions.length > 0
                       ? this._listOptions
-                      : [
-                          {
-                            key: DEFAULT_USER_PREFS_LIST_NAME,
-                            text: `${DEFAULT_USER_PREFS_LIST_NAME} (default)`,
-                          },
-                        ],
+                      : [{ key: DEFAULT_USER_PREFS_LIST_NAME, text: `${DEFAULT_USER_PREFS_LIST_NAME} (default)` }],
                   disabled: !this._listsLoaded,
                 }),
               ],

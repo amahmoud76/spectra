@@ -11,6 +11,7 @@ import {
 } from "../../utils/cascadingFilterHelper";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { SearchableDropdown } from "../SearchableDropdown/SearchableDropdown";
+import { buildAssetSearchAliases } from "../../utils/assetSearchAliasHelper";
 import { DateRangePicker } from "../DateRangePicker/DateRangePicker";
 import { usePeopleSearch } from "../../hooks/usePeopleSearch";
 import styles from "../SPECTRA.module.scss";
@@ -64,6 +65,13 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
     clearPeopleResults();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetToken]);
+
+  // Synonym search — typing any SEARCH_TOKEN keyword (e.g. "emraclidine")
+  // matches the asset it belongs to (e.g. "ABBV-132").
+  const assetSearchAliases = React.useMemo(
+    () => buildAssetSearchAliases(options.searchTokenRows),
+    [options.searchTokenRows],
+  );
 
   const paidValues = getAllPaids(options.projectPaidRelationships);
   const indicationValues = React.useMemo(() => {
@@ -228,6 +236,7 @@ export const FilterPanel: React.FC<IFilterPanelProps> = ({
             onChange={(selected) => onFilterChange("asset", selected)}
             placeholder="Type to search asset..."
             multiSelect={true}
+            searchAliases={assetSearchAliases}
           />
 
           {/* Indication */}

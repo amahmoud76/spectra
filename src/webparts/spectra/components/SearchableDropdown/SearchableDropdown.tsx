@@ -17,6 +17,13 @@ export interface ISearchableDropdownProps {
   multiSelect?: boolean;
   disabled?: boolean;
   showChipsBelow?: boolean;
+  /**
+   * Optional map of option value -> alias strings. An option matches the
+   * typed query when the query is contained in the option value OR in any
+   * of its aliases. Used to make the Asset field searchable by SEARCH_TOKEN
+   * synonyms.
+   */
+  searchAliases?: Record<string, string[]>;
   errorMessage?: string;
 }
 
@@ -36,6 +43,35 @@ const ensureArray = (value: string[] | string | undefined | null): string[] => {
     .filter((item, index, items) => items.indexOf(item) === index);
 };
 
+// Option matches when the query is contained in the option value or in any
+// of the option's aliases (case-insensitive).
+const optionMatchesQuery = (
+  option: string,
+  query: string,
+  aliases?: Record<string, string[]>,
+): boolean => {
+  const lower = query.toLowerCase();
+  if (option.toLowerCase().includes(lower)) return true;
+  const optionAliases = aliases?.[option];
+  return optionAliases
+    ? optionAliases.some((alias) => alias.toLowerCase().includes(lower))
+    : false;
+};
+
+// Display label: option value plus any distinct aliases (e.g. SEARCH_TOKEN
+// synonyms), joined with " - " — e.g. "ABBV-132 - emraclidine".
+const formatOptionLabel = (
+  option: string,
+  aliases?: Record<string, string[]>,
+): string => {
+  const optionAliases = (aliases?.[option] || []).filter(
+    (alias) => alias.toLowerCase() !== option.toLowerCase(),
+  );
+  return optionAliases.length > 0
+    ? [option, ...optionAliases].join(" - ")
+    : option;
+};
+
 // ── Single-Select — uses TagPicker with key reset ─────────────
 const suggestionProps: IBasePickerSuggestionsProps = {
   suggestionsHeaderText: "Suggestions",
@@ -50,6 +86,7 @@ const SingleSelectPicker: React.FC<{
   label: string;
   disabled: boolean;
   showChipsBelow?: boolean;
+  searchAliases?: Record<string, string[]>;
 }> = ({
   allTags,
   selectedKeys: rawSelectedKeys,
@@ -58,6 +95,7 @@ const SingleSelectPicker: React.FC<{
   label,
   disabled,
   showChipsBelow = false,
+  searchAliases,
 }) => {
   const selectedKeys = React.useMemo(
     () => ensureArray(rawSelectedKeys),
@@ -77,6 +115,7 @@ const SingleSelectPicker: React.FC<{
         placeholder={placeholder}
         label={label}
         disabled={disabled}
+        searchAliases={searchAliases}
       />
     );
   }
@@ -102,12 +141,11 @@ const SingleSelectPicker: React.FC<{
   const onResolveSuggestions = React.useCallback(
     (filterText: string): ITag[] => {
       if (!filterText) return availableTags;
-      const lower = filterText.toLowerCase();
       return availableTags.filter(
-        (t) => t.name && t.name.toLowerCase().includes(lower),
+        (t) => t.name && optionMatchesQuery(t.name, filterText, searchAliases),
       );
     },
-    [availableTags],
+    [availableTags, searchAliases],
   );
 
   const onEmptyResolveSuggestions = React.useCallback(
@@ -164,6 +202,7 @@ const MultiSelectNativeChipsSingle: React.FC<{
   placeholder: string;
   label: string;
   disabled: boolean;
+  searchAliases?: Record<string, string[]>;
 }> = ({
   options,
   selectedKeys: rawSelectedKeys,
@@ -171,6 +210,7 @@ const MultiSelectNativeChipsSingle: React.FC<{
   placeholder,
   label,
   disabled,
+  searchAliases,
 }) => {
   const [searchText, setSearchText] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
@@ -186,9 +226,10 @@ const MultiSelectNativeChipsSingle: React.FC<{
   const filteredOptions = React.useMemo(() => {
     const available = options.filter((opt) => !selectedKeySet.has(opt));
     if (!searchText) return available;
-    const lower = searchText.toLowerCase();
-    return available.filter((opt) => opt && opt.toLowerCase().includes(lower));
-  }, [options, selectedKeySet, searchText]);
+    return available.filter(
+      (opt) => opt && optionMatchesQuery(opt, searchText, searchAliases),
+    );
+  }, [options, selectedKeySet, searchText, searchAliases]);
 
   // Select an item (single selection)
   const selectItem = (value: string): void => {
@@ -344,7 +385,7 @@ const MultiSelectNativeChipsSingle: React.FC<{
               role="option"
               aria-selected={idx === highlightIndex}
             >
-              {opt}
+              {formatOptionLabel(opt, searchAliases)}
             </div>
           ))}
         </div>
@@ -362,7 +403,7 @@ const MultiSelectNativeChipsSingle: React.FC<{
         <div className={styles.nativeMultiSelectChips}>
           {selectedKeys.map((key) => (
             <span key={key} className={styles.chip}>
-              {key}
+              {formatOptionLabel(key, searchAliases)}
               <button
                 className={styles.chipRemove}
                 onClick={() => !disabled && removeItem()}
@@ -390,6 +431,7 @@ const MultiSelectNative: React.FC<{
   placeholder: string;
   label: string;
   disabled: boolean;
+  searchAliases?: Record<string, string[]>;
 }> = ({
   options,
   selectedKeys: rawSelectedKeys,
@@ -397,6 +439,7 @@ const MultiSelectNative: React.FC<{
   placeholder,
   label,
   disabled,
+  searchAliases,
 }) => {
   const [searchText, setSearchText] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
@@ -412,9 +455,10 @@ const MultiSelectNative: React.FC<{
   const filteredOptions = React.useMemo(() => {
     const available = options.filter((opt) => !selectedKeySet.has(opt));
     if (!searchText) return available;
-    const lower = searchText.toLowerCase();
-    return available.filter((opt) => opt && opt.toLowerCase().includes(lower));
-  }, [options, selectedKeySet, searchText]);
+    return available.filter(
+      (opt) => opt && optionMatchesQuery(opt, searchText, searchAliases),
+    );
+  }, [options, selectedKeySet, searchText, searchAliases]);
 
   // Select an item
   const selectItem = (value: string): void => {
@@ -577,7 +621,7 @@ const MultiSelectNative: React.FC<{
               role="option"
               aria-selected={idx === highlightIndex}
             >
-              {opt}
+              {formatOptionLabel(opt, searchAliases)}
             </div>
           ))}
         </div>
@@ -596,7 +640,7 @@ const MultiSelectNative: React.FC<{
         <div className={styles.nativeMultiSelectChips}>
           {selectedKeys.map((key) => (
             <span key={key} className={styles.chip}>
-              {key}
+              {formatOptionLabel(key, searchAliases)}
               <button
                 className={styles.chipRemove}
                 onClick={() => removeItem(key)}
@@ -624,6 +668,7 @@ export const SearchableDropdown: React.FC<ISearchableDropdownProps> = ({
   multiSelect = true,
   disabled = false,
   showChipsBelow = false,
+  searchAliases,
   errorMessage,
 }) => {
   const sanitizedOptions = React.useMemo(
@@ -656,6 +701,7 @@ export const SearchableDropdown: React.FC<ISearchableDropdownProps> = ({
           placeholder={placeholder}
           label={label}
           disabled={disabled}
+          searchAliases={searchAliases}
         />
       ) : (
         <SingleSelectPicker
@@ -666,6 +712,7 @@ export const SearchableDropdown: React.FC<ISearchableDropdownProps> = ({
           label={label}
           disabled={disabled}
           showChipsBelow={showChipsBelow}
+          searchAliases={searchAliases}
         />
       )}
       {errorMessage && (

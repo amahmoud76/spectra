@@ -1,7 +1,12 @@
 import { IDocument } from "../interfaces/IDocument";
 import { IFilterState } from "../interfaces/IFilterState";
+import { ISearchTokenRow } from "../interfaces/IMetadataOptions";
 import { DOCUMENT_TYPES } from "../config/config";
 import { parseISO, isValid, isWithinInterval } from "date-fns";
+import {
+  findMatchedTokenRows,
+  docMatchesTokenRows,
+} from "./searchTokenMatchHelper";
 
 export type SearchMatchKind = "exact" | "close";
 
@@ -329,6 +334,7 @@ export const applyFilters = (
 export const applyFiltersWithMeta = (
   documents: IDocument[],
   filters: IFilterState,
+  searchTokenRows: ISearchTokenRow[] = [],
 ): IApplyFiltersResult => {
   const matchesNonSearchFilters = (doc: IDocument): boolean => {
     // ── Document Type filter ──────────────────────────────
@@ -437,8 +443,27 @@ export const applyFiltersWithMeta = (
   }
 
   const queryTerms = tokenizeSearchText(filters.searchText);
-  const strictMatches = baseFiltered.filter((doc) =>
-    matchesSearchTermsStrictForDoc(doc, queryTerms),
+
+  // Token-driven search: when the query matches a SEARCH_TOKEN keyword,
+  // include documents that satisfy the row combination(s). These are
+  // unioned with normal free-text matches and ranked as exact.
+  const matchedTokenRows = findMatchedTokenRows(
+    filters.searchText,
+    searchTokenRows,
+  );
+  const tokenMatchedIds = new Set<string>();
+  if (matchedTokenRows.length > 0) {
+    baseFiltered.forEach((doc) => {
+      if (docMatchesTokenRows(doc, matchedTokenRows)) {
+        tokenMatchedIds.add(doc.id);
+      }
+    });
+  }
+
+  const strictMatches = baseFiltered.filter(
+    (doc) =>
+      tokenMatchedIds.has(doc.id) ||
+      matchesSearchTermsStrictForDoc(doc, queryTerms),
   );
   const strictIds = new Set(strictMatches.map((doc) => doc.id));
 

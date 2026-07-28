@@ -2,7 +2,7 @@ import * as React from "react";
 import styles from "../SPECTRA.module.scss";
 
 export interface IEmptyStateProps {
-  type: "search-prompt" | "no-results" | "results-idle";
+  type: "search-prompt" | "no-results" | "results-idle" | "library-empty";
 }
 
 export const EmptyState: React.FC<IEmptyStateProps> = ({ type }) => {
@@ -33,6 +33,21 @@ export const EmptyState: React.FC<IEmptyStateProps> = ({ type }) => {
           <div className={styles.emptyStateTitle}>No Results Found</div>
           <div className={styles.emptyStateText}>
             Try checking spelling, using shorter terms, or adjusting filters.
+          </div>
+        </>
+      ) : type === "library-empty" ? (
+        <>
+          <div className={styles.emptyStateIcon}>
+            <img
+              src={require("../../assets/icons/no-results-found.svg")}
+              alt=""
+              style={{ width: "48px", height: "48px" }}
+            />
+          </div>
+          <div className={styles.emptyStateTitle}>The Library is Empty</div>
+          <div className={styles.emptyStateText}>
+            No documents have been uploaded yet. Use the Upload button to add
+            the first document.
           </div>
         </>
       ) : (

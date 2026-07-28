@@ -6,6 +6,7 @@ import { SearchMatchBadge } from "../SearchMatchBadge/SearchMatchBadge";
 import { TooltipHost } from "@fluentui/react/lib/Tooltip";
 import { parseISO, format, isValid } from "date-fns";
 import { DOCUMENT_TYPE_FULL_NAMES } from "../../config/config";
+import { formatAssetWithSynonyms } from "../../utils/assetSearchAliasHelper";
 import styles from "./TilesView.module.scss";
 import parentStyles from "../SPECTRA.module.scss";
 
@@ -47,6 +48,20 @@ const getFileExtension = (fileName: string): string => {
   return dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : "";
 };
 
+const KebabIcon: React.FC = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="5" r="2" fill="#0066F5" />
+    <circle cx="12" cy="12" r="2" fill="#0066F5" />
+    <circle cx="12" cy="19" r="2" fill="#0066F5" />
+  </svg>
+);
+
 export const TilesView: React.FC<ITilesViewProps> = ({
   documents,
   role,
@@ -65,6 +80,24 @@ export const TilesView: React.FC<ITilesViewProps> = ({
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(
     () => new Set(),
   );
+
+  // ── Admin actions overflow menu (single menu open at a time) ──
+  const [openMenuDocId, setOpenMenuDocId] = React.useState<string | null>(null);
+  const openMenuRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (!openMenuDocId) return;
+    const handler = (e: MouseEvent): void => {
+      if (
+        openMenuRef.current &&
+        !openMenuRef.current.contains(e.target as Node)
+      ) {
+        setOpenMenuDocId(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [openMenuDocId]);
 
   const toggleExpanded = React.useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -113,9 +146,9 @@ export const TilesView: React.FC<ITilesViewProps> = ({
   );
 
   // ── Role-based layout ────────────────────────────────────────
-  // Action column width: admin has up to 5 icons, contributor 2, viewer 1
+  // Action column width: admin has a kebab menu + star, contributor 2 icons, viewer 1
   const actionColWidth =
-    role === "admin" ? "156px" : role === "contributor" ? "64px" : "32px";
+    role === "admin" ? "72px" : role === "contributor" ? "64px" : "32px";
   const rowGridTemplate = `36px ${actionColWidth} 1fr`;
 
   // Body / expanded grid: admin includes Status column (9 cols), others use 8
@@ -157,23 +190,134 @@ export const TilesView: React.FC<ITilesViewProps> = ({
 
               <div className={styles.tileActions}>
                 {role === "admin" && (
-                  <TooltipHost content="Edit metadata">
+                  <div
+                    className={parentStyles.rowActionsMenuWrap}
+                    ref={openMenuDocId === doc.id ? openMenuRef : undefined}
+                  >
                     <button
-                      className={parentStyles.rowActionIconBtn}
-                      onClick={() => onEditClick && onEditClick(doc)}
-                      aria-label={`Edit ${doc.fileName}`}
+                      className={parentStyles.rowActionsMenuTrigger}
+                      onClick={() =>
+                        setOpenMenuDocId(
+                          openMenuDocId === doc.id ? null : doc.id,
+                        )
+                      }
+                      aria-label={`Actions for ${doc.fileName}`}
+                      aria-haspopup="menu"
+                      aria-expanded={openMenuDocId === doc.id}
                       type="button"
                     >
-                      <img
-                        src={require("../../assets/icons/edit.svg")}
-                        alt=""
-                        aria-hidden="true"
-                        style={{ width: 17, height: 17, display: "block" }}
-                      />
+                      <KebabIcon />
                     </button>
-                  </TooltipHost>
+
+                    {openMenuDocId === doc.id && (
+                      <div
+                        className={parentStyles.rowActionsMenu}
+                        role="menu"
+                        aria-label={`Actions for ${doc.fileName}`}
+                      >
+                        <button
+                          className={parentStyles.rowActionsMenuItem}
+                          role="menuitem"
+                          type="button"
+                          onClick={() => {
+                            setOpenMenuDocId(null);
+                            onEditClick && onEditClick(doc);
+                          }}
+                        >
+                          <span>Edit</span>
+                          <img
+                            src={require("../../assets/icons/edit.svg")}
+                            alt=""
+                            className={parentStyles.rowActionsMenuItemIcon}
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        {doc.status === "Current" && onArchiveReplaceClick && (
+                          <button
+                            className={parentStyles.rowActionsMenuItem}
+                            role="menuitem"
+                            type="button"
+                            onClick={(event) => {
+                              setOpenMenuDocId(null);
+                              onArchiveReplaceClick(
+                                doc,
+                                getAnchorPosition(event),
+                              );
+                            }}
+                          >
+                            <span>Replace</span>
+                            <img
+                              src={require("../../assets/icons/archive-replace.svg")}
+                              alt=""
+                              className={parentStyles.rowActionsMenuItemIcon}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        )}
+
+                        {doc.status === "Current" && (
+                          <button
+                            className={parentStyles.rowActionsMenuItem}
+                            role="menuitem"
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuDocId(null);
+                              onArchiveClick && onArchiveClick(doc);
+                            }}
+                          >
+                            <span>Archive</span>
+                            <img
+                              src={require("../../assets/icons/archive.svg")}
+                              alt=""
+                              className={parentStyles.rowActionsMenuItemIcon}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        )}
+
+                        {doc.status === "Archive" && (
+                          <button
+                            className={parentStyles.rowActionsMenuItem}
+                            role="menuitem"
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuDocId(null);
+                              onReActivateClick && onReActivateClick(doc);
+                            }}
+                          >
+                            <span>Re-activate</span>
+                            <img
+                              src={require("../../assets/icons/re-activate.svg")}
+                              alt=""
+                              className={parentStyles.rowActionsMenuItemIcon}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        )}
+
+                        <button
+                          className={parentStyles.rowActionsMenuItem}
+                          role="menuitem"
+                          type="button"
+                          onClick={() => {
+                            setOpenMenuDocId(null);
+                            onDeleteClick && onDeleteClick(doc);
+                          }}
+                        >
+                          <span>Delete</span>
+                          <img
+                            src={require("../../assets/icons/delete.svg")}
+                            alt=""
+                            className={parentStyles.rowActionsMenuItemIcon}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
-                {(role === "admin" || role === "contributor") &&
+                {role === "contributor" &&
                   doc.status === "Current" &&
                   onArchiveReplaceClick && (
                     <TooltipHost content="Archive and Replace">
@@ -194,60 +338,6 @@ export const TilesView: React.FC<ITilesViewProps> = ({
                       </button>
                     </TooltipHost>
                   )}
-                {role === "admin" && doc.status === "Current" && (
-                  <TooltipHost content="Archive document">
-                    <button
-                      className={parentStyles.rowActionIconBtn}
-                      onClick={() => onArchiveClick && onArchiveClick(doc)}
-                      aria-label={`Archive ${doc.fileName}`}
-                      type="button"
-                    >
-                      <img
-                        src={require("../../assets/icons/archive.svg")}
-                        alt=""
-                        aria-hidden="true"
-                        style={{ width: 16, height: 16, display: "block" }}
-                      />
-                    </button>
-                  </TooltipHost>
-                )}
-                {role === "admin" && doc.status === "Archive" && (
-                  <TooltipHost content="Re-activate document">
-                    <button
-                      className={parentStyles.rowActionIconBtn}
-                      onClick={() =>
-                        onReActivateClick && onReActivateClick(doc)
-                      }
-                      aria-label={`Re-activate ${doc.fileName}`}
-                      type="button"
-                    >
-                      <img
-                        src={require("../../assets/icons/re-activate.svg")}
-                        alt=""
-                        aria-hidden="true"
-                        style={{ width: 16, height: 16, display: "block" }}
-                      />
-                    </button>
-                  </TooltipHost>
-                )}
-                {role === "admin" && (
-                  <TooltipHost content="Delete document">
-                    <button
-                      className={parentStyles.rowActionIconBtn}
-                      onClick={() => onDeleteClick && onDeleteClick(doc)}
-                      aria-label={`Delete ${doc.fileName}`}
-                      type="button"
-                      style={{ color: "#DC2626" }}
-                    >
-                      <img
-                        src={require("../../assets/icons/delete.svg")}
-                        alt=""
-                        aria-hidden="true"
-                        style={{ width: 16, height: 16, display: "block" }}
-                      />
-                    </button>
-                  </TooltipHost>
-                )}
                 {showFavorites && (
                   <TooltipHost
                     content={
@@ -314,7 +404,22 @@ export const TilesView: React.FC<ITilesViewProps> = ({
                     </TooltipHost>
                   </div>,
                 )}
-                {renderField("Asset", doc.asset.join("; "))}
+                {renderField(
+                  "Asset",
+                  (() => {
+                    const assetLabel = formatAssetWithSynonyms(
+                      doc.asset,
+                      doc.assetSearchTokens,
+                    );
+                    return assetLabel ? (
+                      <TooltipHost content={assetLabel}>
+                        <span>{assetLabel}</span>
+                      </TooltipHost>
+                    ) : (
+                      ""
+                    );
+                  })(),
+                )}
                 {renderField(
                   "Type",
                   fullTypeName ? (

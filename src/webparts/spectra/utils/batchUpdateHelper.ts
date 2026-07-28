@@ -15,6 +15,7 @@
 
 import { IDocument } from "../interfaces/IDocument";
 import { IUploadPayload } from "../interfaces/IUploadPayload";
+import { TA_INCLUDES_SUB_TA } from "../config/config";
 
 // Metadata array fields that a batch run may change.
 export type BatchMetadataField =
@@ -113,7 +114,13 @@ export const getIdentityKey = (doc: {
 }): string => {
   const docType = doc.documentType || "";
   const ta = sortedJoin(doc.therapeuticArea);
-  const subTA = sortedJoin(doc.subTherapeuticArea);
+  // Sub-TA only participates in identity when the TA actually uses it
+  // (mirrors generateFileName). Otherwise a stale Sub-TA value left over from
+  // a previous TA would make two otherwise-identical documents look distinct.
+  const usesSubTA = doc.therapeuticArea.some((t) =>
+    TA_INCLUDES_SUB_TA.includes(t),
+  );
+  const subTA = usesSubTA ? sortedJoin(doc.subTherapeuticArea) : "";
 
   if (docType === "DAS") {
     const diseaseArea = sortedJoin(doc.diseaseArea);
@@ -144,6 +151,19 @@ export const applyChangeSetToDoc = (
   if (changeSet.effectiveDate !== undefined) {
     next.effectiveDate = changeSet.effectiveDate;
   }
+  // When TA is changed to a type that doesn't use Sub-TA in the filename,
+  // clear Sub-TA so the projected identity key matches what generateFileName
+  // will produce.  Without this the plan builder sees a different identity
+  // than the rename step, misses the collision, and silently overwrites a
+  // document that happens to share the same generated filename.
+  if (changeSet.metadata.therapeuticArea !== undefined) {
+    const newTAUsesSubTA = next.therapeuticArea.some((t) =>
+      TA_INCLUDES_SUB_TA.includes(t),
+    );
+    if (!newTAUsesSubTA) {
+      next.subTherapeuticArea = [];
+    }
+  }
   return next;
 };
 
@@ -163,6 +183,20 @@ export const buildTargetPayload = (
   }
   if (changeSet.effectiveDate !== undefined) {
     payload.effectiveDate = changeSet.effectiveDate;
+  }
+  // Mirror the Sub-TA clearing from applyChangeSetToDoc so the payload
+  // written to SharePoint is consistent with the projected identity and
+  // the filename that updateDocument will generate.
+  if (
+    changeSet.metadata.therapeuticArea !== undefined &&
+    changeSet.metadata.subTherapeuticArea === undefined
+  ) {
+    const newTAUsesSubTA = changeSet.metadata.therapeuticArea.some((t) =>
+      TA_INCLUDES_SUB_TA.includes(t),
+    );
+    if (!newTAUsesSubTA) {
+      payload.subTherapeuticArea = [];
+    }
   }
   return payload;
 };
@@ -230,13 +264,26 @@ export const buildBatchPlan = (
   }
 
   // Compute each matched doc's target (post-change) state + identity.
+  // "changed" reflects whether any field the admin actually chose to change
+  // (metadata field or effective date) differs from the doc's current value —
+  // NOT just whether the identity key differs. Identity-excluded fields like
+  // PAID and Effective Date would otherwise never be written, since altering
+  // them alone never changes getIdentityKey().
   const targets: ITargetEntry[] = matchedDocs.map((doc): ITargetEntry => {
     const targetDoc = applyChangeSetToDoc(doc, changeSet);
+    const changed =
+      BATCH_METADATA_FIELDS.some(
+        (field) =>
+          changeSet.metadata[field] !== undefined &&
+          sortedJoin(doc[field]) !== sortedJoin(targetDoc[field]),
+      ) ||
+      (changeSet.effectiveDate !== undefined &&
+        doc.effectiveDate !== targetDoc.effectiveDate);
     return {
       doc,
       targetDoc,
       newIdentity: getIdentityKey(targetDoc),
-      changed: getIdentityKey(doc) !== getIdentityKey(targetDoc),
+      changed,
     };
   });
 

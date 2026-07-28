@@ -6,7 +6,13 @@
       "Bash(npx tsc *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Projects\\\\SPECTRA\" -Recurse -File)",
       "Bash(Measure-Object)",
-      "Bash(Select-Object -ExpandProperty Count)"
+      "Bash(Select-Object -ExpandProperty Count)",
+      "Bash(ls \"C:\\\\Projects\\\\SPECTRATest\" 2>&1 | head -30)",
+      "Read(//c/Projects/SPECTRATest/**)",
+      "Bash(diff -rq --exclude=node_modules --exclude=dist --exclude=lib --exclude=release --exclude=temp --exclude=.git \"C:/Projects/SPECTRATest/src\" \"C:/Projects/SPECTRA/src\")",
+      "Read(//c/Projects/SPECTRATest/src/**)",
+      "Bash(diff -rq --exclude=node_modules \"C:/Projects/SPECTRATest/src/webparts/spectraTest\" \"C:/Projects/SPECTRA/src/webparts/spectra\")",
+      "Read(//c/Projects/SPECTRATest/src/webparts/spectraTest/**)"
     ]
   }
 }
